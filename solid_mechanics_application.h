@@ -15,6 +15,7 @@
 
 #include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 
 namespace Kratos {
     ///@name Type Definitions
@@ -93,6 +94,7 @@ namespace Kratos {
        private:
            //constitutive laws
            const LinearIsotropicDamagePlaneStrain2DLaw   mLinearIsotropicDamagePlaneStrain2DLaw;
+           const ExponentialIsotropicDamagePlaneStrain2DLaw   mExponentialIsotropicDamagePlaneStrain2DLaw;
            /// Assignment operator.
            KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
            /// Copy constructor.

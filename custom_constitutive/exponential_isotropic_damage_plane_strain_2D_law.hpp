@@ -1,5 +1,5 @@
-#if !defined (KRATOS_LINEAR_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_EXPONENTIAL_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define  KRATOS_EXPONENTIAL_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 
 /* System includes */
@@ -15,25 +15,25 @@ namespace Kratos
 	/**
 	* Base class of constitutive laws.
 	*/
-	class KRATOS_API(MULTISCALE_ROM_APPLICATION) LinearIsotropicDamagePlaneStrain2DLaw : public ConstitutiveLaw
+	class KRATOS_API(MULTISCALE_ROM_APPLICATION) ExponentialIsotropicDamagePlaneStrain2DLaw : public ConstitutiveLaw
 
 	{
 
 	public:
 
-		KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamagePlaneStrain2DLaw);
+		KRATOS_CLASS_POINTER_DEFINITION(ExponentialIsotropicDamagePlaneStrain2DLaw);
 
 	//public:
 
 		/**
 		* Constructor.
 		*/
-		LinearIsotropicDamagePlaneStrain2DLaw();
+		ExponentialIsotropicDamagePlaneStrain2DLaw();
 
 		/**
 		* Destructor.
 		*/
-		virtual ~LinearIsotropicDamagePlaneStrain2DLaw(){};
+		virtual ~ExponentialIsotropicDamagePlaneStrain2DLaw(){};
 
 		/**
 		* Clone function (has to be implemented by any derived class)

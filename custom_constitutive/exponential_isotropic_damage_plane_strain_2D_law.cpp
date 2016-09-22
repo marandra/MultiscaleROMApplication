@@ -1,11 +1,11 @@
-#include "linear_isotropic_damage_plane_strain_2D_law.hpp"
+#include "exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "solid_mechanics_application_variables.h"
 //#include "../SolidMechanicsApplication/solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
     // CONSTRUCTOR
-    LinearIsotropicDamagePlaneStrain2DLaw::LinearIsotropicDamagePlaneStrain2DLaw() 
+    ExponentialIsotropicDamagePlaneStrain2DLaw::ExponentialIsotropicDamagePlaneStrain2DLaw() 
     	: ConstitutiveLaw()
     	//, m_initialized(false)
     	//, m_init_gradT()
@@ -13,52 +13,52 @@ namespace Kratos
     }
     
     // CLONE
-    ConstitutiveLaw::Pointer LinearIsotropicDamagePlaneStrain2DLaw::Clone() const
+    ConstitutiveLaw::Pointer ExponentialIsotropicDamagePlaneStrain2DLaw::Clone() const
     {
-    	return ConstitutiveLaw::Pointer(new LinearIsotropicDamagePlaneStrain2DLaw());
+    	return ConstitutiveLaw::Pointer(new ExponentialIsotropicDamagePlaneStrain2DLaw());
     }
     
-    LinearIsotropicDamagePlaneStrain2DLaw::SizeType LinearIsotropicDamagePlaneStrain2DLaw::WorkingSpaceDimension()
+    ExponentialIsotropicDamagePlaneStrain2DLaw::SizeType ExponentialIsotropicDamagePlaneStrain2DLaw::WorkingSpaceDimension()
     {
     	return 2;
     }
     
-    LinearIsotropicDamagePlaneStrain2DLaw::SizeType LinearIsotropicDamagePlaneStrain2DLaw::GetStrainSize()
+    ExponentialIsotropicDamagePlaneStrain2DLaw::SizeType ExponentialIsotropicDamagePlaneStrain2DLaw::GetStrainSize()
     {
     	return 3;
     }
     
-    bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<double>& rThisVariable)
+    bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<double>& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<Vector>& rThisVariable)
+    bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<Vector>& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<Matrix>& rThisVariable)
+    bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<Matrix>& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 2 > >& rThisVariable)
+    bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 2 > >& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
+    bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
     {
     	return false;
     }
     
-    double& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
+    double& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
     {
     	return rValue;
     }
     
-    Vector& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+    Vector& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
     	//std::stringstream ss;
     	//ss << "LinearIsotropicDamagePlaneStrain2DLaw::GetValue" << std::endl;
@@ -88,28 +88,28 @@ namespace Kratos
     	return rValue;
     }
     
-    Matrix& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
+    Matrix& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
     {
     	return rValue;
     }
     
-    array_1d<double, 2 > & LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<array_1d<double, 2 > >& rVariable, array_1d<double, 2 > & rValue)
+    array_1d<double, 2 > & ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<array_1d<double, 2 > >& rVariable, array_1d<double, 2 > & rValue)
     {
     	return rValue;
     }
     
-    array_1d<double, 3 > & LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & rValue)
+    array_1d<double, 3 > & ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & rValue)
     {
     	return rValue;
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<double>& rVariable,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<double>& rVariable,
     	const double& rValue,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Vector >& rVariable,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Vector >& rVariable,
     	const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
     	//if (rVariable == INITIAL_TEMP_GRAD) {
@@ -123,44 +123,44 @@ namespace Kratos
     	//}
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Matrix >& rVariable,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Matrix >& rVariable,
     	const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 2 > >& rVariable,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 2 > >& rVariable,
     	const array_1d<double, 2 > & rValue,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
     	const array_1d<double, 3 > & rValue,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    bool LinearIsotropicDamagePlaneStrain2DLaw::ValidateInput(const Properties& rMaterialProperties)
+    bool ExponentialIsotropicDamagePlaneStrain2DLaw::ValidateInput(const Properties& rMaterialProperties)
     {
 	return true;
     }
     
-    LinearIsotropicDamagePlaneStrain2DLaw::StrainMeasure LinearIsotropicDamagePlaneStrain2DLaw::GetStrainMeasure()
+    ExponentialIsotropicDamagePlaneStrain2DLaw::StrainMeasure ExponentialIsotropicDamagePlaneStrain2DLaw::GetStrainMeasure()
     {
     	return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
     
-    LinearIsotropicDamagePlaneStrain2DLaw::StressMeasure LinearIsotropicDamagePlaneStrain2DLaw::GetStressMeasure()
+    ExponentialIsotropicDamagePlaneStrain2DLaw::StressMeasure ExponentialIsotropicDamagePlaneStrain2DLaw::GetStressMeasure()
     {
     	return ConstitutiveLaw::StressMeasure_Cauchy;
     }
     
-    bool LinearIsotropicDamagePlaneStrain2DLaw::IsIncremental()
+    bool ExponentialIsotropicDamagePlaneStrain2DLaw::IsIncremental()
     {
     	return false;
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::InitializeMaterial(
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::InitializeMaterial(
     	const Properties& material_prop,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues)
@@ -170,14 +170,14 @@ namespace Kratos
 	tau_e = 0.;
     }
 	    
-    void LinearIsotropicDamagePlaneStrain2DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
@@ -186,36 +186,36 @@ namespace Kratos
 	r_prev = r;
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::InitializeNonLinearIteration(const Properties& rMaterialProperties,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::InitializeNonLinearIteration(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
     {
     //	CalculateMaterialResponseCauchy(rValues);
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
     {
     //	CalculateMaterialResponseCauchy(rValues);
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
     {
     //	CalculateMaterialResponseCauchy(rValues);
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     {
     	// get some references
     	const Properties& matprops = rValues.GetMaterialProperties();
@@ -266,32 +266,32 @@ namespace Kratos
 
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
     {
     //	FinalizeMaterialResponseCauchy(rValues);
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
     {
     //	FinalizeMaterialResponseCauchy(rValues);
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
     {
     //	FinalizeMaterialResponseCauchy(rValues);
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
     {
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::ResetMaterial(const Properties& rMaterialProperties,
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::ResetMaterial(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues)
     {
     }
     
-    double LinearIsotropicDamagePlaneStrain2DLaw::CalculateQ(double r,
+    double ExponentialIsotropicDamagePlaneStrain2DLaw::CalculateQ(double r,
     	const Properties& material_prop) {
 
 	double H = material_prop[ISOTROPIC_HARDENING_MODULUS];
@@ -302,13 +302,11 @@ namespace Kratos
 
 	if (r < r0)
 	    return r;
-	q = r0 + H * (r - r0);
-	if ((H > 0 && q > q_inf) || (H < 0 && q < q_inf))
-	   q = q_inf;
+	q = q_inf - (q_inf - r0) * std::exp(H * (1 - r / r0));
 	return q;
     }
 
-    void LinearIsotropicDamagePlaneStrain2DLaw::CalculateConstitutiveMatrix(
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::CalculateConstitutiveMatrix(
         const Properties& props, Matrix& D)
     {
     	double E = props[YOUNG_MODULUS];
@@ -325,7 +323,7 @@ namespace Kratos
 	D *= Ebar / (1. - nubar * nubar);
     }
     
-    void LinearIsotropicDamagePlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+    void ExponentialIsotropicDamagePlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
     {
     	rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     	rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -335,23 +333,21 @@ namespace Kratos
     	rFeatures.mSpaceDimension = WorkingSpaceDimension();
     }
     
-    int LinearIsotropicDamagePlaneStrain2DLaw::Check(
+    int ExponentialIsotropicDamagePlaneStrain2DLaw::Check(
     	const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     		if(!rMaterialProperties.Has(YOUNG_MODULUS)) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - missing YOUNG_MODULUS", "");
+    		    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing YOUNG_MODULUS", "");
     		if(!rMaterialProperties.Has(POISSON_RATIO)) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - missing POISSON_RATIO", "");
+    		    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing POISSON_RATIO", "");
     		if(!rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS)) 
-    		KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - missing ISOTROPIC_HARDENING_MODULUS", "");
-    		if(rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] >= 1.) 
-    		KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - ISOTROPIC_HARDENING_MODULUS must be < 1.", "");
+    		KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing ISOTROPIC_HARDENING_MODULUS", "");
     		if(!rMaterialProperties.Has(INFINITY_YIELD_STRESS)) 
-    		KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - missing INFINITY_YIELD_STRESS", "");
+    		KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing INFINITY_YIELD_STRESS", "");
     		if(rMaterialProperties[INFINITY_YIELD_STRESS] < 0) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - INFINITY_YIELD_STRESS must be positive", "");
+    		    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - INFINITY_YIELD_STRESS must be positive", "");
     		return 0;
     }
     

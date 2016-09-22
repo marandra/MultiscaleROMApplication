@@ -22,6 +22,7 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -48,6 +49,11 @@ void  AddCustomConstitutiveLawsToPython()
 {
     class_< LinearIsotropicDamagePlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "LinearIsotropicDamagePlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< ExponentialIsotropicDamagePlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "ExponentialIsotropicDamagePlaneStrain2DLaw",
       init<>() )
     ;
 
