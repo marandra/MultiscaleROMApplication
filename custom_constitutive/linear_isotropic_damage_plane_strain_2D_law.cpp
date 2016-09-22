@@ -165,7 +165,8 @@ namespace Kratos
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues)
     {
-	r_prev = material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
+	double nu = material_prop[POISSON_RATIO];
+	r_prev = std::sqrt(1 - nu * nu) * material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
 	tau_e = 0.;
     }
 	    
@@ -310,7 +311,9 @@ namespace Kratos
     	const Properties& material_prop) {
 
 	double H = material_prop[ISOTROPIC_HARDENING_MODULUS];
-	double r0 = material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
+	double nu = material_prop[POISSON_RATIO];
+	double r0 = std::sqrt(1 - nu * nu) * material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
+	//double r0 = material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
     	double q_inf = material_prop[INFINITY_YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
         double q;
 
