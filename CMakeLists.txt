@@ -9,12 +9,7 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/solid_mechanics_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.cpp
 )
 
@@ -27,7 +22,6 @@ target_link_libraries(KratosMultiscaleROMApplication KratosCore)
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES PREFIX "")
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES COMPILE_DEFINITIONS "MULTISCALE_ROM_APPLICATION=EXPORT,API")
 install(TARGETS KratosMultiscaleROMApplication DESTINATION libs )
-
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")

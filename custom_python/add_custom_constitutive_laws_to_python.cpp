@@ -1,12 +1,3 @@
-//
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
-//
-//
-
 // System includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -30,7 +21,6 @@
 
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 
 namespace Kratos
@@ -43,11 +33,9 @@ using namespace boost::python;
 
 typedef Properties::Pointer                    PropertiesPointer;
 typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
-
 typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
 typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;
 typedef std::vector<ConstitutiveLaw::Pointer> MaterialsContainer;
-
 
 
 void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
@@ -58,12 +46,6 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 
 void  AddCustomConstitutiveLawsToPython()
 {
-    class_< MaterialsContainer >( "MaterialsContainer", init<>() )
-    .def( "PushBack", Push_Back_Constitutive_Laws )
-    ;
-
-   //Linear Elastic laws
-
     class_< LinearIsotropicDamagePlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "LinearIsotropicDamagePlaneStrain2DLaw",
       init<>() )
