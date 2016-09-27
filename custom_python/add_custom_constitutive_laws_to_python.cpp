@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/homogenized_rve_response_2D.hpp"
 
 namespace Kratos
 {
@@ -54,6 +55,11 @@ void  AddCustomConstitutiveLawsToPython()
 
     class_< ExponentialIsotropicDamagePlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "ExponentialIsotropicDamagePlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< HomogenizedRVEResponse2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HomogenizedRVEResponse2D",
       init<>() )
     ;
 

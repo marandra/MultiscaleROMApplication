@@ -346,12 +346,12 @@ namespace Kratos
     		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - missing POISSON_RATIO", "");
     		if(!rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS)) 
     		KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - missing ISOTROPIC_HARDENING_MODULUS", "");
-    		if(rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] >= 1.) 
-    		KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - ISOTROPIC_HARDENING_MODULUS must be < 1.", "");
     		if(!rMaterialProperties.Has(INFINITY_YIELD_STRESS)) 
     		KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - missing INFINITY_YIELD_STRESS", "");
     		if(rMaterialProperties[INFINITY_YIELD_STRESS] < 0) 
     		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - INFINITY_YIELD_STRESS must be positive", "");
+    		if(rMaterialProperties[ISOTROPIC_HARDENING_MODULUS] >= 1.) 
+    		KRATOS_THROW_ERROR(std::invalid_argument, "LinearIsotropicDamagePlaneStrain2DLaw - ISOTROPIC_HARDENING_MODULUS must be < 1.", "");
     		return 0;
     }
     
