@@ -1,8 +1,10 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
+# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import KratosMultiphysics as km
 import KratosMultiphysics.SolidMechanicsApplication as som
+
+
 km.CheckForPreviousImport()
 
 
@@ -13,6 +15,8 @@ def CreateSolver(main_model_part, custom_settings):
 class MechanicalSolver(object):
     def __init__(self, main_model_part, custom_settings): 
         self.main_model_part = main_model_part    
+
+
         default_settings = km.Parameters("""
         {
             "solver_type": "solid_mechanics_solver",
@@ -30,7 +34,7 @@ class MechanicalSolver(object):
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
@@ -51,10 +55,11 @@ class MechanicalSolver(object):
                 "scaling": false,
                 "verbosity": 1
             },
-            "problem_domain_sub_model_part_list": ["solid_model_part"],
+            "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""]
         }
         """)
+            #"computing_model_part_name": "hardcoded", 
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
         import linear_solver_factory
@@ -65,34 +70,47 @@ class MechanicalSolver(object):
 
 
     def AddVariables(self):
+        
+        # Add displacements
         self.main_model_part.AddNodalSolutionStepVariable(km.DISPLACEMENT)
+        # Add dynamic variables
         self.main_model_part.AddNodalSolutionStepVariable(km.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(km.ACCELERATION)
+        # Add reactions for the displacements
         self.main_model_part.AddNodalSolutionStepVariable(km.REACTION)
+        # Add nodal force variables
         self.main_model_part.AddNodalSolutionStepVariable(km.INTERNAL_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(km.EXTERNAL_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(km.CONTACT_FORCE)
+        # Add specific variables for the problem conditions
         self.main_model_part.AddNodalSolutionStepVariable(km.POSITIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(km.NEGATIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(som.POINT_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(som.LINE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(som.SURFACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(km.VOLUME_ACCELERATION)
+            
         if self.settings["rotation_dofs"].GetBool():
+
             self.main_model_part.AddNodalSolutionStepVariable(km.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(km.TORQUE)
             self.main_model_part.AddNodalSolutionStepVariable(km.ANGULAR_VELOCITY)
             self.main_model_part.AddNodalSolutionStepVariable(km.ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool():
+
             self.main_model_part.AddNodalSolutionStepVariable(km.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(som.PRESSURE_REACTION)
+
         print("[Solver] Variables ADDED")
+
 
     def GetMinimumBufferSize(self):
         return 2;
 
     def AddDofs(self):
+
         for node in self.main_model_part.Nodes:
+
             node.AddDof(km.DISPLACEMENT_X, km.REACTION_X);
             node.AddDof(km.DISPLACEMENT_Y, km.REACTION_Y);
             node.AddDof(km.DISPLACEMENT_Z, km.REACTION_Z);
@@ -104,20 +122,24 @@ class MechanicalSolver(object):
         if self.settings["pressure_dofs"].GetBool():                
             for node in self.main_model_part.Nodes:
                 node.AddDof(km.PRESSURE, som.PRESSURE_REACTION);
+
         print("[Solver] DOF's ADDED")
 
     def ImportModelPart(self):
         print("[Solver] Model reading starts.")
+        self.computing_model_part_name = "solid_computing_domain"
+
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             km.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             print("[Solver] Import input model part.")
             # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
-            aux_params = km.Parameters("{}")
-            aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-            aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+            params = km.Parameters('{}')
+            params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+            params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+            params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
             # CheckAndPrepareModelProcess creates the solid_computational_model_part
             import check_and_prepare_model_process_solid
-            check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+            check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
             # Constitutive law import
             constitutive_law = __import__(self.settings["model_import_settings"]["materials_filename"].GetString())
@@ -162,6 +184,9 @@ class MechanicalSolver(object):
     def GetComputeModelPart(self):
         return self.main_model_part.GetSubModelPart("solid_computational_model_part")
         
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
+
     def GetOutputVariables(self):
         pass
         

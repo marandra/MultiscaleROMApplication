@@ -19,6 +19,7 @@ namespace Kratos {
             //registering variables in python ( if must to be seen from python )
             KRATOS_REGISTER_IN_PYTHON_VARIABLE( ISOTROPIC_HARDENING_MODULUS )
             KRATOS_REGISTER_IN_PYTHON_VARIABLE( INFINITY_YIELD_STRESS )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( RVE_FULL_DISPLACEMENT )
         }
     }  // namespace Python.
 }  // namespace Kratos.
