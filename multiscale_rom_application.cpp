@@ -3,7 +3,7 @@
 // Project includes
 #include "includes/variables.h"
 #include "includes/serializer.h"
-#include "solid_mechanics_application.h"
+#include "multiscale_rom_application.h"
 namespace Kratos {
     //Application variables creation: (see solid_mechanics_application_variables.cpp)
     //Application Constructor:

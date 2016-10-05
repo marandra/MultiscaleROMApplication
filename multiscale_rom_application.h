@@ -13,7 +13,7 @@
 
 #include "containers/flags.h"
 
-#include "solid_mechanics_application_variables.h"
+#include "multiscale_rom_application_variables.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 

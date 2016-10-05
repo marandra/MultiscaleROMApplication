@@ -1,31 +1,30 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.MultiScaleApplication as mss # <- check is used
 import os
+import operator
 
 def Factory(settings, Model):
-    if(type(settings) != km.Parameters):
-        raise Exception("expected input is Parameters object, encapsulating a json string")
-    return WriteGNUNodalMultiple(settings["Parameters"], Model)
+    #if(type(settings) != km.Parameters):
+    #    raise Exception("expected input is Parameters object, encapsulating a json string")
+    return WriteNodesVariables(settings["Parameters"], Model)
 
 
-def parameters_get_list_int(settings_list):
+def parameters_get_list_int(ilist):
     olist = []
-    for i in range(settings_list.size()):
-        olist.append(settings_list[i].GetInt())
+    for i in range(ilist.size()):
+        olist.append(ilist[i].GetInt())
     return olist
 
 
-class WriteGNUNodalMultiple(km.Process):
+class WriteNodesVariables(km.Process):
     def __init__(self, param, Model):
-        self.Model = Model[param['modelpart_name'].GetString()]
+        self.Model = Model[param['model_part_name'].GetString()]
     	self.BaseName = None
     	self.Name = param['filename'].GetString()
-    	self.VarX = km.DISPLACEMENT_Y
-    	#comm = "self.VarX = {}".format(param['variable_x'].GetString())
-        #exec(comm)
-    	self.VarY = km.REACTION_Y
-    	#comm = "self.VarY = {}".format(param['variable_y'].GetString)
-        #exec(comm)
+    	f = operator.attrgetter(param['variable_x'].GetString())
+    	self.VarX = f(km)
+    	f = operator.attrgetter(param['variable_y'].GetString())
+    	self.VarY = f(km)
     	self.NodesX = parameters_get_list_int(param['nodes_x'])
     	self.NodesY = parameters_get_list_int(param['nodes_y'])
     	self.FactorX = 1.
@@ -33,7 +32,6 @@ class WriteGNUNodalMultiple(km.Process):
     	self.XSumFactor = 1.
     	self.YSumFactor = 1.
     	self.Frequency = None
-    	self.ofile = None
     	self.Tn = None
     
     def __check_write_freq(self,t):
@@ -51,7 +49,7 @@ class WriteGNUNodalMultiple(km.Process):
             	return r
             
     def write_results(self):
-    	with open(self.Name, 'w+') as self.ofile:
+    	with open(self.Name, 'a') as ofile:
     	    sum_x = 0.0
     	    sum_y = 0.0
     	    x_sum_fac = self.XSumFactor
@@ -60,15 +58,15 @@ class WriteGNUNodalMultiple(km.Process):
     	    	sum_x += x_sum_fac*(self.Model.Nodes[i].GetSolutionStepValue(self.VarX))
     	    for i in self.NodesY:
     	    	sum_y += y_sum_fac*(self.Model.Nodes[i].GetSolutionStepValue(self.VarY))
-    	    self.ofile.write("{}  {}\n".format(self.FactorX*sum_x, self.FactorY*sum_y))
+    	    ofile.write("{}  {}\n".format(self.FactorX*sum_x, self.FactorY*sum_y))
     
     def ExecuteInitialize(self):
         try:
             os.remove(self.Name)
         except OSError:
             pass
-        self.write_results() 
-    	self.Tn = self.Model.ProcessInfo[km.TIME]
+        #self.write_results() 
+    	#self.Tn = self.Model.ProcessInfo[km.TIME]
     
     def ExecuteInitializeSolutionStep(self):
         pass

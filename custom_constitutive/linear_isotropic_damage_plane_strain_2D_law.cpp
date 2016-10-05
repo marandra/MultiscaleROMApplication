@@ -1,5 +1,5 @@
 #include "linear_isotropic_damage_plane_strain_2D_law.hpp"
-#include "solid_mechanics_application_variables.h"
+#include "multiscale_rom_application_variables.h"
 //#include "../SolidMechanicsApplication/solid_mechanics_application_variables.h"
 
 namespace Kratos

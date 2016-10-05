@@ -1,5 +1,5 @@
 #include "homogenized_rve_response_2D.hpp"
-#include "solid_mechanics_application_variables.h"
+#include "multiscale_rom_application_variables.h"
 
 namespace Kratos
 {

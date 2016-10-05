@@ -1,4 +1,4 @@
-#include "solid_mechanics_application_variables.h"
+#include "multiscale_rom_application_variables.h"
 
 namespace Kratos {
   ///@name Type Definitions

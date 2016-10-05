@@ -5,7 +5,7 @@
 #include <boost/python.hpp>
 // Project includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-#include "solid_mechanics_application.h"
+#include "multiscale_rom_application.h"
 
 namespace Kratos {
     namespace Python {
