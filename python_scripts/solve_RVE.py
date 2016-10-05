@@ -1,26 +1,43 @@
 # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics as km
-import KratosMultiphysics.MultiScaleApplication as mss # <- check is used
-import os
 import operator
+#import os
+import KratosMultiphysics as km
+import KratosMultiphysics.MultiscaleROMApplication as msr
+import KratosMultiphysics.SolidMechanicsApplication as sol
+#import KratosMultiphysics.MultiScaleApplication as mss # <- check is used
 #from KratosMultiphysics.ExternalSolversApplication import *
-#from KratosMultiphysics.MultiScaleApplication import *
-#from KratosMultiphysics.SolidMechanicsApplication import *
 #from KratosMultiphysics.StructuralMechanicsApplication import *
 #import TK_Props
+import process_factory
 km.CheckForPreviousImport()
 
 
-def Factory(settings, Model):
-#    if(type(settings) != km.Parameters):
-#        raise Exception("expected input is Parameters object, encapsulating a json string")
-    return SolveRVE(settings["Parameters"], Model)
+def Factory(settings, Model = None):
+    return SolveRVE(settings["Parameters"])
 
 
+def create_model(parameters):
+    domain_size = parameters["problem_data"]["domain_size"].GetInt()
+    model_part_name = parameters["problem_data"]["part_name"].GetString()
+    model_part = km.ModelPart(model_part_name)
+    model_part.ProcessInfo.SetValue(km.DOMAIN_SIZE, domain_size)
+    Model = {model_part_name: model_part}
+    return Model
 
 
-
+def create_solver_complete_model_part(model_part, parameters):
+    solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
+    solver = solver_module.CreateSolver(model_part, parameters["solver_settings"])
+    solver.AddVariables()
+    solver.ImportModelPart()
+    solver.AddDofs()
+    constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
+    #aux_obj_getter = operator.methodcaller(constitutive_law_name)
+    #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(msr))
+    aux_obj_getter = operator.methodcaller('LinearElasticPlaneStrain2DLaw')
+    model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
+    return solver, model_part
 
 
 def parameters_get_list_int(ilist):
@@ -38,9 +55,8 @@ class SolveRVE(km.Process):
         RVE_3D = 2
         RVE_THERMAL_PLANE_STRESS = 3
         RVE_THERMAL_3D = 4
- 
 
-    def __init__(self, params, Model):
+    def __init__(self, params):
 #                 MicroModelPart,
 #                 StrainSize,
 #                 ResultsIOClass,
@@ -65,11 +81,27 @@ class SolveRVE(km.Process):
 #                 SecondaryRveModeler = None,
 #                 IsSecondary = False):
 
-         self.model_part = Model[params['model_part_name'].GetString()]
-         f = operator.attrgetter(params['strain_size'].GetString())
-         self.StrainSize = f(self.RVEStrainSize)
-#         self.BoundingPolygonNodesID = BoundingPolygonNodesID
-#         self.IsSecondary = IsSecondary
+
+        self.model = create_model(params)
+        self.model_part = self.model[params['problem_data']['part_name'].GetString()]
+        solver, model_part = create_solver_complete_model_part(self.model_part, params)
+
+
+        for i in range(params["solver_settings"]["processes_sub_model_part_list"].size()):
+            part_name = params["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+            self.model.update({part_name: self.model_part.GetSubModelPart(part_name)})
+
+        processes = process_factory.KratosProcessFactory(self.model)\
+            .ConstructListOfProcesses(params["constraints_process_list"])
+        processes += process_factory.KratosProcessFactory(self.model)\
+            .ConstructListOfProcesses(params["loads_process_list"])
+        
+        for process in processes:
+            process.ExecuteInitialize()
+
+
+        f = operator.attrgetter(params['problem_data']['strain_size'].GetString())
+        self.StrainSize = f(self.RVEStrainSize)
 #         if(self.StrainSize == RVEStrainSize.RVE_THERMAL_PLANE_STRESS):
 #         	self.RveAdapterClass = RveThermal2DAdapterV2
 #         	self.RveMaterialClass = RveConstitutiveLawV2Thermal2D
@@ -84,6 +116,8 @@ class SolveRVE(km.Process):
 #         else: # RVEStrainSize.RVE_3D):
 #         	self.RveAdapterClass = Rve3DAdapterV2
 #         	self.RveMaterialClass = RveConstitutiveLawV23D
+#         self.BoundingPolygonNodesID = BoundingPolygonNodesID
+#         self.IsSecondary = IsSecondary
 #         self.RveGeometryDescr = None
 #         self.ResultsIOClass = ResultsIOClass
 #         self.ResultsOnNodes = ResultsOnNodes
