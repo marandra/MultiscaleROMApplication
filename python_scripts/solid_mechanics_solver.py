@@ -163,6 +163,10 @@ class MechanicalSolver(object):
             params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
             params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])         
 
+            if( self.settings.Has("bodies_list") ):
+                params.AddValue("bodies_list",self.settings["bodies_list"])
+
+            
             # CheckAndPrepareModelProcess creates the solid_computational model part
             import check_and_prepare_model_process_solid
             check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
@@ -206,16 +210,15 @@ class MechanicalSolver(object):
             if(os.path.exists(restart_path+".rest") == False):
                 print("    rest file does not exist , check the restart step selected ")
 
-            print("    Load input restart file:",restart_path)
+            print("    Load Restart file: ", self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString())
             # set serializer flag
-            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
+            self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
             # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-            self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
+            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
             serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
 
             serializer.Load(self.main_model_part.Name, self.main_model_part)
-            print("    Restart file loaded.")
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
 
