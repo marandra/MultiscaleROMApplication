@@ -21,52 +21,44 @@ class WriteNodesVariables(km.Process):
         self.Model = Model[param['model_part_name'].GetString()]
     	self.BaseName = None
     	self.Name = param['filename'].GetString()
-    	f = operator.attrgetter(param['variable_x'].GetString())
-    	self.VarX = f(km)
-    	f = operator.attrgetter(param['variable_y'].GetString())
-    	self.VarY = f(km)
-    	self.NodesX = parameters_get_list_int(param['nodes_x'])
-    	self.NodesY = parameters_get_list_int(param['nodes_y'])
-    	self.FactorX = 1.
-    	self.FactorY = 1.
-    	self.XSumFactor = 1.
-    	self.YSumFactor = 1.
-    	self.Frequency = None
-    	self.Tn = None
+        self.vname1 = param['variable_1'].GetString()
+    	f = operator.attrgetter(self.vname1)
+    	self.Var1 = f(km)
+        self.vname2 = param['variable_2'].GetString()
+    	f = operator.attrgetter(self.vname2)
+    	self.Var2 = f(km)
+        self.vname3 = param['variable_3'].GetString()
+    	f = operator.attrgetter(self.vname3)
+    	self.Var3 = f(km)
+        self.vname4 = param['variable_4'].GetString()
+    	f = operator.attrgetter(self.vname4)
+    	self.Var4 = f(km)
+    	self.node = param['node'].GetInt()
     
-    def __check_write_freq(self,t):
-    	r = True
-    	f = self.Frequency
-    	if(f is not None):
-            if(self.Tn is None):
-            	self.Tn = t
-            else:
-            	dt = t-self.Tn
-            	if(dt >= f):
-                    self.Tn = t
-            	else:
-            	    r = False
-            	return r
-            
     def write_results(self):
     	with open(self.Name, 'a') as ofile:
-    	    sum_x = 0.0
-    	    sum_y = 0.0
-    	    x_sum_fac = self.XSumFactor
-    	    y_sum_fac = self.YSumFactor
-    	    for i in self.NodesX:
-    	    	sum_x += x_sum_fac*(self.Model.Nodes[i].GetSolutionStepValue(self.VarX))
-    	    for i in self.NodesY:
-    	    	sum_y += y_sum_fac*(self.Model.Nodes[i].GetSolutionStepValue(self.VarY))
-    	    ofile.write("{}  {}\n".format(self.FactorX*sum_x, self.FactorY*sum_y))
+    	        var1 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var1)
+    	        ofile.write("  {}".format(var1))
+    	        var2 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var2)
+    	        ofile.write("  {}".format(var2))
+    	        var3 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var3)
+    	        ofile.write("  {}".format(var3))
+    	        var4 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var4)
+    	        ofile.write("  {}".format(var4))
+    	        ofile.write("\n".format())
     
     def ExecuteInitialize(self):
         try:
             os.remove(self.Name)
         except OSError:
             pass
-        #self.write_results() 
-    	#self.Tn = self.Model.ProcessInfo[km.TIME]
+    	with open(self.Name, 'a') as ofile:
+    	    ofile.write("#  node {}\n#".format(self.node))
+    	    ofile.write("  {}".format(self.vname1))
+    	    ofile.write("  {}".format(self.vname2))
+    	    ofile.write("  {}".format(self.vname3))
+    	    ofile.write("  {}".format(self.vname4))
+    	    ofile.write("\n".format())
     
     def ExecuteInitializeSolutionStep(self):
         pass

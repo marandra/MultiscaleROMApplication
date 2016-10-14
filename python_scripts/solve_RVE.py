@@ -5,16 +5,40 @@ import operator
 import KratosMultiphysics as km
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import KratosMultiphysics.SolidMechanicsApplication as sol
-#import KratosMultiphysics.MultiScaleApplication as mss # <- check is used
-#from KratosMultiphysics.ExternalSolversApplication import *
-#from KratosMultiphysics.StructuralMechanicsApplication import *
+import KratosMultiphysics.MultiScaleApplication as mss
+#import KratosMultiphysics.ExternalSolversApplication
+#import KratosMultiphysics.StructuralMechanicsApplication
 #import TK_Props
 import process_factory
+import TK_Rve_V2
+import TK_GiD
 km.CheckForPreviousImport()
 
 
-def Factory(settings, Model = None):
-    return SolveRVE(settings["Parameters"])
+def Factory(settings, Model):
+    return SolveRVE(settings["Parameters"], Model)
+
+
+def analysis(parameters, processes, solver, model_part):
+    for process in processes:
+        process.ExecuteBeforeSolutionLoop()
+    delta_time = parameters["problem_data"]["time_step"].GetDouble()
+    time = parameters["problem_data"]["start_time"].GetDouble()
+    end_time = parameters["problem_data"]["end_time"].GetDouble()
+    while(time <= end_time):
+        time = time + delta_time
+        model_part.CloneTimeStep(time)
+        for process in processes:
+            process.ExecuteInitializeSolutionStep()
+        solver.Solve()
+        for process in processes:
+            process.ExecuteFinalizeSolutionStep()
+        for process in processes:
+            process.ExecuteBeforeOutputStep()
+        for process in processes:
+            process.ExecuteAfterOutputStep()
+    for process in processes:
+        process.ExecuteFinalize()
 
 
 def create_model(parameters):
@@ -33,9 +57,7 @@ def create_solver_complete_model_part(model_part, parameters):
     solver.ImportModelPart()
     solver.AddDofs()
     constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
-    #aux_obj_getter = operator.methodcaller(constitutive_law_name)
-    #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(msr))
-    aux_obj_getter = operator.methodcaller('LinearElasticPlaneStrain2DLaw')
+    aux_obj_getter = operator.methodcaller(constitutive_law_name)
     model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
     return solver, model_part
 
@@ -56,7 +78,7 @@ class SolveRVE(km.Process):
         RVE_THERMAL_PLANE_STRESS = 3
         RVE_THERMAL_3D = 4
 
-    def __init__(self, params):
+    def __init__(self, params, macro_model):
 #                 MicroModelPart,
 #                 StrainSize,
 #                 ResultsIOClass,
@@ -81,75 +103,79 @@ class SolveRVE(km.Process):
 #                 SecondaryRveModeler = None,
 #                 IsSecondary = False):
 
+        self.macro_model = macro_model
 
+        self.params = params
         self.model = create_model(params)
         self.model_part = self.model[params['problem_data']['part_name'].GetString()]
-        solver, model_part = create_solver_complete_model_part(self.model_part, params)
-
+        self.model_part_name = params['problem_data']['part_name'].GetString()
+        self.solver, self.model_part = create_solver_complete_model_part(self.model_part, params)
 
         for i in range(params["solver_settings"]["processes_sub_model_part_list"].size()):
             part_name = params["solver_settings"]["processes_sub_model_part_list"][i].GetString()
             self.model.update({part_name: self.model_part.GetSubModelPart(part_name)})
 
-        processes = process_factory.KratosProcessFactory(self.model)\
+        self.processes = process_factory.KratosProcessFactory(self.model)\
             .ConstructListOfProcesses(params["constraints_process_list"])
-        processes += process_factory.KratosProcessFactory(self.model)\
+        self.processes += process_factory.KratosProcessFactory(self.model)\
             .ConstructListOfProcesses(params["loads_process_list"])
-        
-        for process in processes:
-            process.ExecuteInitialize()
 
 
+
+
+       	self.MicroModelPart = self.model_part
+       	self.MicroModelPartPrototype = self.model_part
         f = operator.attrgetter(params['problem_data']['strain_size'].GetString())
         self.StrainSize = f(self.RVEStrainSize)
-#         if(self.StrainSize == RVEStrainSize.RVE_THERMAL_PLANE_STRESS):
-#         	self.RveAdapterClass = RveThermal2DAdapterV2
-#         	self.RveMaterialClass = RveConstitutiveLawV2Thermal2D
-#         elif(self.StrainSize == RVEStrainSize.RVE_THERMAL_3D):
-#         	self.RveAdapterClass = RveThermal3DAdapterV2
-#         	self.RveMaterialClass = RveConstitutiveLawV2Thermal3D
-#         elif(self.StrainSize == RVEStrainSize.RVE_PLANE_STRESS):
-#         	self.RveAdapterClass = RvePlaneStressAdapterV2
-#         	self.RveMaterialClass = RveConstitutiveLawV2PlaneStress
-#         elif(self.StrainSize == RVEStrainSize.RVE_PLANE_STRAIN):
-#         	raise Exception("Rve Plane Strain Not Yet Implemented")
-#         else: # RVEStrainSize.RVE_3D):
-#         	self.RveAdapterClass = Rve3DAdapterV2
-#         	self.RveMaterialClass = RveConstitutiveLawV23D
-#         self.BoundingPolygonNodesID = BoundingPolygonNodesID
-#         self.IsSecondary = IsSecondary
-#         self.RveGeometryDescr = None
-#         self.ResultsIOClass = ResultsIOClass
-#         self.ResultsOnNodes = ResultsOnNodes
-#         self.ResultsOnGaussPoints = ResultsOnGaussPoints
-#         self.RveConstraintHandlerClass = RveConstraintHandlerClass
-#         self.RveHomogenizerClass       = RveHomogenizerClass
-#         self.SchemeClass               = SchemeClass
-#         self.LinearSolverClass = LinearSolverClass
-#         self.MaxIterations = MaxIterations
-#         self.CalculateReactions = CalculateReactions
-#         self.ReformDofSetAtEachIteration = ReformDofSetAtEachIteration
-#         self.MoveMesh = MoveMesh
-#         self.ConvergenceCriteriaClass = ConvergenceCriteriaClass
-#         self.ConvergenceRelativeTolerance = ConvergenceRelativeTolerance
-#         self.ConvergenceAbsoluteTolerance = ConvergenceAbsoluteTolerance
-#         self.ConvergenceIsVerbose = ConvergenceIsVerbose
-#         self.TargetElementList = TargetElementList
-#         self.OutputElementList = OutputElementList
-#         self.TrackList = {}
-#         self.Initialized = False
-#         self.SecondaryRveModeler = SecondaryRveModeler
-#         self.IsSecondary         = IsSecondary
-         # if(self.IsSecondary == False):
-         	# if(self.SecondaryRveModeler is None):
-         		# raise exeption(" -- RVEModelerSolid is the first physic and need SecondaryRveModeler for add RVE_Clone_ModelPart_List -- ")
+        if(self.StrainSize == self.RVEStrainSize.RVE_THERMAL_PLANE_STRESS):
+        	self.RveAdapterClass = mss.RveThermal2DAdapterV2
+        	self.RveMaterialClass = mss.RveConstitutiveLawV2Thermal2D
+        elif(self.StrainSize == self.RVEStrainSize.RVE_THERMAL_3D):
+        	self.RveAdapterClass = mss.RveThermal3DAdapterV2
+        	self.RveMaterialClass = mss.RveConstitutiveLawV2Thermal3D
+        elif(self.StrainSize == self.RVEStrainSize.RVE_PLANE_STRESS):
+        	self.RveAdapterClass = mss.RvePlaneStressAdapterV2
+        	self.RveMaterialClass = mss.RveConstitutiveLawV2PlaneStress
+        elif(self.StrainSize == self.RVEStrainSize.RVE_PLANE_STRAIN):
+        	raise Exception("Rve Plane Strain Not Yet Implemented")
+        else: # RVEStrainSize.RVE_3D
+        	self.RveAdapterClass = mss.Rve3DAdapterV2
+        	self.RveMaterialClass = mss.RveConstitutiveLawV23D
+        self.BoundingPolygonNodesID = None
+        self.IsSecondary = False
+        self.RveGeometryDescr = None
+        self.ResultsIOClass = TK_GiD.ResultsIO
+        self.ResultsOnNodes = [km.DISPLACEMENT, km.REACTION, mss.RVE_FULL_DISPLACEMENT]
+        self.ResultsOnGaussPoints = [km.GREEN_LAGRANGE_STRAIN_TENSOR, km.CAUCHY_STRESS_TENSOR]
+        self.RveConstraintHandlerClass = mss.RveConstraintHandler_PBF_SD
+        self.RveHomogenizerClass       = mss.RveHomogenizer
+        self.SchemeClass               = mss.RveStaticScheme
+        self.LinearSolverClass = mss.SkylineLUFactorizationSolverV2
+        self.MaxIterations = 10
+        self.CalculateReactions = True
+        self.ReformDofSetAtEachIteration = False
+        self.MoveMesh = False
+        self.ConvergenceCriteriaClass = mss.ResidualNormCriteria
+        self.ConvergenceRelativeTolerance = 1.0E-7
+        self.ConvergenceAbsoluteTolerance = 1.0E-9
+        self.ConvergenceIsVerbose = False
+        self.TargetElementList = [x + 1 for x in range(1)]
+        self.OutputElementList = [1]
+        self.TrackList = {}
+        self.Initialized = False
+        self.IsSecondary         = False
+        self.SecondaryRveModeler = None
 	
  
     def ExecuteInitialize(self):
-#        self.Initialize(self.MicroModelPart)
+        self.Initialize()
+        for process in self.processes:
+            process.ExecuteInitialize()
+        self.solver.Initialize()
         pass
     
     def ExecuteInitializeSolutionStep(self):
+        analysis(self.params, self.processes, self.solver, self.model_part)
         pass
 
     def ExecuteAfterOutputStep(self):
@@ -175,61 +201,24 @@ class SolveRVE(km.Process):
 				
    
     def Initialize(self):
-        if(self.Initialized == False):
-            # initialize the geometry descriptor
-            self.RveGeometryDescr = RveGeometryDescriptor()
-            if(self.BoundingPolygonNodesID is not None):
-                self.RveGeometryDescr.SetUserCornerNodes(self.BoundingPolygonNodesID)
-            self.RveGeometryDescr.Build(self.model_part)
-            #print(self.RveGeometryDescr)
-            # generate,assign and track all required rve's
-            if(self.IsSecondary == True):
-                # il primario ha generato la lista di cloni
-                # ho bisogno di sapere in quale id mi trovo della lista
-                self.clone_list_counter = 0
-                for elem_id in self.TargetElementList:
-                    elem = model_part.Elements[elem_id]
-                    dummy = self.__assign_rve_constitutive_law(elem)
-                self.clone_list_counter = 0 # non necessario ma per sicurazzo lo riazzeriamo
-            else:
-                # se sono il primario genero una lista di [nelem*ngauss] di rve clones...
-                self.stored_rvemdpa_clones=[]
-                for elem_id in self.TargetElementList:
-                    elem = model_part.Elements[elem_id]
-                    elem_rvemdpa_clone_list = self.__assign_rve_constitutive_law(elem)
-                    for iclone in elem_rvemdpa_clone_list:
-                        self.stored_rvemdpa_clones.append(iclone)
-                # ... e la copio nel modeler secondario (che non dovra generarla!!!!!)
-                if(self.SecondaryRveModeler is not None):
-                    self.SecondaryRveModeler.stored_rvemdpa_clones = self.stored_rvemdpa_clones
-           
-            # initialize the output
-            self.__initialize_output()
-            
-            # set initialization flag
-            self.Initialized = True
 
-	# private methods *******************************************************************************************
-	
-	## __generate_rve_constitutive_law
-	#
+	def __generate_rve_constitutive_law():
 	# This method generates a new rve constitutive law
 	# by cloning the rve model part prototype and creating
 	# a new rve constitutive law out of it.
 	# This method is meant to be private, do NOT call it explicitly
-	def __generate_rve_constitutive_law(self):
 	
 		if(self.IsSecondary == True):
 			current_rve_primary_clone = self.stored_rvemdpa_clones[ self.clone_list_counter ]
-			modelPartClone = ModelPart(self.model_part.Name + "_RVE")
-			RveCloneModelPart2Physics(self.model_part, current_rve_primary_clone, modelPartClone) # clone the model part prototype
+			modelPartClone = km.ModelPart(self.model_part_name + "_RVE")
+			TK_Rve_V2.RveCloneModelPart2Physics(self.model_part, current_rve_primary_clone, modelPartClone) # clone the model part prototype
 			
 			self.clone_list_counter = self.clone_list_counter + 1
 		else:
-			modelPartClone = ModelPart(self.model_part.Name + "_RVE")
-			RveCloneModelPart(self.model_part, modelPartClone) # clone the model part prototype
+			modelPartClone = km.ModelPart(self.model_part_name + "_RVE")
+			TK_Rve_V2.RveCloneModelPart(self.model_part, modelPartClone) # clone the model part prototype
 		
-		msData = RveMacroscaleData() 
+		msData = TK_Rve_V2.RveMacroscaleData() 
 		
 		linSolver = self.LinearSolverClass() 
 		
@@ -253,7 +242,7 @@ class SolveRVE(km.Process):
 			msData,
 			self.RveGeometryDescr,
 			constraint_handler,
-			RveLinearSystemOfEquations(linSolver),
+			TK_Rve_V2.RveLinearSystemOfEquations(linSolver),
 			homogenizer,
 			timeScheme,
 			convCriteria
@@ -266,13 +255,12 @@ class SolveRVE(km.Process):
 				modelPartClone.CloneTimeStep(0.0)
 		return  (rveLaw,modelPartClone) # return a tuple
 	
-	## __track_rve_constitutive_law
-	#
+
+	def __track_rve_constitutive_law(rveLaw, elemID, gpID):
 	# This method tracks a rve constitutive law
 	# at a given element in a given gauss point.
 	# This method is meant to be private, do NOT call it explicitly
-	def __track_rve_constitutive_law(self, rveLaw, elemID, gpID):
-		elInfo = SolidElementInfo(elemID, gpID)
+		elInfo = TK_Rve_V2.SolidElementInfo(elemID, gpID)
 		
 		if( next((x for x in self.OutputElementList if x == elemID), None) is not None ):
 			outputFileName = self.model_part.Name + "__" + elInfo.GetStringExtension()
@@ -284,12 +272,10 @@ class SolveRVE(km.Process):
 		else:
 			self.TrackList[elInfo] = (rveLaw, None)
 	
-	## __assign_rve_constitutive_law
-	#
+	def __assign_rve_constitutive_law(Element):
 	# This method assignes a rve constitutive law
 	# at a given element.
 	# This method is meant to be private, do NOT call it explicitly
-	def __assign_rve_constitutive_law(self, Element):
 		
 		# list of generated rve mdpa clones
 		rve_mdpa_clones = []
@@ -300,7 +286,7 @@ class SolveRVE(km.Process):
 		elem_id = Element.Id
 		
 		# get a reference to the process into
-		pinfo = self.MicroModelPart.Model.ProcessInfo
+		pinfo = self.MicroModelPart.ProcessInfo
 		
 		# prepare the list of constitutive laws for the element
 		constitutiveLaws = []
@@ -309,43 +295,48 @@ class SolveRVE(km.Process):
 		for gp_id in range(num_gp):
 			
 			# generate a new rve constitutive law
-			rve_law__rve_mdpa__tuple = self.__generate_rve_constitutive_law()
+			rve_law__rve_mdpa__tuple = __generate_rve_constitutive_law()
+                        print("ACAAAA")
 			aRveLaw = rve_law__rve_mdpa__tuple[0]
 			constitutiveLaws.append(aRveLaw)
 			
 			# TODO: check what rve law to track...
 			# for the moment let's track them all
-			self.__track_rve_constitutive_law(aRveLaw, elem_id, gp_id)
+			__track_rve_constitutive_law(aRveLaw, elem_id, gp_id)
 			
 			# store the rve mdpa clone
 			rve_mdpa_clones.append(rve_law__rve_mdpa__tuple[1])
 		
 		# assign the list of constitutive laws
-		Element.SetValuesOnIntegrationPoints(CONSTITUTIVE_LAW_POINTER, constitutiveLaws, pinfo)
+		Element.SetValuesOnIntegrationPoints(sol.CONSTITUTIVE_LAW_POINTER, constitutiveLaws, pinfo)
 		
 		return rve_mdpa_clones
 	
+
+	def __initialize_output():
 	## Initializes the output for the tracked rves (only if required)
-	def __initialize_output(self):
 		for key, value in self.TrackList.items():
 			rveIO = value[1]
 			if(rveIO is not None):
 				rveIO.Initialize()
 	
-	## Writes the output for the tracked rves (only if required)
+
 	def __write_output(self, currentTime):
+	## Writes the output for the tracked rves (only if required)
 		for key, value in self.TrackList.items():
 			rveIO = value[1]
 			if(rveIO is not None):
 				rveIO.Write(currentTime)
 	
-	## Finalizes the output for the tracked rves (only if required)
+
 	def __finalize_output(self):
+	## Finalizes the output for the tracked rves (only if required)
 		for key, value in self.TrackList.items():
 			rveIO = value[1]
 			if(rveIO is not None):
 				rveIO.Finalize()
 	
+
 	def __print_info(self):
 		
 		print ("")
@@ -371,3 +362,36 @@ class SolveRVE(km.Process):
 			print ("+--------------------------------------------------------+")
 			ii+=1
 
+        if(self.Initialized == False):
+            # initialize the geometry descriptor
+            self.RveGeometryDescr = mss.RveGeometryDescriptor()
+            if(self.BoundingPolygonNodesID is not None):
+                self.RveGeometryDescr.SetUserCornerNodes(self.BoundingPolygonNodesID)
+            self.RveGeometryDescr.Build(self.model_part)
+            #print(self.RveGeometryDescr)
+            # generate,assign and track all required rve's
+            if(self.IsSecondary == True):
+                # il primario ha generato la lista di cloni
+                # ho bisogno di sapere in quale id mi trovo della lista
+                self.clone_list_counter = 0
+                for elem_id in self.TargetElementList:
+                    elem = self.macro_model["Macrostructure"].Elements[elem_id]
+                    dummy = __assign_rve_constitutive_law(elem)
+                self.clone_list_counter = 0 # non necessario ma per sicurazzo lo riazzeriamo
+            else:
+                # se sono il primario genero una lista di [nelem*ngauss] di rve clones...
+                self.stored_rvemdpa_clones=[]
+                for elem_id in self.TargetElementList:
+                    elem = self.macro_model["Macrostructure"].Elements[elem_id]
+                    elem_rvemdpa_clone_list = __assign_rve_constitutive_law(elem)
+                    for iclone in elem_rvemdpa_clone_list:
+                        self.stored_rvemdpa_clones.append(iclone)
+                # ... e la copio nel modeler secondario (che non dovra generarla!!!!!)
+                if(self.SecondaryRveModeler is not None):
+                    self.SecondaryRveModeler.stored_rvemdpa_clones = self.stored_rvemdpa_clones
+           
+            # initialize the output
+            __initialize_output()
+            
+            # set initialization flag
+            self.Initialized = True
