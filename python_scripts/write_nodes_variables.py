@@ -4,8 +4,6 @@ import os
 import operator
 
 def Factory(settings, Model):
-    #if(type(settings) != km.Parameters):
-    #    raise Exception("expected input is Parameters object, encapsulating a json string")
     return WriteNodesVariables(settings["Parameters"], Model)
 
 
@@ -20,7 +18,7 @@ class WriteNodesVariables(km.Process):
     def __init__(self, param, Model):
         self.Model = Model[param['model_part_name'].GetString()]
     	self.BaseName = None
-    	self.Name = param['filename'].GetString()
+    	self.filename = param['filename'].GetString()
         self.vname1 = param['variable_1'].GetString()
     	f = operator.attrgetter(self.vname1)
     	self.Var1 = f(km)
@@ -36,7 +34,7 @@ class WriteNodesVariables(km.Process):
     	self.node = param['node'].GetInt()
     
     def write_results(self):
-    	with open(self.Name, 'a') as ofile:
+    	with open(self.filename, 'a') as ofile:
     	        var1 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var1)
     	        ofile.write("  {}".format(var1))
     	        var2 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var2)
@@ -49,10 +47,10 @@ class WriteNodesVariables(km.Process):
     
     def ExecuteInitialize(self):
         try:
-            os.remove(self.Name)
+            os.remove(self.filename)
         except OSError:
             pass
-    	with open(self.Name, 'a') as ofile:
+    	with open(self.filename, 'a') as ofile:
     	    ofile.write("#  node {}\n#".format(self.node))
     	    ofile.write("  {}".format(self.vname1))
     	    ofile.write("  {}".format(self.vname2))
