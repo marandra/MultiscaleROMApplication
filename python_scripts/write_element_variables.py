@@ -30,24 +30,12 @@ class WriteElementVariables(km.Process):
     def write_results(self):
     	with open(self.filename, 'a') as ofile:
             process_info = self.model_part.ProcessInfo
-            print("VAR")
-            print(self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp])
-            CompX0 = self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp][0]
-            CompX1 = self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp][1]
-            CompX2 = self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp][2]
-            CompX3 = self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp][3]
-            #CompX4 = self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp][4]
-            #CompX5 = self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp][5]
-            CompY0 = self.elem.GetValuesOnIntegrationPoints(self.Var2, process_info)[self.gp][0]
-            CompY1 = self.elem.GetValuesOnIntegrationPoints(self.Var2, process_info)[self.gp][1]
-            CompY2 = self.elem.GetValuesOnIntegrationPoints(self.Var2, process_info)[self.gp][2]
-            CompY3 = self.elem.GetValuesOnIntegrationPoints(self.Var2, process_info)[self.gp][3]
-            #CompY4 = self.elem.GetValuesOnIntegrationPoints(self.Var2, process_info)[self.gp][4]
-            #CompY5 = self.elem.GetValuesOnIntegrationPoints(self.Var2, process_info)[self.gp][5]
-            ofile.write("{: .3e} {: .3e} {: .3e} {: .3e}  {: .3e} {: .3e} {: .3e} {: .3e}"# "  {: .3e} {: .3e} {: .3e} {: .3e}"
+            CX = self.elem.GetValuesOnIntegrationPoints(self.Var1, process_info)[self.gp]
+            CY = self.elem.GetValuesOnIntegrationPoints(self.Var2, process_info)[self.gp]
+            ofile.write("{: .3e} {: .3e} {: .3e}  {: .3e} {: .3e} {: .3e}" #"  {: .3e} {: .3e} {: .3e} {: .3e}"
                 .format(
-                CompX0, CompX1, CompX2, CompX3, #CompX4, CompX5,
-                CompY0, CompY1, CompY2, CompY3, #CompY4, CompY5
+                CX[0], CX[3], CX[1], # CX[0],
+                CY[0], CY[3], CY[1], # CY[0],
                 ))
             ofile.write("\n")
     
@@ -57,14 +45,12 @@ class WriteElementVariables(km.Process):
         except OSError:
             pass
         with open(self.filename, 'a') as ofile:
-            ofile.write("#{:<43}  {:<43}\n".format(self.vname1, self.vname2))
-            ofile.write("#{:<10} {:<10} {:<10} {:<10}"
-                        #" {:<10} {:<10}"
-                        "  {:<10} {:<10} {:<10} {:<10}"
-                        #"  {:<10}  {:<10}"
+            ofile.write("#{:<32}  {:<32}\n".format(self.vname1, self.vname2))
+            ofile.write("#{:<10} {:<10} {:<10}" #" {:<10} {:<10}"
+                        "  {:<10} {:<10} {:<10}" #" {:<10} {:<10}"
                 .format(
-                "Comp 0", "Comp 1", "Comp 2", "Comp 3", #"Comp 4", "Comp 5",
-                "Comp 0", "Comp 1", "Comp 2", "Comp 3", #"Comp 4", "Comp 5"
+                "Comp XX", "Comp YY", "Comp XY", #"Comp 4", "Comp 5",
+                "Comp XX", "Comp YY", "Comp XY", #"Comp 4", "Comp 5"
                 ))
             ofile.write("\n")
                                                                             
