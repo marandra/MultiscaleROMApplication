@@ -111,8 +111,6 @@ class SolveRVE(km.Process):
         self.model_part_name = params['problem_data']['part_name'].GetString()
         self.model_part = self.model[self.model_part_name]
         self.solver, self.model_part = create_solver_complete_model_part(self.model_part, params)
-        print("DEBUG")
-        print(self.microscale_model_part.Elements[1])
 
         for i in range(params["solver_settings"]["processes_sub_model_part_list"].size()):
             part_name = params["solver_settings"]["processes_sub_model_part_list"][i].GetString()
@@ -124,10 +122,6 @@ class SolveRVE(km.Process):
             .ConstructListOfProcesses(params["loads_process_list"])
 
 
-
-
-       	self.MicroModelPart = self.model_part
-       	self.MicroModelPartPrototype = self.model_part
         f = operator.attrgetter(params['problem_data']['strain_size'].GetString())
         self.StrainSize = f(self.RVEStrainSize)
         if(self.StrainSize == self.RVEStrainSize.RVE_THERMAL_PLANE_STRESS):
@@ -161,8 +155,6 @@ class SolveRVE(km.Process):
         self.ConvergenceRelativeTolerance = 1.0E-7
         self.ConvergenceAbsoluteTolerance = 1.0E-9
         self.ConvergenceIsVerbose = False
-        self.TargetElementList = [x + 1 for x in range(1)]
-        self.TargetElementList = [1]
         self.OutputElementList = [1]
         self.TrackList = {}
         self.Initialized = False
@@ -180,7 +172,7 @@ class SolveRVE(km.Process):
         pass
 
     def ExecuteAfterOutputStep(self):
-#	self.__write_output(self.MicroModelPart.ProcessInfo[TIME])
+#	self.__write_output(self.model_part.ProcessInfo[TIME])
         pass
 
     def ExecuteBeforeOutputStep(self):
@@ -276,7 +268,7 @@ class SolveRVE(km.Process):
 		elem_id = Element.Id
 		
 		# get a reference to the process into
-		pinfo = self.MicroModelPart.ProcessInfo
+		pinfo = self.model_part.ProcessInfo
 		
 		# prepare the list of constitutive laws for the element
 		constitutiveLaws = []
@@ -358,12 +350,11 @@ class SolveRVE(km.Process):
                 self.RveGeometryDescr.SetUserCornerNodes(self.BoundingPolygonNodesID)
             self.RveGeometryDescr.Build(self.model_part)
             #print(self.RveGeometryDescr)
-            # generate,assign and track all required rve's
-            # se sono il primario genero una lista di [nelem*ngauss] di rve clones...
             self.stored_rvemdpa_clones=[]
-            for elem_id in self.TargetElementList:
-                elem = self.microscale_model_part.Elements[elem_id]
-                #elem = self.macro_model["Macrostructure"].Elements[elem_id]
+
+            #for elem_id in self.TargetElementList:
+            #    elem = self.microscale_model_part.Elements[elem_id]
+            for elem in self.microscale_model_part.Elements:
                 elem_rvemdpa_clone_list = __assign_rve_constitutive_law(elem)
                 for iclone in elem_rvemdpa_clone_list:
                     self.stored_rvemdpa_clones.append(iclone)
