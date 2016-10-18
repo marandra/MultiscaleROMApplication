@@ -78,7 +78,7 @@ class SolveRVE(km.Process):
         RVE_THERMAL_PLANE_STRESS = 3
         RVE_THERMAL_3D = 4
 
-    def __init__(self, params, macro_model):
+    def __init__(self, params, MainModel):
 #                 MicroModelPart,
 #                 StrainSize,
 #                 ResultsIOClass,
@@ -103,13 +103,16 @@ class SolveRVE(km.Process):
 #                 SecondaryRveModeler = None,
 #                 IsSecondary = False):
 
-        self.macro_model = macro_model
-
+        main_model_part_name = params['problem_data']['main_part_name'].GetString()
+        microscale_model_part_name = params['problem_data']['microscale_part_name'].GetString()
+        self.microscale_model_part = MainModel[main_model_part_name].GetSubModelPart(microscale_model_part_name)
         self.params = params
         self.model = create_model(params)
-        self.model_part = self.model[params['problem_data']['part_name'].GetString()]
         self.model_part_name = params['problem_data']['part_name'].GetString()
+        self.model_part = self.model[self.model_part_name]
         self.solver, self.model_part = create_solver_complete_model_part(self.model_part, params)
+        print("DEBUG")
+        print(self.microscale_model_part.Elements[1])
 
         for i in range(params["solver_settings"]["processes_sub_model_part_list"].size()):
             part_name = params["solver_settings"]["processes_sub_model_part_list"][i].GetString()
@@ -160,11 +163,10 @@ class SolveRVE(km.Process):
         self.ConvergenceAbsoluteTolerance = 1.0E-9
         self.ConvergenceIsVerbose = False
         self.TargetElementList = [x + 1 for x in range(1)]
+        self.TargetElementList = [1]
         self.OutputElementList = [1]
         self.TrackList = {}
         self.Initialized = False
-        self.IsSecondary         = False
-        self.SecondaryRveModeler = None
 	
  
     def ExecuteInitialize(self):
@@ -208,15 +210,8 @@ class SolveRVE(km.Process):
 	# a new rve constitutive law out of it.
 	# This method is meant to be private, do NOT call it explicitly
 	
-		if(self.IsSecondary == True):
-			current_rve_primary_clone = self.stored_rvemdpa_clones[ self.clone_list_counter ]
-			modelPartClone = km.ModelPart(self.model_part_name + "_RVE")
-			TK_Rve_V2.RveCloneModelPart2Physics(self.model_part, current_rve_primary_clone, modelPartClone) # clone the model part prototype
-			
-			self.clone_list_counter = self.clone_list_counter + 1
-		else:
-			modelPartClone = km.ModelPart(self.model_part_name + "_RVE")
-			TK_Rve_V2.RveCloneModelPart(self.model_part, modelPartClone) # clone the model part prototype
+		modelPartClone = km.ModelPart(self.model_part_name + "_RVE")
+		TK_Rve_V2.RveCloneModelPart(self.model_part, modelPartClone) # clone the model part prototype
 		
 		msData = TK_Rve_V2.RveMacroscaleData() 
 		
@@ -250,9 +245,8 @@ class SolveRVE(km.Process):
 		
 		rveLaw = self.RveMaterialClass(adapter) # finally generate the constitutive law adapter
 		
-		if (self.IsSecondary == False):
-			for i in range(modelPartClone.GetBufferSize()):
-				modelPartClone.CloneTimeStep(0.0)
+		for i in range(modelPartClone.GetBufferSize()):
+		    modelPartClone.CloneTimeStep(0.0)
 		return  (rveLaw,modelPartClone) # return a tuple
 	
 
@@ -296,7 +290,6 @@ class SolveRVE(km.Process):
 			
 			# generate a new rve constitutive law
 			rve_law__rve_mdpa__tuple = __generate_rve_constitutive_law()
-                        print("ACAAAA")
 			aRveLaw = rve_law__rve_mdpa__tuple[0]
 			constitutiveLaws.append(aRveLaw)
 			
@@ -370,25 +363,14 @@ class SolveRVE(km.Process):
             self.RveGeometryDescr.Build(self.model_part)
             #print(self.RveGeometryDescr)
             # generate,assign and track all required rve's
-            if(self.IsSecondary == True):
-                # il primario ha generato la lista di cloni
-                # ho bisogno di sapere in quale id mi trovo della lista
-                self.clone_list_counter = 0
-                for elem_id in self.TargetElementList:
-                    elem = self.macro_model["Macrostructure"].Elements[elem_id]
-                    dummy = __assign_rve_constitutive_law(elem)
-                self.clone_list_counter = 0 # non necessario ma per sicurazzo lo riazzeriamo
-            else:
-                # se sono il primario genero una lista di [nelem*ngauss] di rve clones...
-                self.stored_rvemdpa_clones=[]
-                for elem_id in self.TargetElementList:
-                    elem = self.macro_model["Macrostructure"].Elements[elem_id]
-                    elem_rvemdpa_clone_list = __assign_rve_constitutive_law(elem)
-                    for iclone in elem_rvemdpa_clone_list:
-                        self.stored_rvemdpa_clones.append(iclone)
-                # ... e la copio nel modeler secondario (che non dovra generarla!!!!!)
-                if(self.SecondaryRveModeler is not None):
-                    self.SecondaryRveModeler.stored_rvemdpa_clones = self.stored_rvemdpa_clones
+            # se sono il primario genero una lista di [nelem*ngauss] di rve clones...
+            self.stored_rvemdpa_clones=[]
+            for elem_id in self.TargetElementList:
+                elem = self.model_part.Elements[elem_id]
+                #elem = self.macro_model["Macrostructure"].Elements[elem_id]
+                elem_rvemdpa_clone_list = __assign_rve_constitutive_law(elem)
+                for iclone in elem_rvemdpa_clone_list:
+                    self.stored_rvemdpa_clones.append(iclone)
            
             # initialize the output
             __initialize_output()
