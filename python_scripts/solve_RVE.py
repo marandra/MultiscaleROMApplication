@@ -145,7 +145,6 @@ class SolveRVE(km.Process):
         	self.RveAdapterClass = mss.Rve3DAdapterV2
         	self.RveMaterialClass = mss.RveConstitutiveLawV23D
         self.BoundingPolygonNodesID = None
-        self.IsSecondary = False
         self.RveGeometryDescr = None
         self.ResultsIOClass = TK_GiD.ResultsIO
         self.ResultsOnNodes = [km.DISPLACEMENT, km.REACTION, mss.RVE_FULL_DISPLACEMENT]
@@ -259,9 +258,6 @@ class SolveRVE(km.Process):
 		if( next((x for x in self.OutputElementList if x == elemID), None) is not None ):
 			outputFileName = self.model_part.Name + "__" + elInfo.GetStringExtension()
 			rveLawIO = self.ResultsIOClass(rveLaw.GetModelPart(), outputFileName, self.ResultsOnNodes, self.ResultsOnGaussPoints)
-			# if (self.IsSecondary == False):
-				# print ("ResultsIOClass Mechanical Mdpa")
-				# rveLawIO = self.ResultsIOClass(rveLaw.GetModelPart(), self.MicroModelPartB.Model, outputFileName, self.ResultsOnNodes, self.ResultsOnGaussPoints_ModA, self.ResultsOnGaussPoints_ModB)
 			self.TrackList[elInfo] = (rveLaw, rveLawIO)
 		else:
 			self.TrackList[elInfo] = (rveLaw, None)
@@ -366,7 +362,7 @@ class SolveRVE(km.Process):
             # se sono il primario genero una lista di [nelem*ngauss] di rve clones...
             self.stored_rvemdpa_clones=[]
             for elem_id in self.TargetElementList:
-                elem = self.model_part.Elements[elem_id]
+                elem = self.microscale_model_part.Elements[elem_id]
                 #elem = self.macro_model["Macrostructure"].Elements[elem_id]
                 elem_rvemdpa_clone_list = __assign_rve_constitutive_law(elem)
                 for iclone in elem_rvemdpa_clone_list:
