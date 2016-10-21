@@ -145,16 +145,20 @@ class SolveRVE(km.Process):
         self.ResultsOnGaussPoints = [km.GREEN_LAGRANGE_STRAIN_TENSOR, km.CAUCHY_STRESS_TENSOR]
         self.RveConstraintHandlerClass = mss.RveConstraintHandler_PBF_SD
         self.RveHomogenizerClass       = mss.RveHomogenizer
-        self.SchemeClass               = mss.RveStaticScheme
-        self.LinearSolverClass = mss.SkylineLUFactorizationSolverV2
-        self.MaxIterations = 10
-        self.CalculateReactions = True
-        self.ReformDofSetAtEachIteration = False
-        self.MoveMesh = False
-        self.ConvergenceCriteriaClass = mss.ResidualNormCriteria
-        self.ConvergenceRelativeTolerance = 1.0E-7
-        self.ConvergenceAbsoluteTolerance = 1.0E-9
-        self.ConvergenceIsVerbose = False
+        #self.SchemeClass               = mss.RveStaticScheme
+
+        #self.LinearSolverClass = mss.SkylineLUFactorizationSolverV2
+        #self.LinearSolverClass = km.SkylineLUFactorizationSolver
+        #self.LinearSolverClass = self.solver.linear_solver
+        
+        #self.MaxIterations = 10
+        #self.CalculateReactions = True
+        #self.ReformDofSetAtEachIteration = False
+        #self.MoveMesh = False
+        #self.ConvergenceCriteriaClass = mss.ResidualNormCriteria
+        #self.ConvergenceRelativeTolerance = 1.0E-7
+        #self.ConvergenceAbsoluteTolerance = 1.0E-9
+        #self.ConvergenceIsVerbose = False
         self.OutputElementList = [1]
         self.TrackList = {}
         self.Initialized = False
@@ -202,37 +206,31 @@ class SolveRVE(km.Process):
 	# This method is meant to be private, do NOT call it explicitly
 	
 		modelPartClone = km.ModelPart(self.model_part_name + "_RVE")
-		TK_Rve_V2.RveCloneModelPart(self.model_part, modelPartClone) # clone the model part prototype
+		mss.RveCloneModelPart(self.model_part, modelPartClone) # clone the model part prototype
 		
-		msData = TK_Rve_V2.RveMacroscaleData() 
+		msData = mss.RveMacroscaleData() 
 		
-		linSolver = self.LinearSolverClass() 
-		
-		timeScheme = self.SchemeClass()
-		timeScheme.Check(modelPartClone)
-		
-		convCriteria = self.ConvergenceCriteriaClass(
-			self.ConvergenceRelativeTolerance,
-			self.ConvergenceAbsoluteTolerance,
-			self.ConvergenceIsVerbose,
-			)
-			
 		constraint_handler = self.RveConstraintHandlerClass()
 		
 		homogenizer = self.RveHomogenizerClass()
 		
 		adapter = self.RveAdapterClass() # generate the rve adapter
 		
+                print("DEBUGG")
+                print(self.solver._GetBuilderAndSolver(False, False))
+
 		adapter.SetRveData(
 			modelPartClone,
 			msData,
 			self.RveGeometryDescr,
 			constraint_handler,
-			TK_Rve_V2.RveLinearSystemOfEquations(linSolver),
+			mss.RveLinearSystemOfEquations(self.solver.linear_solver),
+                        #self.solver._GetBuilderAndSolver(False, False),
 			homogenizer,
-			timeScheme,
-			convCriteria
-		) # set all data (just for testing...)
+			self.solver._GetSolutionScheme("Non-Linear", False, False), 
+			#self.solver.mpScheme, 
+                        self.solver._GetConvergenceCriterion()
+		        )
 		
 		rveLaw = self.RveMaterialClass(adapter) # finally generate the constitutive law adapter
 		
