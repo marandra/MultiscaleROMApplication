@@ -1,14 +1,14 @@
 # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 import operator
-#import os
+# import os
 import KratosMultiphysics as km
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import KratosMultiphysics.SolidMechanicsApplication as sol
 import KratosMultiphysics.MultiScaleApplication as mss
-#import KratosMultiphysics.ExternalSolversApplication
-#import KratosMultiphysics.StructuralMechanicsApplication
-#import TK_Props
+# import KratosMultiphysics.ExternalSolversApplication
+# import KratosMultiphysics.StructuralMechanicsApplication
+# import TK_Props
 import process_factory
 import TK_Rve_V2
 import TK_GiD
@@ -111,7 +111,6 @@ class SolveRVE(km.Process):
         self.model_part_name = params['problem_data']['part_name'].GetString()
         self.model_part = self.model[self.model_part_name]
         self.solver, self.model_part = create_solver_complete_model_part(self.model_part, params)
-
         for i in range(params["solver_settings"]["processes_sub_model_part_list"].size()):
             part_name = params["solver_settings"]["processes_sub_model_part_list"][i].GetString()
             self.model.update({part_name: self.model_part.GetSubModelPart(part_name)})
@@ -149,10 +148,12 @@ class SolveRVE(km.Process):
         
  
     def ExecuteInitialize(self):
+        self.solver.Initialize()
+        print("DEBUG SOLVER RVE")
+        print(self.solver.mechanical_solver)
         self.Initialize()
         for process in self.processes:
             process.ExecuteInitialize()
-        self.solver.Initialize()
         pass
     
     def ExecuteInitializeSolutionStep(self):
@@ -192,21 +193,38 @@ class SolveRVE(km.Process):
         
             def port_solver_to_adapter_args():
                 scheme = self.solver._GetSolutionScheme(
-                        self.solver.settings["analysis_type"].GetString(), 
-                        self.solver.settings["component_wise"].GetBool(),
-                        self.solver.settings["compute_contact_forces"].GetBool())
-                convergence = self.solver._GetConvergenceCriterion()
+                    self.solver.settings["analysis_type"].GetString(),
+                    self.solver.settings["component_wise"].GetBool(),
+                    self.solver.settings["compute_contact_forces"].GetBool())
+                print(scheme)
+                #scheme = self.solver.mechanical_scheme
+                dir(scheme)
+                convergence = self.solver.mechanical_convergence_criterion
                 linear_solver = self.solver.linear_solver
-                print("DEBUGG")
-                print(self.solver._GetBuilderAndSolver(False, False))
-                return scheme, convergence, linear_solver 
+                builder_and_solver = self.solver.builder_and_solver
+                return scheme, convergence, linear_solver, builder_and_solver
 
 
             modelPartClone = km.ModelPart(self.model_part_name)
             mss.RveCloneModelPart(self.model_part, modelPartClone)
             constraint_handler = self.RveConstraintHandlerClass()
             homogenizer = self.RveHomogenizerClass()
-            scheme, convergence, linear_solver = port_solver_to_adapter_args()
+            scheme, convergence, linear_solver, builder_and_solver = port_solver_to_adapter_args()
+
+
+            strategy_linear = km.ResidualBasedLinearStrategy(
+                modelPartClone, scheme, linear_solver,
+               #self.solver._GetBuilderAndSolver(False, False),
+                False, False, False, False)
+            print('DIR STRATEGY')
+            dir(strategy_linear)
+
+            strategy_nr = km.ResidualBasedNewtonRaphsonStrategy(
+                modelPartClone, scheme, linear_solver,
+                convergence,
+            #    self.solver._GetBuilderAndSolver(False, False),
+                10, False, False, False
+           )
 
             adapter = self.RveAdapterClass() 
             adapter.SetRveData(
@@ -214,10 +232,15 @@ class SolveRVE(km.Process):
                 mss.RveMacroscaleData(),
                 self.RveGeometryDescr,
                 constraint_handler,
-                mss.RveLinearSystemOfEquations(linear_solver),
+                builder_and_solver,
+                #mss.RveLinearSystemOfEquations(linear_solver),
                 homogenizer,
                 scheme,
-                convergence
+                convergence,
+                #self.solver.mechanical_solver
+                #strategy_linear
+                #strategy_nr
+                #None
                 )
         
             rveLaw = self.RveMaterialClass(adapter) # finally generate the constitutive law adapter

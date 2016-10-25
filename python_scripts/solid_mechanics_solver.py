@@ -149,7 +149,7 @@ class MechanicalSolver(object):
         
         print("::[Mechanical Solver]:: Model reading starts.")
 
-        self.computing_model_part_name = "solid_computing_domain"
+        self.computing_model_part_name = "computing_domain"
         
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             
@@ -171,14 +171,14 @@ class MechanicalSolver(object):
             import check_and_prepare_model_process_solid
             check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
             
-            ## Constitutive law import
+            # Constitutive law import
             #import constitutive_law_python_utility as constitutive_law_utils
             #constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part, 
             #                                                                 self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]);
             #constitutive_law.Initialize();
             #print("    Constitutive law initialized.")
 
-
+            # Set buffer size
             self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
         
             current_buffer_size = self.main_model_part.GetBufferSize()
@@ -186,8 +186,8 @@ class MechanicalSolver(object):
                 current_buffer_size = self.GetMinimumBufferSize()
 
             self.main_model_part.SetBufferSize( current_buffer_size )
-
-            #fill buffer
+            
+            # Fill buffer
             delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             time = time - delta_time * (current_buffer_size)

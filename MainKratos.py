@@ -62,9 +62,13 @@ parameters = km.Parameters(open("ProjectParameters.json", 'r').read())
 Model = create_model(parameters)
 model_part = Model[parameters["problem_data"]["part_name"].GetString()]
 solver, model_part = create_solver_complete_model_part(model_part, parameters)
-
-
 #build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+
+solver.Initialize()
+print("DEBUG SOLVER MACRO")
+dir(solver)
+
+
 for i in range(parameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
     Model.update({part_name: model_part.GetSubModelPart(part_name)})
@@ -83,9 +87,6 @@ for process in processes:
 #output_settings = parameters["output_configuration"]
 #gid_output_macro = gid.GiDOutputProcess(computing_model_part, problem_name, output_settings)
 #gid_output_macro.ExecuteInitialize()
-
-## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-solver.Initialize()
 
 t0p = timer.clock()
 t0w = timer.time()
