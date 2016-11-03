@@ -201,7 +201,9 @@ class SolveRVE(km.Process):
                 dir(scheme)
                 convergence = self.solver.mechanical_convergence_criterion
                 linear_solver = self.solver.linear_solver
-                builder_and_solver = self.solver.builder_and_solver
+                #builder_and_solver = self.solver.builder_and_solver
+                builder_and_solver = self.solver._GetBuilderAndSolver(
+                    False, False)
                 return scheme, convergence, linear_solver, builder_and_solver
 
 
@@ -232,15 +234,12 @@ class SolveRVE(km.Process):
                 mss.RveMacroscaleData(),
                 self.RveGeometryDescr,
                 constraint_handler,
-                builder_and_solver,
-                #mss.RveLinearSystemOfEquations(linear_solver),
+                mss.RveLinearSystemOfEquations(linear_solver),
                 homogenizer,
                 scheme,
                 convergence,
-                #self.solver.mechanical_solver
-                #strategy_linear
-                #strategy_nr
-                #None
+                self.solver.mechanical_solver,
+                builder_and_solver
                 )
         
             rveLaw = self.RveMaterialClass(adapter) # finally generate the constitutive law adapter
