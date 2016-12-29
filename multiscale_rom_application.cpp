@@ -18,6 +18,9 @@ namespace Kratos {
         //Register Variables (variables created in solid_mechanics_application_variables.cpp)
         KRATOS_REGISTER_VARIABLE( ISOTROPIC_HARDENING_MODULUS )
         KRATOS_REGISTER_VARIABLE( INFINITY_YIELD_STRESS )
+        KRATOS_REGISTER_VARIABLE( FLOW_RULE_IS_TRACTION_ONLY )
+        KRATOS_REGISTER_VARIABLE( REFERENCE_TEMPERATURE )
+        KRATOS_REGISTER_VARIABLE( DETERMINANT_F )
         
         //Register Constitutive Laws
         Serializer::Register( "LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2DLaw );
