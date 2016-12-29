@@ -215,39 +215,39 @@ namespace Kratos
 	sigma_bar = prod(constitutiveMatrix, epsilon);
 	sigma_bar_pos = prod(constitutiveMatrix, epsilon);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	// for tension-only fluency law:
+	// originally sigma and sigma_positive are the same (as it is in the
+	// symmetrical case), this block modifies sigma_positive
+	//KRATOS_WATCH(sigma_bar)
+	if (TRACTION_ONLY){
+		sigma_xx = sigma_bar(0);
+		sigma_yy = sigma_bar(1);
+		sigma_xy = sigma_bar(2);
+		hyp = std::hypot(0.5 * (sigma_xx - sigma_yy), sigma_xy);
+		sigma_1 = 0.5 * (sigma_xx + sigma_yy) + hyp;
+		sigma_2 = 0.5 * (sigma_xx + sigma_yy) - hyp;
+		angle = 0.5 * std::atan2(2.0 * sigma_xy, sigma_xx - sigma_yy);
+		cos_a = std::cos(angle);
+		sin_a = std::sin(angle);
+		sigma_bar_pos(0) = 0.0;
+		sigma_bar_pos(1) = 0.0;
+		sigma_bar_pos(2) = 0.0;
+		if(sigma_1 > 0){
+			sigma_bar_pos(0) += sigma_1 * cos_a * cos_a;
+			sigma_bar_pos(1) += sigma_1 * sin_a * sin_a;
+			sigma_bar_pos(2) += sigma_1 * sin_a * cos_a;
+		}
+		if(sigma_2 > 0){
+			sigma_bar_pos(0) += sigma_2 * sin_a * sin_a;
+			sigma_bar_pos(1) += sigma_2 * cos_a * cos_a;
+			sigma_bar_pos(2) -= sigma_2 * sin_a * cos_a;
+		}
+		//KRATOS_WATCH(hyp)
+		//KRATOS_WATCH(sigma_1)
+		//KRATOS_WATCH(sigma_2)
+		//KRATOS_WATCH(angle)
+	}
+	KRATOS_WATCH(sigma_bar_pos)
 
 	tau_epsilon = std::sqrt(inner_prod(sigma_bar_pos, epsilon));
 	KRATOS_WATCH(epsilon)
