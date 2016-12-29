@@ -385,9 +385,10 @@ namespace Kratos
 		///@name Protected member Variables
 		///@{
 		//bool flag_C = false;
+		Vector m_init_strain;
                 double r;
                 double r_prev;
-                double tau_e;
+                double tau_epsilon;
 		//boost::numeric::ublas::matrix<double>& constitutiveMatrix();
 		///@}
 
