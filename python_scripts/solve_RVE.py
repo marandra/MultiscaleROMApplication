@@ -59,6 +59,7 @@ def create_solver_complete_model_part(model_part, parameters):
     constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
     aux_obj_getter = operator.methodcaller(constitutive_law_name)
     model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
+    model_part.Properties[2].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
     return solver, model_part
 
 
@@ -201,9 +202,9 @@ class SolveRVE(km.Process):
                 dir(scheme)
                 convergence = self.solver.mechanical_convergence_criterion
                 linear_solver = self.solver.linear_solver
-                #builder_and_solver = self.solver.builder_and_solver
-                builder_and_solver = self.solver._GetBuilderAndSolver(
-                    False, False)
+                builder_and_solver = self.solver.builder_and_solver
+                #builder_and_solver = self.solver._GetBuilderAndSolver(
+                #    False, False)
                 return scheme, convergence, linear_solver, builder_and_solver
 
 
@@ -238,8 +239,8 @@ class SolveRVE(km.Process):
                 homogenizer,
                 scheme,
                 convergence,
-                self.solver.mechanical_solver,
-                builder_and_solver
+                #self.solver.mechanical_solver,
+                #builder_and_solver
                 )
         
             rveLaw = self.RveMaterialClass(adapter) # finally generate the constitutive law adapter
