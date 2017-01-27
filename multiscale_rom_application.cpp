@@ -16,7 +16,7 @@ namespace Kratos {
         std::cout << "Initializing KratosMultiscaleROMApplication...  " << std::endl;
         
         //Register Variables (variables created in solid_mechanics_application_variables.cpp)
-        KRATOS_REGISTER_VARIABLE( ISOTROPIC_HARDENING_MODULUS )
+        KRATOS_REGISTER_VARIABLE( ISOTROPIC_DAMAGE_MODULUS )
         KRATOS_REGISTER_VARIABLE( INFINITY_YIELD_STRESS )
         KRATOS_REGISTER_VARIABLE( FLOW_RULE_IS_TRACTION_ONLY )
         KRATOS_REGISTER_VARIABLE( REFERENCE_TEMPERATURE )
