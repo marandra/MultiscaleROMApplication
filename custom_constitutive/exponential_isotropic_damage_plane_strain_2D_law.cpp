@@ -1,6 +1,5 @@
 #include "exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "multiscale_rom_application_variables.h"
-//#include "../SolidMechanicsApplication/solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -60,8 +59,6 @@ namespace Kratos
     
     Vector& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
-    	//std::stringstream ss;
-    	//ss << "LinearIsotropicDamagePlaneStrain2DLaw::GetValue" << std::endl;
     	if (rThisVariable == INITIAL_STRAIN) {
     		if (rValue.size() != m_init_strain.size())
     		    rValue.resize(m_init_strain.size());
@@ -199,10 +196,7 @@ namespace Kratos
     	Vector& sigma_bar = rValues.GetStressVector();
     	Vector sigma_bar_pos;
     	Matrix& constitutiveMatrix = rValues.GetConstitutiveMatrix();
-	//double H = matprops[ISOTROPIC_HARDENING_MODULUS];
-	double H = matprops[DENSITY];
-        std::cout << "WARNING: using DEBUG instead of ISOTROPIC_HARDENING_MODULUS" << std::endl;
-        std::cout << "         Fix bug in multiscale application." << std::endl;
+	double H = matprops[ISOTROPIC_DAMAGE_MODULUS];
 	double dpointcoeff;
 	double d, q;
 	double sigma_xx, sigma_yy, sigma_xy;
@@ -210,15 +204,13 @@ namespace Kratos
 	bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
 
 	noalias(epsilon) -= m_init_strain;
-	// sigma_bar = C : epsilon
 	CalculateConstitutiveMatrix(matprops, constitutiveMatrix);
 	sigma_bar = prod(constitutiveMatrix, epsilon);
 	sigma_bar_pos = prod(constitutiveMatrix, epsilon);
 
-	// for tension-only fluency law:
-	// originally sigma and sigma_positive are the same (as it is in the
-	// symmetrical case), this block modifies sigma_positive
-	//KRATOS_WATCH(sigma_bar)
+	// Originally sigma and sigma_positive are the same (symmetrical case).
+	// In case of tension-only fluency law, the following block modifies 
+	// sigma_positive.
 	if (TRACTION_ONLY){
 		sigma_xx = sigma_bar(0);
 		sigma_yy = sigma_bar(1);
@@ -242,20 +234,12 @@ namespace Kratos
 			sigma_bar_pos(1) += sigma_2 * cos_a * cos_a;
 			sigma_bar_pos(2) -= sigma_2 * sin_a * cos_a;
 		}
-		//KRATOS_WATCH(hyp)
-		//KRATOS_WATCH(sigma_1)
-		//KRATOS_WATCH(sigma_2)
-		//KRATOS_WATCH(angle)
 	}
-	KRATOS_WATCH(sigma_bar_pos)
 
 	tau_epsilon = std::sqrt(inner_prod(sigma_bar_pos, epsilon));
-	KRATOS_WATCH(epsilon)
-	KRATOS_WATCH(sigma_bar)
-	KRATOS_WATCH(tau_epsilon)
 
             if (tau_epsilon <= r_prev) {
-	        std::cout << "ELASTIC " << std::endl;
+	        //std::cout << "ELASTIC regime" << std::endl;
                 r = r_prev;
                 q = CalculateQ(r, matprops);
                 d = 1. - q / r;
@@ -263,7 +247,7 @@ namespace Kratos
                 sigma_bar *= (1 - d); 
 	    }
 	    else {
-	        std::cout << "NON ELASTIC " << std::endl;
+	        //std::cout << "INELASTIC regime" << std::endl;
                 r = tau_epsilon;
                 q = CalculateQ(r, matprops);
                 d = 1. - q / r;
@@ -272,23 +256,6 @@ namespace Kratos
                 constitutiveMatrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar); 
                 sigma_bar *= (1. - d);
 	    }
-
-	    std::cout << "DEBUG FLOW_RULE_IS_TRACTION_ONLY " << matprops[FLOW_RULE_IS_TRACTION_ONLY] << std::endl;
-	    std::cout << "DEBUG YOUNG_MODULUS " << matprops[YOUNG_MODULUS] << std::endl;
-	    std::cout << "DEBUG POISSON_RATIO " << matprops[POISSON_RATIO] << std::endl;
-	    std::cout << "DEBUG THICKNESS " << matprops[THICKNESS] << std::endl;
-	    std::cout << "DEBUG BODY_FORCE " << matprops[BODY_FORCE] << std::endl;
-	    std::cout << "DEBUG YIELD_STRESS " << matprops[YIELD_STRESS] << std::endl;
-	    std::cout << "DEBUG DENSITY " << matprops[DENSITY] << std::endl;
-	    std::cout << "DEBUG ISOTROPIC_HARDENING_MODULUS " << matprops[ISOTROPIC_HARDENING_MODULUS] << std::endl;
-	    std::cout << "DEBUG INFINITY_YIELD_STRESS " << matprops[INFINITY_YIELD_STRESS] << std::endl;
-	    std::cout << "DEBUG epsilon " << epsilon<< std::endl;
-	    std::cout << "DEBUG sigma_bar " << sigma_bar<< std::endl;
-	    std::cout << "DEBUG tau            " << tau_epsilon << std::endl;
-	    std::cout << "DEBUG r " << r_prev << std::endl;
-	    std::cout << "DEBUG C_sec " << constitutiveMatrix << std::endl;
-	    //std::cout << "DEBUG curve " << tau_epsilon << " " << r << " " << q << " " << std::endl;
-
     }
     
     void ExponentialIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
@@ -317,10 +284,9 @@ namespace Kratos
     }
     
     double ExponentialIsotropicDamagePlaneStrain2DLaw::CalculateQ(double r,
-    	const Properties& material_prop) {
-
-	//double H = material_prop[ISOTROPIC_HARDENING_MODULUS];
-	double H = material_prop[DENSITY];
+    	const Properties& material_prop)
+    {
+	double H = material_prop[ISOTROPIC_DAMAGE_MODULUS];
 	double r0 = material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
     	double q_inf = material_prop[INFINITY_YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
         double q;
@@ -363,17 +329,17 @@ namespace Kratos
     	const GeometryType& rElementGeometry,
     	const ProcessInfo& rCurrentProcessInfo)
     {
-    		if(!rMaterialProperties.Has(YOUNG_MODULUS)) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing YOUNG_MODULUS", "");
-    		if(!rMaterialProperties.Has(POISSON_RATIO)) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing POISSON_RATIO", "");
-    		if(!rMaterialProperties.Has(INFINITY_YIELD_STRESS)) 
-    		KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing INFINITY_YIELD_STRESS", "");
-    		if(rMaterialProperties[INFINITY_YIELD_STRESS] < 0) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - INFINITY_YIELD_STRESS must be positive", "");
-    		if(!rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS)) 
-    		KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing ISOTROPIC_HARDENING_MODULUS", "");
-    		return 0;
+	if(!rMaterialProperties.Has(YOUNG_MODULUS)) 
+	    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing YOUNG_MODULUS", "");
+	if(!rMaterialProperties.Has(POISSON_RATIO)) 
+	    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing POISSON_RATIO", "");
+	if(!rMaterialProperties.Has(INFINITY_YIELD_STRESS)) 
+	KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing INFINITY_YIELD_STRESS", "");
+	if(rMaterialProperties[INFINITY_YIELD_STRESS] < 0) 
+	    KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - INFINITY_YIELD_STRESS must be positive", "");
+	if(!rMaterialProperties.Has(ISOTROPIC_DAMAGE_MODULUS)) 
+            KRATOS_THROW_ERROR(std::invalid_argument, "ExponentialIsotropicDamagePlaneStrain2DLaw - missing ISOTROPIC_DAMAGE_MODULUS", "");
+	return 0;
     }
     
 } /* namespace Kratos.*/
