@@ -23,7 +23,13 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/homogenized_rve_response_2D.hpp"
+#include "custom_constitutive/rve_law.h"
+
+//For RVELaw
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/strategies/solving_strategy.h"
+
 
 namespace Kratos
 {
@@ -58,9 +64,13 @@ void  AddCustomConstitutiveLawsToPython()
       init<>() )
     ;
 
-    class_< HomogenizedRVEResponse2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HomogenizedRVEResponse2D",
-      init<>() )
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
+    class_< RVELaw<SolvingStrategyType>, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "RVELaw",
+      init<typename SolvingStrategyType::Pointer>() )
     ;
 
 }
