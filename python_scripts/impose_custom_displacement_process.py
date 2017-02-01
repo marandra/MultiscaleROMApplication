@@ -53,22 +53,18 @@ class ApplyCustomDisplacementProcess(km.Process):
                             'mult': parameters_get_list_doubles(settings["lookuptable_mult"])}
         self.time_interpolator = Interpolate(self.lookuptable['time'],
                                              self.lookuptable['mult'])
-        self.problem_name = "strain-stress"
 
     def ExecuteInitialize(self):
-        for node in self.model_part.Nodes:
-             print(node)
-             self.final_value = node.GetSolutionStepValue(km.DISPLACEMENT)
+        node = self.model_part.Nodes[1]
+        self.final_value = node.GetSolutionStepValue(km.DISPLACEMENT)
 
     def ExecuteInitializeSolutionStep(self):
         multiplier = get_multiplier(self)
         for node in self.model_part.Nodes:
              value = multiplier * self.final_value
              node.SetSolutionStepValue(km.DISPLACEMENT, 0, value)
-        pass
 
     def ExecuteFinalizeSolutionStep(self):
-        #append_strain_stress_file(self.model_part, self.problem_name + ".out")
         pass
 
 
