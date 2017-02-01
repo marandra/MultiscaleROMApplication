@@ -14,6 +14,7 @@
 #include "containers/flags.h"
 
 #include "multiscale_rom_application_variables.h"
+#include "custom_conditions/minimal_kinetic_2D.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 
@@ -92,9 +93,11 @@ namespace Kratos {
        protected:
        
        private:
+           //conditions
+           const MinimalKineticCondition2D mMinimalKineticCondition2D;
            //constitutive laws
-           const LinearIsotropicDamagePlaneStrain2DLaw   mLinearIsotropicDamagePlaneStrain2DLaw;
-           const ExponentialIsotropicDamagePlaneStrain2DLaw   mExponentialIsotropicDamagePlaneStrain2DLaw;
+           const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
+           const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
            /// Assignment operator.
            KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
            /// Copy constructor.
