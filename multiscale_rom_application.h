@@ -94,7 +94,8 @@ namespace Kratos {
        
        private:
            //conditions
-           const MinimalKineticCondition2D mMinimalKineticCondition2D;
+           const MinimalKineticCondition2D mMinimalKineticCondition2D2N;
+           const MinimalKineticCondition2D mMinimalKineticCondition3D3N;
            //constitutive laws
            const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
            const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
