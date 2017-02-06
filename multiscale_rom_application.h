@@ -24,7 +24,7 @@ namespace Kratos {
     typedef array_1d<double,3> Vector3;
     typedef array_1d<double,6> Vector6;
     ///@}
-    
+
     ///@name Kratos Globals
     ///@{
     
@@ -94,7 +94,7 @@ namespace Kratos {
        
        private:
            //conditions
-           const MinimalKineticCondition2D mMinimalKineticCondition2D2N;
+           const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
            const MinimalKineticCondition2D mMinimalKineticCondition3D3N;
            //constitutive laws
            const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;

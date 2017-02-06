@@ -3,6 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.MultiscaleROMApplication as msr
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -117,7 +118,12 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (pressure dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.PRESSURE_REACTION)
-                    
+
+        print("DEBUG Solid Mechanics Solver. Adding variables")
+        self.main_model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_1)
+        self.main_model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
+        self.main_model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
+
         print("::[Mechanical Solver]:: Variables ADDED")
 
 
@@ -163,6 +169,12 @@ class MechanicalSolver(object):
         if self.settings["pressure_dofs"].GetBool():                
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
+
+        print("DEBUG Solid Mechanics Solver.")
+        print("DEBUG Adding variables to Node 1")
+        self.main_model_part.Nodes[2].AddDof(msr.LAGRANGE_MULTIPLIER_1)
+        self.main_model_part.Nodes[2].AddDof(msr.LAGRANGE_MULTIPLIER_2)
+        self.main_model_part.Nodes[2].AddDof(msr.LAGRANGE_MULTIPLIER_3)
 
         print("::[Mechanical Solver]:: DOF's ADDED")
 

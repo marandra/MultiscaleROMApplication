@@ -56,10 +56,10 @@ int MinimalKineticCondition2D::Check(const ProcessInfo& rCurrentProcessInfo)
 
 void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    rLeftHandSideMatrix.resize(0,0,false);
-    rRightHandSideVector.resize(0,false);
 
     unsigned int n_dofs = 7;
+    Vector currentValues(n_dofs, 0.0);
+    GeometryType& geom = GetGeometry();
 
     // resize system matrix and vector
     if (rLeftHandSideMatrix.size1() != n_dofs ||
@@ -71,25 +71,9 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         rRightHandSideVector.resize(n_dofs, false);
     noalias(rRightHandSideVector) = ZeroVector(n_dofs);
 
-    GeometryType& geom = GetGeometry();
-    // get current values
-
-    //Vector currentValues(n_dofs);
-    Vector currentValues(n_dofs, 0.0);
-    //currentValues(0) =
-    //    geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    //currentValues(1) =
-    //    geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    //currentValues(2) =
-    //    geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-    //currentValues(3) =
-    //    geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    currentValues(4) = geom[2].FastGetSolutionStepValue(
-            LAGRANGIAN_DOF_1);
-    currentValues(5) = geom[2].FastGetSolutionStepValue(
-            LAGRANGIAN_DOF_2);
-    currentValues(6) = geom[2].FastGetSolutionStepValue(
-            LAGRANGIAN_DOF_3);
+    currentValues(4) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
+    currentValues(5) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
+    currentValues(6) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
 
     // compute the outward normal vector
     double x0 = geom[0].X0();
@@ -99,10 +83,8 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     double tx = (x1 - x0);
     double ty = (y1 - y0);
     //double L  = std::sqrt(tx * tx + ty * ty);
-    double L  = std::sqrt(tx * tx + ty * ty) / 1e7;
-    // TODO sacar 1e7
-    double nx = ty / L;
-    double ny = -tx / L;
+    double nx = 0.5 * ty;
+    double ny = 0.5 * (-tx);
 
     Matrix& K = rLeftHandSideMatrix;
     K(4, 0) = nx;
@@ -121,16 +103,15 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     K(1, 6) = nx;
     K(2, 6) = ny;
     K(3, 6) = nx;
-//KRATOS_WATCH(geom[0].Id())
-//KRATOS_WATCH(geom[1].Id())
-//KRATOS_WATCH(geom[2].Id())
-//KRATOS_WATCH(this->Id())
-//KRATOS_WATCH(K)
     // form residual
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, currentValues);
 
-
-
+//KRATOS_WATCH("DEBUG CALCULATE LOCAL SYSTEM")
+//KRATOS_WATCH(this->Id())
+//KRATOS_WATCH(geom[0].Id())
+//KRATOS_WATCH(geom[1].Id())
+//KRATOS_WATCH(geom[2].Id())
+//KRATOS_WATCH(K)
 }
 
 void MinimalKineticCondition2D::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -155,35 +136,13 @@ void MinimalKineticCondition2D::EquationIdVector(EquationIdVectorType& rResult, 
     rResult[1] = geom[0].GetDof(DISPLACEMENT_Y).EquationId();
     rResult[2] = geom[1].GetDof(DISPLACEMENT_X).EquationId();
     rResult[3] = geom[1].GetDof(DISPLACEMENT_Y).EquationId();
-    rResult[4] = geom[2].GetDof(LAGRANGIAN_DOF_1).EquationId();
-    rResult[5] = geom[2].GetDof(LAGRANGIAN_DOF_2).EquationId();
-    rResult[6] = geom[2].GetDof(LAGRANGIAN_DOF_3).EquationId();
+    rResult[4] = geom[2].GetDof(LAGRANGE_MULTIPLIER_1).EquationId();
+    rResult[5] = geom[2].GetDof(LAGRANGE_MULTIPLIER_2).EquationId();
+    rResult[6] = geom[2].GetDof(LAGRANGE_MULTIPLIER_3).EquationId();
 }
 
 void MinimalKineticCondition2D::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
-    /*
-    GeometryType& rGeom = this->GetGeometry();
-    PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
-    const unsigned int BlockSize = rPeriodicVariables.size();
-    const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = NumNodes * BlockSize;
-
-    if (ElementalDofList.size() != LocalSize)
-        ElementalDofList.resize(LocalSize);
-
-    unsigned int LocalIndex = 0;
-
-    for ( unsigned int n = 0; n < NumNodes; n++)
-    {
-        for(PeriodicVariablesContainer::DoubleVariablesConstIterator itDVar = rPeriodicVariables.DoubleVariablesBegin(); itDVar != rPeriodicVariables.DoubleVariablesEnd(); ++itDVar)
-            ElementalDofList[LocalIndex++] = rGeom[n].pGetDof(*itDVar);
-
-        for(PeriodicVariablesContainer::VariableComponentsConstIterator itCVar = rPeriodicVariables.VariableComponentsBegin(); itCVar != rPeriodicVariables.VariableComponentsEnd(); ++itCVar)
-            ElementalDofList[LocalIndex++] = rGeom[n].pGetDof(*itCVar);
-    }
-    */
-
     GeometryType& geom = GetGeometry();
     const unsigned int dimension = geom.WorkingSpaceDimension();
     unsigned int nr_of_nodes = 2;
@@ -203,9 +162,9 @@ void MinimalKineticCondition2D::GetDofList(DofsVectorType& rConditionDofList, Pr
     rConditionDofList[3] = geom[1].pGetDof(DISPLACEMENT_Y);
     if (dimension == 3){}
     // lagrangian node
-    rConditionDofList[4] = geom[2].pGetDof(LAGRANGIAN_DOF_1);
-    rConditionDofList[5] = geom[2].pGetDof(LAGRANGIAN_DOF_2);
-    rConditionDofList[6] = geom[2].pGetDof(LAGRANGIAN_DOF_3);
+    rConditionDofList[4] = geom[2].pGetDof(LAGRANGE_MULTIPLIER_1);
+    rConditionDofList[5] = geom[2].pGetDof(LAGRANGE_MULTIPLIER_2);
+    rConditionDofList[6] = geom[2].pGetDof(LAGRANGE_MULTIPLIER_3);
     if (dimension == 3){}
 }
 
