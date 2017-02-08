@@ -805,8 +805,11 @@ protected:
 
     void CalculateHydrostaticDeformationMatrix(Matrix& rB, Matrix& rBh, const Matrix& rDN_DX);
 
+    void CalculateHydrostaticDeformationMatrix(GeneralVariables& rVariables);
+
     void CalculateDeformationMatrixBbar(Matrix& rB, Matrix& rBh, const Matrix& rDN_DX);
 
+    virtual void CalculateInfinitesimalStrainBbar(const Matrix& rB, Vector& rStrainVector);
 
     ///@}
     ///@name Protected  Access
