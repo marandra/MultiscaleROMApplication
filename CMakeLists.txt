@@ -3,6 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosMultiscaleROMApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
@@ -16,14 +17,13 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rve_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_2D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fbar_element.cpp
 )
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMultiscaleROMApplication SHARED ${KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES})
-##target_link_libraries(KratosSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosMultiscaleROMApplication KratosCore)
-##target_link_libraries(KratosSolidMechanicsApplication KratosCore triangle tetgen msuite tetMeshOpt)
+target_link_libraries(KratosMultiscaleROMApplication KratosCore KratosSolidMechanicsApplication)
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES PREFIX "")
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES COMPILE_DEFINITIONS "MULTISCALE_ROM_APPLICATION=EXPORT,API")
 install(TARGETS KratosMultiscaleROMApplication DESTINATION libs )

@@ -12,6 +12,7 @@ namespace Kratos {
     //Application Constructor:
     KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
         mSmallDisplacementBbarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mUpdatedLagrangianFbarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMinimalKineticCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mMinimalKineticCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
     {}
@@ -31,9 +32,8 @@ namespace Kratos {
         KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_2)
         KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_3)
 
-        //KRATOS_REGISTER_VARIABLE(SCALAR_LAGRANGE_MULTIPLIER_1)
-
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N )
+        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianFbarElement2D4N", mUpdatedLagrangianFbarElement2D4N )
 
         KRATOS_REGISTER_CONDITION( "MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N)
         KRATOS_REGISTER_CONDITION( "MinimalKineticCondition3D3N", mMinimalKineticCondition3D3N)
@@ -42,12 +42,13 @@ namespace Kratos {
         //KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_VECTOR)
         //KRATOS_REGISTER_VARIABLE(PRESTRESS)
 
-        KRATOS_REGISTER_VARIABLE( VON_MISES_STRESS )
-        KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_TENSOR )
-        KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_STRAIN_VECTOR )
-        KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_VECTOR )
-        KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
-        KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
+        //duplicated from SolidMechanics, necessary for SmallDisplacementBbarElement
+        KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
+        KRATOS_REGISTER_VARIABLE(ALMANSI_STRAIN_TENSOR)
+        KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_VECTOR)
+        KRATOS_REGISTER_VARIABLE(ALMANSI_STRAIN_VECTOR)
+        KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
+        KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
 
         //Register Constitutive Laws
         Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2DLaw);
