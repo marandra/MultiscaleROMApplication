@@ -1,4 +1,4 @@
-#include "custom_conditions/minimal_kinetic_2D.h"
+#include "custom_conditions/minimal_kinetic_2D.hpp"
 #include "multiscale_rom_application_variables.h"
 
 namespace Kratos

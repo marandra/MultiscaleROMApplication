@@ -14,7 +14,7 @@
 #include "containers/flags.h"
 
 #include "multiscale_rom_application_variables.h"
-#include "custom_conditions/minimal_kinetic_2D.h"
+#include "custom_conditions/minimal_kinetic_2D.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/updated_lagrangian_fbar_element.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
