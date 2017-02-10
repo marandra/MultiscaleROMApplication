@@ -16,8 +16,8 @@
 
 // Project includes
 #include "includes/element.h"
+// in solid mechanics application:
 #include "custom_utilities/comparison_utilities.hpp"
-
 
 namespace Kratos
 {

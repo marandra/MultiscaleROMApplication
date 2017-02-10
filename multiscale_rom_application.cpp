@@ -1,6 +1,3 @@
-// System includes
-// External includes
-// Project includes
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "geometries/line_2d_3.h"
@@ -26,8 +23,6 @@ namespace Kratos {
         KRATOS_REGISTER_VARIABLE(ISOTROPIC_DAMAGE_MODULUS)
         KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
         KRATOS_REGISTER_VARIABLE(FLOW_RULE_IS_TRACTION_ONLY)
-        KRATOS_REGISTER_VARIABLE(REFERENCE_TEMPERATURE)
-        KRATOS_REGISTER_VARIABLE(DETERMINANT_F)
         KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_1)
         KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_2)
         KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_3)
@@ -38,22 +33,9 @@ namespace Kratos {
         KRATOS_REGISTER_CONDITION( "MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N)
         KRATOS_REGISTER_CONDITION( "MinimalKineticCondition3D3N", mMinimalKineticCondition3D3N)
 
-        //KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
-        //KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_VECTOR)
-        //KRATOS_REGISTER_VARIABLE(PRESTRESS)
-
-        //duplicated from SolidMechanics, necessary for SmallDisplacementBbarElement
-        KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
-        KRATOS_REGISTER_VARIABLE(ALMANSI_STRAIN_TENSOR)
-        KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_VECTOR)
-        KRATOS_REGISTER_VARIABLE(ALMANSI_STRAIN_VECTOR)
-        KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
-        KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
-
         //Register Constitutive Laws
         Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2DLaw);
         Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw", mExponentialIsotropicDamagePlaneStrain2DLaw);
-
 
     }
 }
