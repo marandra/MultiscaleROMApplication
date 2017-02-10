@@ -1,0 +1,298 @@
+GiD Post Results File 1.0
+GaussPoints "lin2_element_gp" ElemType Linear
+Number Of Gauss Points: 2
+  Nodes not included
+Natural Coordinates: Internal
+End GaussPoints
+GaussPoints "quad4_element_gp" ElemType Quadrilateral
+Number Of Gauss Points: 4
+Natural Coordinates: Given
+-0.57735 -0.57735
+0.57735 -0.57735
+0.57735 0.57735
+-0.57735 0.57735
+End GaussPoints
+Result "DISPLACEMENT" "Kratos" 1 Vector OnNodes
+Values
+1 0 0 0
+2 0 0 0
+3 0 0 0
+4 0 0 0
+5 0 0 0
+6 0 0 0
+7 0 0 0
+8 0 0 0
+9 0 0 0
+End Values
+Result "REACTION" "Kratos" 1 Vector OnNodes
+Values
+1 -0 -0 0
+2 0 0 0
+3 0 -0 0
+4 0 0 0
+5 0 0 0
+6 0 0 0
+7 0 0 0
+8 0 0 0
+9 0 0 0
+End Values
+Result "LAGRANGE_MULTIPLIER_1" "Kratos" 1 Scalar OnNodes
+Values
+1 0
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+End Values
+Result "LAGRANGE_MULTIPLIER_2" "Kratos" 1 Scalar OnNodes
+Values
+1 0
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+End Values
+Result "LAGRANGE_MULTIPLIER_3" "Kratos" 1 Scalar OnNodes
+Values
+1 0
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+End Values
+Result "GREEN_LAGRANGE_STRAIN_TENSOR" "Kratos" 1 Matrix OnGaussPoints "lin2_element_gp"
+Values
+End Values
+Result "GREEN_LAGRANGE_STRAIN_TENSOR" "Kratos" 1 Matrix OnGaussPoints "quad4_element_gp"
+Values
+1 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+2 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+3 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+4 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+End Values
+Result "CAUCHY_STRESS_TENSOR" "Kratos" 1 Matrix OnGaussPoints "lin2_element_gp"
+Values
+End Values
+Result "CAUCHY_STRESS_TENSOR" "Kratos" 1 Matrix OnGaussPoints "quad4_element_gp"
+Values
+1 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+2 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+3 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+4 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+ 0 0 0 0 0 0
+End Values
+Result "STRAIN_ENERGY" "Kratos" 1 Scalar OnGaussPoints "lin2_element_gp"
+Values
+1 0
+ 0
+2 0
+ 0
+3 0
+ 0
+4 0
+ 0
+5 0
+ 0
+6 0
+ 0
+7 0
+ 0
+8 0
+ 0
+End Values
+Result "STRAIN_ENERGY" "Kratos" 1 Scalar OnGaussPoints "quad4_element_gp"
+Values
+1 0
+ 0
+ 0
+ 0
+2 0
+ 0
+ 0
+ 0
+3 0
+ 0
+ 0
+ 0
+4 0
+ 0
+ 0
+ 0
+End Values
+Result "DISPLACEMENT" "Kratos" 2 Vector OnNodes
+Values
+1 0 0 0
+2 -0.00473829 7.53974e-05 0
+3 -0.00955799 0 0
+4 -0.0140591 -0.000145433 0
+5 0.0184634 0.000670292 0
+6 -0.0143397 -0.000158194 0
+7 -0.00959747 -0.00020311 0
+8 -0.00480759 -9.81652e-05 0
+9 -0.0095528 -5.13492e-05 0
+End Values
+Result "REACTION" "Kratos" 2 Vector OnNodes
+Values
+1 -4.2466e-15 6.31439e-16 0
+2 0 0 0
+3 0 3.407e-15 0
+4 0 0 0
+5 0 0 0
+6 0 0 0
+7 0 0 0
+8 0 0 0
+9 0 0 0
+End Values
+Result "LAGRANGE_MULTIPLIER_1" "Kratos" 2 Scalar OnNodes
+Values
+1 -0.566661
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+End Values
+Result "LAGRANGE_MULTIPLIER_2" "Kratos" 2 Scalar OnNodes
+Values
+1 -0.00884731
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+End Values
+Result "LAGRANGE_MULTIPLIER_3" "Kratos" 2 Scalar OnNodes
+Values
+1 -0.195204
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+End Values
+Result "GREEN_LAGRANGE_STRAIN_TENSOR" "Kratos" 2 Matrix OnGaussPoints "lin2_element_gp"
+Values
+End Values
+Result "GREEN_LAGRANGE_STRAIN_TENSOR" "Kratos" 2 Matrix OnGaussPoints "quad4_element_gp"
+Values
+1 -0.00947951 -0.00020841 0 -0.0047397 0 0
+ -0.00947951 -0.000241413 0 -0.00474369 0 0
+ -0.0094875 -0.000241413 0 -0.00476019 0 0
+ -0.0094875 -0.00020841 0 -0.0047562 0 0
+2 -0.00950692 -0.000261391 0 -0.00482762 0 0
+ -0.00950692 -0.000282968 0 -0.00464664 0 0
+ -0.00914497 -0.000282968 0 -0.00465743 0 0
+ -0.00914497 -0.000261391 0 -0.0048384 0 0
+3 0.00675631 0.000176235 0 0.00319838 0 0
+ 0.00675631 0.00124153 0 0.024739 0 0
+ 0.0498375 0.00124153 0 0.0252716 0 0
+ 0.0498375 0.000176235 0 0.00373102 0 0
+4 -0.00948916 -0.000210693 0 -0.00474284 0 0
+ -0.00948916 -0.000212886 0 -0.00474112 0 0
+ -0.00948572 -0.000212886 0 -0.00474221 0 0
+ -0.00948572 -0.000210693 0 -0.00474393 0 0
+End Values
+Result "CAUCHY_STRESS_TENSOR" "Kratos" 2 Matrix OnGaussPoints "lin2_element_gp"
+Values
+End Values
+Result "CAUCHY_STRESS_TENSOR" "Kratos" 2 Matrix OnGaussPoints "quad4_element_gp"
+Values
+1 0.580421 0.0197295 0 0.200232 0 0
+ 0.561381 -0.0246974 0 0.197161 0 0
+ 0.550631 -0.0293046 0 0.184468 0 0
+ 0.569671 0.0151223 0 0.187539 0 0
+2 0.512962 -0.0674018 0 0.132603 0 0
+ 0.500514 -0.0964478 0 0.271813 0 0
+ 0.987746 0.112366 0 0.263514 0 0
+ 1.00019 0.141412 0 0.124305 0 0
+3 0.167563 0.00176235 0 0.0819838 0 0
+ 0.167563 0.0124153 0 0.29739 0 0
+ 0.598375 0.0124153 0 0.302716 0 0
+ 0.598375 0.00176235 0 0.0873102 0 0
+4 0.566114 0.0110897 0 0.197819 0 0
+ 0.564849 0.00813721 0 0.199142 0 0
+ 0.56948 0.0101219 0 0.198298 0 0
+ 0.570745 0.0130744 0 0.196975 0 0
+End Values
+Result "STRAIN_ENERGY" "Kratos" 2 Scalar OnGaussPoints "lin2_element_gp"
+Values
+1 0
+ 0
+2 0
+ 0
+3 0
+ 0
+4 0
+ 0
+5 0
+ 0
+6 0
+ 0
+7 0
+ 0
+8 0
+ 0
+End Values
+Result "STRAIN_ENERGY" "Kratos" 2 Scalar OnGaussPoints "quad4_element_gp"
+Values
+1 0
+ 0
+ 0
+ 0
+2 0
+ 0
+ 0
+ 0
+3 0
+ 0
+ 0
+ 0
+4 0
+ 0
+ 0
+ 0
+End Values

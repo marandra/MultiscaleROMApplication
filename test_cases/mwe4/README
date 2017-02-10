@@ -1,0 +1,5 @@
+Small case to test SmallDisplacementBbar element, using
+LinearElasticPlaneStrain2D constitutive law.
+
+Output to be compared with standard SmallDisplacement element.
+
