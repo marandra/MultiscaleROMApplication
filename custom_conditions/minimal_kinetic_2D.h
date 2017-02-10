@@ -1,17 +1,11 @@
 #if !defined(KRATOS_MINIMAL_KINETIC_CONDITION_2D_H_INCLUDED )
 #define  KRATOS_MINIMAL_KINETIC_CONDITION_2D_H_INCLUDED
 
-// System includes
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <cstddef>
 
-
-// External includes
-
-
-// Project includes
 #include "includes/define.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
@@ -21,12 +15,6 @@
 #include "includes/condition.h"
 #include "includes/serializer.h"
 
-// Application includes
-#include "includes/variables.h"
-#include "containers/periodic_variables_container.h"
-
-// TODO arreglar esta dependencia:
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 namespace Kratos
 {
 ///@addtogroup FluidDynamicsApplication

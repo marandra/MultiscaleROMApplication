@@ -1,11 +1,6 @@
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED )
 #define  KRATOS_UPDATED_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED
 
-// System includes
-
-// External includes
-
-// Project includes
 #include "custom_elements/large_displacement_element.hpp"
 
 

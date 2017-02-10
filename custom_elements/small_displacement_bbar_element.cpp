@@ -1,6 +1,6 @@
 #include "includes/define.h"
-#include "custom_elements/small_displacement_bbar_element.hpp"
 #include "includes/constitutive_law.h"
+#include "custom_elements/small_displacement_bbar_element.hpp"
 #include "solid_mechanics_application_variables.h"
 
 namespace Kratos

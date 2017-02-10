@@ -1,4 +1,3 @@
-
 #include "custom_elements/updated_lagrangian_fbar_element.hpp"
 #include "solid_mechanics_application_variables.h"
 
