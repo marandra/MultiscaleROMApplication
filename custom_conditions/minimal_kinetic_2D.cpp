@@ -82,9 +82,8 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     double y1 = geom[1].Y0();
     double tx = (x1 - x0);
     double ty = (y1 - y0);
-    //double L  = std::sqrt(tx * tx + ty * ty);
-    double nx = 0.5 * ty;
-    double ny = 0.5 * (-tx);
+    double nx = -0.5 * ty;
+    double ny = -0.5 * (-tx);
 
     Matrix& K = rLeftHandSideMatrix;
     K(4, 0) = nx;
@@ -105,13 +104,6 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     K(3, 6) = nx;
     // form residual
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, currentValues);
-
-//KRATOS_WATCH("DEBUG CALCULATE LOCAL SYSTEM")
-//KRATOS_WATCH(this->Id())
-//KRATOS_WATCH(geom[0].Id())
-//KRATOS_WATCH(geom[1].Id())
-//KRATOS_WATCH(geom[2].Id())
-//KRATOS_WATCH(K)
 }
 
 void MinimalKineticCondition2D::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
