@@ -49,32 +49,42 @@ class ImposeInitialStrainProcess(km.Process):
     def __init__(self, Model, settings):
         km.Process.__init__(self)
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.process_info = self.model_part.ProcessInfo
+#        self.process_info = self.model_part.ProcessInfo
         self.lookuptable = {
             'time': parameters_get_list_doubles(settings["lookuptable_time"]),
             'mult': parameters_get_list_doubles(settings["lookuptable_mult"])}
         self.time_interpolator = Interpolate(
             self.lookuptable['time'], self.lookuptable['mult'])
-        init_strain_list =  parameters_get_list_doubles(settings["initial_strain"])
-        self.nr_gp_elem = len(
-            self.model_part.Elements[1].GetValuesOnIntegrationPoints(
-                km.INITIAL_STRAIN, self.process_info))
-        self.len_strain = len(init_strain_list)
-        self.initial_strain = km.Vector(self.len_strain)
+#        init_strain_list =  parameters_get_list_doubles(settings["initial_strain"])
+#        self.nr_gp_elem = len(
+#            self.model_part.Elements[1].GetValuesOnIntegrationPoints(
+#                km.INITIAL_STRAIN, self.process_info))
+#        self.len_strain = len(init_strain_list)
+#        self.initial_strain = km.Vector(self.len_strain)
+#        for i, s in enumerate(init_strain_list):
+#            self.initial_strain[i] = s
+
+        self.num_materials = 2
+        init_strain_list = [0.01, 0.02, 0.03, 0.04]
+        self.initial_strain = km.Vector(4)
         for i, s in enumerate(init_strain_list):
             self.initial_strain[i] = s
+        #for i in range(self.num_materials):
+        #    self.initial_strain.append(self.model_part.Properties[i + 1].GetValue(km.INITIAL_STRAIN))
+        #print("DEBUG")
+        #for i in self.initial_strain[0]:
+        #print(self.model_part.Properties[1].GetValue(km.INITIAL_STRAIN))
+        #print("FIN DEBUG")
 
     def ExecuteInitialize(self):
         pass
 
     def ExecuteInitializeSolutionStep(self):
         scaling_factor = get_multiplier(self)
-        # TODO pasar opcion por variable de proceso?
-        strain = scaling_factor * self.initial_strain
-        strain_array = self.nr_gp_elem * [strain]
-        for elem in self.model_part.Elements:
-            elem.SetValuesOnIntegrationPoints(
-                km.INITIAL_STRAIN, strain_array, self.len_strain, self.process_info)
+        for i in range(self.num_materials):
+            strain = scaling_factor * self.initial_strain
+            self.model_part.Properties[i + 1].SetValue(km.INITIAL_STRAIN, strain)
+            print(self.model_part.Properties[i + 1].GetValue(km.INITIAL_STRAIN))
 
     def ExecuteFinalizeSolutionStep(self):
         pass
