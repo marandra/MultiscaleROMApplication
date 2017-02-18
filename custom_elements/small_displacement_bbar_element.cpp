@@ -519,7 +519,11 @@ void SmallDisplacementBbarElement::InitializeGeneralVariables (GeneralVariables 
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
+    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+
+    if(dimension == 3){
+        voigt_size = 6;
+    }
 
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
@@ -595,7 +599,6 @@ void SmallDisplacementBbarElement::CalculateElementalSystem( LocalSystemComponen
     //create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
@@ -621,13 +624,11 @@ void SmallDisplacementBbarElement::CalculateElementalSystem( LocalSystemComponen
     {
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);  //JLM ver como pasar rBh
-        if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
         //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
-
         //compute stresses and constitutive parameters
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
@@ -684,7 +685,7 @@ void SmallDisplacementBbarElement::CalculateDynamicSystem( LocalSystemComponents
     {
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-        if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -1149,7 +1150,7 @@ void SmallDisplacementBbarElement::FinalizeSolutionStep( ProcessInfo& rCurrentPr
 
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-        if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
         //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -1444,14 +1445,14 @@ void SmallDisplacementBbarElement::CalculateKinematics(GeneralVariables& rVariab
     rVariables.N=row( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.Bh, rVariables.DN_DX );     //JLM debe entrar rBh
+        //this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX );     //JLM debe entrar rBh
+        this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.Bh, rVariables.DN_DX );     //JLM debe entrar rBh
 
     //Compute infinitessimal strain
     //this->CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
     this->CalculateInfinitesimalStrainBbar(rVariables.B,rVariables.StrainVector);
 
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1569,12 +1570,18 @@ void SmallDisplacementBbarElement::CalculateInfinitesimalStrainBbar(const Matrix
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+
+    if(dimension == 3){
+        voigt_size = 6;
+    }
 
     if( dimension == 2 )
     {
         //Infinitesimal Strain Calculation
-        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-        noalias(rStrainVector) = ZeroVector(3);
+        //if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+        rStrainVector.clear();
+        noalias(rStrainVector) = ZeroVector(voigt_size);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -1583,7 +1590,8 @@ void SmallDisplacementBbarElement::CalculateInfinitesimalStrainBbar(const Matrix
 
             rStrainVector[0] += Displacement[0] * rB(0, i * 2) + Displacement[1] * rB(0, i * 2 + 1);
             rStrainVector[1] += Displacement[0] * rB(1, i * 2) + Displacement[1] * rB(1, i * 2 + 1);
-            rStrainVector[2] += Displacement[0] * rB(2, i * 2) + Displacement[1] * rB(2, i * 2 + 1); // xy
+            rStrainVector[2] += Displacement[0] * rB(2, i * 2) + Displacement[1] * rB(2, i * 2 + 1);
+            rStrainVector[3] += Displacement[0] * rB(3, i * 2) + Displacement[1] * rB(3, i * 2 + 1); // xy
         }
     }/*
     else if( dimension == 3 )
@@ -1615,55 +1623,6 @@ void SmallDisplacementBbarElement::CalculateInfinitesimalStrainBbar(const Matrix
 
 }
 
-void SmallDisplacementBbarElement::CalculateInfinitesimalStrain(const Matrix& rH,
-                                                                Vector& rStrainVector )
-{
-    KRATOS_TRY
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if( dimension == 2 )
-    {
-
-        //Infinitesimal Strain Calculation
-        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-
-        rStrainVector[0] = rH( 0, 0 );
-
-        rStrainVector[1] = rH( 1, 1 );
-
-        rStrainVector[2] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
-
-    }
-    else if( dimension == 3 )
-    {
-
-        //Infinitesimal Strain Calculation
-        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
-        rStrainVector[0] = rH( 0, 0 );
-
-        rStrainVector[1] = rH( 1, 1 );
-
-        rStrainVector[2] = rH( 2, 2 );
-
-        rStrainVector[3] = ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
-
-        rStrainVector[4] = ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
-
-        rStrainVector[5] = ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
-
-    }
-    else
-    {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
-
-    }
-
-    KRATOS_CATCH( "" )
-
-}
 
 
 //****************************COMPUTE VELOCITY GRADIENT*******************************
@@ -1721,9 +1680,10 @@ void SmallDisplacementBbarElement::CalculateVelocityGradient(const Matrix& rDN_D
                     rB( 0, index + 1 ) = 0.0;
                     rB( 1, index + 0 ) = 0.0;
                     rB( 1, index + 1 ) = rDN_DX( i, 1 );
-                    rB( 2, index + 0 ) = rDN_DX( i, 1 );
-                    rB( 2, index + 1 ) = rDN_DX( i, 0 );
-
+                    rB( 2, index + 0 ) = 0.0;
+                    rB( 2, index + 1 ) = 0.0;
+                    rB( 3, index + 0 ) = rDN_DX( i, 1 );
+                    rB( 3, index + 1 ) = rDN_DX( i, 0 );
                 }
 
             }
@@ -1767,7 +1727,11 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB, Ma
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = dimension * (dimension +1) * 0.5;
+    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+
+    if(dimension == 3){
+        voigt_size = 6;
+    }
 
     if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
       rB.resize(voigt_size, dimension*number_of_nodes, false );
@@ -1828,12 +1792,22 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB, Ma
 		//	- 1 / 3 * B3(1, 1) - 1 / 3 * B3(2, 2) ...
 		//	- 1 / 3 * B4(1, 1) - 1 / 3 * B4(2, 2)];
 
+        rBn(2, 0) = -1. / 3. * rB(0, 0);
+        rBn(2, 1) = -1. / 3. * rB(1, 1);
+        rBn(2, 2) = -1. / 3. * rB(0, 2);
+        rBn(2, 3) = -1. / 3. * rB(1, 3);
+        rBn(2, 4) = -1. / 3. * rB(0, 4);
+        rBn(2, 5) = -1. / 3. * rB(1, 5);
+        rBn(2, 6) = -1. / 3. * rB(0, 6);
+        rBn(2, 7) = -1. / 3. * rB(1, 7);
+
 		for (unsigned int i = 0; i < number_of_nodes*dimension; i++)
 		{
 			//unsigned int index = 2 * i;
 			rBn(0, i) += 1. / 3. * rBh(0, i);
 			rBn(1, i) += 1. / 3. * rBh(0, i);
-			rBn(2, i) = rB(2, i);
+            rBn(2, i) += 1. / 3. * rBh(0, i);
+			rBn(3, i) = rB(3, i);
 		}
 
 		//B(1:3, : ) = B(1:3, : ) + 1 / 3 * BH;
@@ -1869,6 +1843,7 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB, Ma
         KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
+
     rB = rBn;
 
     KRATOS_CATCH( "" )
@@ -1887,7 +1862,6 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
                         //if (rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes)
                         //    rB.resize(voigt_size, dimension*number_of_nodes, false);
 
-                        //Inicializar rBh del mismo tamaño que rB
                         rVariables.Bh.clear();
 
                         //reading integration points
@@ -1901,18 +1875,24 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
                             MathUtils<double>::InvertMatrix( rVariables.J[PointNumber], InvJ, rVariables.detJ);
                             noalias( rVariables.DN_DX ) = prod( DN_De[PointNumber] , InvJ );
 
-                            //Compute the deformation matrix B
-
                             this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
+
+                            //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
 
                             for (unsigned int i = 0; i < number_of_nodes*2; i++)
                             {
                                 //Bh = Bh + sum(Bs(1:3, : ))*wg(iPG)*detJ;
-                                //TODO get weights from function
                                 rVariables.Bh(0, i) += (rVariables.B(0, i) + rVariables.B(1, i)) / integration_points.size();
                             }
 
+                            //for (unsigned int i = 0; i < number_of_nodes*2; i++)
+                            //{
+                            //   rVariables.Bh(0, i) /= GetGeometry().DomainSize();
+                            //}
+
+
                         }
+
 
 
 
@@ -1944,7 +1924,7 @@ double& SmallDisplacementBbarElement::CalculateTotalMass( double& rTotalMass, co
     {
 	    //compute element kinematics
 	    this->CalculateKinematics(Variables,PointNumber);
-        if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
         //getting informations for integration
         double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
@@ -2375,7 +2355,7 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
         {	  
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -2419,7 +2399,7 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
              
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-          if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+          //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
         //to take in account previous step writing
         //if( mFinalizedStep ){
           //this->GetHistoricalVariables(Variables,PointNumber);
@@ -2488,7 +2468,7 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -2521,7 +2501,7 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
                 rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
@@ -2616,7 +2596,7 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -2648,7 +2628,7 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
 
             if( rOutput[PointNumber].size2() != Variables.F.size2() )
                 rOutput[PointNumber].resize( Variables.F.size1() , Variables.F.size2() , false );

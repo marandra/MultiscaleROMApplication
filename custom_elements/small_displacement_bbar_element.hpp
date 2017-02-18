@@ -162,7 +162,7 @@ protected:
 	  noalias(N) = ZeroVector(number_of_nodes);
 	  //matrices
 	  B.resize(voigt_size, dimension*number_of_nodes,false);
-      Bh.resize(voigt_size, dimension*number_of_nodes,false);
+      Bh.resize(1, dimension*number_of_nodes,false);
 	  H.resize(dimension, dimension,false);
 	  F.resize(dimension, dimension,false);
 	  F0.resize(dimension, dimension,false);
@@ -760,13 +760,6 @@ protected:
      * Initialize Element General Variables
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Calculation of the Infinitesimal Strain Vector
-     */
-    virtual void CalculateInfinitesimalStrain(const Matrix& rH,
-            Vector& rStrainVector);
 
 
     /**
