@@ -19,6 +19,7 @@
 #include "custom_elements/updated_lagrangian_fbar_element.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
 
 namespace Kratos {
     ///@name Type Definitions
@@ -104,6 +105,7 @@ namespace Kratos {
            //constitutive laws
            const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
            const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
+           const LinearElasticPlasticJ2PlaneStrain2DLaw mLinearElasticPlasticJ2PlaneStrain2DLaw;
            /// Assignment operator.
            KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
            /// Copy constructor.

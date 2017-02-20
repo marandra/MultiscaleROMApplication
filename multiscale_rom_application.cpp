@@ -36,6 +36,7 @@ namespace Kratos {
         //Register Constitutive Laws
         Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2DLaw);
         Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw", mExponentialIsotropicDamagePlaneStrain2DLaw);
+        Serializer::Register("LinearElasticPlasticJ2PlaneStrain2DLaw", mLinearElasticPlasticJ2PlaneStrain2DLaw);
 
     }
 }
