@@ -206,6 +206,31 @@ protected:
 				       const double& rPointNumber );
 
 
+
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+
+    /**
+     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
+     */
+
+    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+                                     GeneralVariables& rVariables,
+                                     double& rIntegrationWeight);
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                                     GeneralVariables& rVariables,
+                                     double& rIntegrationWeight);
+
+
     /**
      * Calculate Element Kinematics
      */

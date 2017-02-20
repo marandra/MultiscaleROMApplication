@@ -73,7 +73,6 @@ Element::Pointer UpdatedLagrangianFbarElement::Create( IndexType NewId, NodesArr
 
 Element::Pointer UpdatedLagrangianFbarElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-
     UpdatedLagrangianFbarElement NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     //-----------//
@@ -169,7 +168,7 @@ void UpdatedLagrangianFbarElement::GetValueOnIntegrationPoints( const Variable<d
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
-
+    KRATOS_WATCH("DEBUG get value on integration 3")
   if (rVariable == DETERMINANT_F){
 
     const unsigned int& integration_points_number = mConstitutiveLawVector.size();
@@ -200,7 +199,6 @@ void UpdatedLagrangianFbarElement::GetValueOnIntegrationPoints( const Variable<d
 void UpdatedLagrangianFbarElement::Initialize()
 {
     KRATOS_TRY
-
     LargeDisplacementElement::Initialize();
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
@@ -255,6 +253,117 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
 //************************************************************************************
 
 
+//************************************************************************************
+//************************************************************************************
+
+    void UpdatedLagrangianFbarElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+    {
+        KRATOS_WATCH("DEBUG ENTRA LHS")
+        KRATOS_TRY
+
+        //contributions of the stiffness matrix calculated on the reference configuration
+        if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+        {
+            std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
+            const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
+
+            for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
+            {
+                bool calculated = false;
+                if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX ){
+                    // operation performed: add Km to the rLefsHandSideMatrix
+                    this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+                    calculated = true;
+                }
+
+                if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
+                    // operation performed: add Kg to the rLefsHandSideMatrix
+                    this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+                    calculated = true;
+                }
+
+                if(calculated == false)
+                {
+                    KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+                }
+
+            }
+        }
+        else{
+
+            MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+
+            // operation performed: add Km to the rLefsHandSideMatrix
+            this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+            // operation performed: add Kg to the rLefsHandSideMatrix
+            this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+        }
+
+        //KRATOS_WATCH( rLeftHandSideMatrix )
+        KRATOS_WATCH("DEBUG SALE LHS")
+        KRATOS_CATCH( "" )
+    }
+
+
+//************************************************************************************
+//****************************************** JLM calcula la matriz de rigidez material
+
+    void UpdatedLagrangianFbarElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+                                                       GeneralVariables& rVariables,
+                                                       double& rIntegrationWeight
+    )
+    {
+        KRATOS_TRY
+
+        // Kmar = fact*B'*C*B
+        double factor = std::sqrt(rVariables.detF0 / rVariables.detFT) ; // only for plain strain
+
+        //contributions to stiffness matrix calculated on the reference config
+        noalias( rLeftHandSideMatrix ) += factor * prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
+
+        // std::cout<<std::endl;
+        // std::cout<<" Kmat "<<rLeftHandSideMatrix<<std::endl;
+KRATOS_WATCH("DEBUG KUUM")
+        KRATOS_CATCH( "" )
+    }
+
+
+
+//************************************************************************************
+//***************************** JLM Modifico la forma en que se calcula Kgeo para FBAR
+
+    void UpdatedLagrangianFbarElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                                                       GeneralVariables& rVariables,
+                                                       double& rIntegrationWeight)
+
+    {
+        KRATOS_TRY
+
+        // Kgeom = fact*B'*C*F*(B'*F0^{-1} - B'*F^{-1})'/pot
+
+        unsigned int dimension = 2 ;
+        double factor = 0.5; // only for plain strain
+        //unsigned double fact = (rVariables.detF0/rVariables.detFT)^{1/pot} ;    //Calculating the inverse of the F and F0
+        Matrix InvF0;
+        //MathUtils<double>::InvertMatrix( rVariables.F0[rPointNumber], InvF0, rVariables.detF0);
+        MathUtils<double>::InvertMatrix( rVariables.F0, InvF0, rVariables.detF0);
+        Matrix InvF;
+        //MathUtils<double>::InvertMatrix( rVariables.F[rPointNumber], InvF, rVariables.detF);
+        MathUtils<double>::InvertMatrix( rVariables.F, InvF, rVariables.detF);
+
+        // InvBF = ((B'*F0^{-1}) - (B'*F^{-1}))/pot ;
+        Matrix InvBF = factor * prod( trans(rVariables.B), Matrix( InvF0 - InvF) ) ; // JLM ver la resta de matrices
+        Matrix ReducedKg = prod(trans(rVariables.B), rIntegrationWeight * Matrix(prod(rVariables.ConstitutiveMatrix, Matrix(prod(rVariables.F, trans(InvBF)))))); //to be optimized
+
+        MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
+
+        // std::cout<<std::endl;
+        // std::cout<<" Kmat + Kgeo "<<rLeftHandSideMatrix<<std::endl;
+        KRATOS_WATCH("DEBUG Kuug")
+        KRATOS_CATCH( "" )
+    }
+
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
@@ -262,7 +371,7 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
 void UpdatedLagrangianFbarElement::CalculateKinematics(GeneralVariables& rVariables,
         const double& rPointNumber)
 
-{
+{        KRATOS_WATCH("DEBUG kinematics")
     KRATOS_TRY
 
     //Get the parent coodinates derivative [dN/d£]
@@ -437,7 +546,7 @@ void UpdatedLagrangianFbarElement::CalculateDeformationMatrix(Matrix& rB,
 
 void UpdatedLagrangianFbarElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
-
+    KRATOS_WATCH("DEBUG on integration points 1")
     KRATOS_TRY
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
