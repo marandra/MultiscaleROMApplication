@@ -261,10 +261,10 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
 		KRATOS_WATCH("DEBUG ENTRA LHS2")
 		KRATOS_TRY
 
-		int i = 0; //  bucle infinito
-		while (i == 0){
-			i = i;
-		}
+		//int i = 0; //  bucle infinito
+		//while (i == 0){
+		//	i = i;
+		//}
 
         //contributions of the stiffness matrix calculated on the reference configuration
         if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -350,11 +350,6 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
         KRATOS_TRY
 
 		// Kgeom = fact*B'*C*F*(B'*F0^{-1} - B'*F^{-1})'/pot
-		//unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-		//
-		//Matrix StressTensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
-		//Matrix ReducedKg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(StressTensor, trans(rVariables.DN_DX)))); //to be optimized
-		//MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, ReducedKg, dimension);
 		
 		unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const unsigned int number_of_nodes = GetGeometry().size();
@@ -366,36 +361,37 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
 		}
 
         double factor = 0.5; // only for plain strain
-        //unsigned double fact = (rVariables.detF0/rVariables.detFT)^{1/pot} ;    //Calculating the inverse of the F and F0
-		//Matrix InvF0;
-		//noalias(InvF0) = ZeroMatrix(dimension, dimension);		
-		//noalias(F0) = IdentityMatrix(dimension);
-		//noalias(InvF0) = ZeroMatrix(dimension, dimension);
 
 
 		Matrix InvF0;
 		Matrix InvF;
+		//InvF0.resize(dimension, dimension);
+		//InvF.resize(dimension, dimension);
+		
 		MathUtils<double>::InvertMatrix(rVariables.F0, InvF0, rVariables.detF0);
 		MathUtils<double>::InvertMatrix(rVariables.F, InvF, rVariables.detF);
 
 		Vector v_InvF0 = MathUtils<double>::SymmetricTensorToVector(InvF0);
 		Vector v_InvF  = MathUtils<double>::SymmetricTensorToVector( InvF);
 		Vector v_F     = MathUtils<double>::SymmetricTensorToVector(rVariables.F);
-		//static inline Vector SymmetricTensorToVector(const Matrix& rTensor, unsigned int rSize = 0)
-		//KRATOS_WATCH(v_InvF0);
-		//int i = 0; //  bucle infinito
-		//while (i == 0) {
-		//	i = i;
-		//}
-        // InvBF = ((B'*F0^{-1}) - (B'*F^{-1}))/pot ;
+
         //Vector InvBF = factor * prod( trans(rVariables.B), Vector v_InvF0 ) ; // JLM ver la resta de matrices
-		VectorType v_InvBF = factor * prod(trans(rVariables.B), (v_InvF0-v_InvF));
+		Vector v_InvBF;
+		v_InvBF.resize(element_size);
+
+
+		v_InvF0.resize(voigt_size);
+		v_InvF.resize(voigt_size);
+		noalias(v_InvBF) = factor * Vector(prod(trans(rVariables.B), (v_InvF0 - v_InvF)));
 		//KRATOS_WATCH(v_InvF0)
 		//	KRATOS_WATCH(v_InvF)
-		Matrix m_BFB = ZeroMatrix(voigt_size, element_size);
-		for (int idof = 0; idof < element_size; idof++)  //prod(v_F, trans(v_InvBF)) = Matrix
+		Matrix m_BFB;
+		m_BFB.resize(voigt_size, element_size);
+		noalias(m_BFB) = ZeroMatrix(voigt_size, element_size);
+		
+		for (unsigned int idof = 0; idof < element_size; idof++)  //prod(v_F, trans(v_InvBF)) = Matrix
 		{
-			for (int ivoigt = 0; ivoigt < voigt_size; ivoigt++)
+			for (unsigned int ivoigt = 0; ivoigt < voigt_size; ivoigt++)
 			{
 				m_BFB(ivoigt, idof) = v_F(ivoigt) * v_InvBF(idof);
 			}
@@ -413,16 +409,16 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
 		//noalias(C) = prod(trans(rVariables.B), v_InvF0);
 		//MatrixType m_FBF = prod(trans(v_InvBF), v_F);
 		//fact*B'*C*F*(B'*F0^{ -1 } -B'*F^{-1})' / pot
-		
-		Matrix ReducedKg = prod(trans(rVariables.B), rIntegrationWeight * Matrix(prod(rVariables.ConstitutiveMatrix, m_BFB ))); //to be optimized
-		//Matrix ReducedKg = ZeroMatrix(8, 8);
+		//Matrix ReducedKg = prod(trans(rVariables.B), rIntegrationWeight * Matrix(prod(rVariables.ConstitutiveMatrix, m_BFB ))); //to be optimized
+		noalias(rLeftHandSideMatrix) += prod(trans(rVariables.B), rIntegrationWeight * Matrix(prod(rVariables.ConstitutiveMatrix, m_BFB))); //to be optimized
+																																//Matrix ReducedKg = ZeroMatrix(8, 8);
 		//ReducedKg *= 0. ;
 		//KRATOS_WATCH(ReducedKg.size2())
 
 		//KRATOS_WATCH(ReducedKg.size1())
 		//KRATOS_WATCH(rLeftHandSideMatrix)
-		KRATOS_WATCH(ReducedKg)
-        MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
+		//KRATOS_WATCH(ReducedKg)
+        //MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
 
         // std::cout<<std::endl;
         // std::cout<<" Kmat + Kgeo "<<rLeftHandSideMatrix<<std::endl;
