@@ -168,7 +168,7 @@ void UpdatedLagrangianFbarElement::GetValueOnIntegrationPoints( const Variable<d
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_WATCH("DEBUG get value on integration 3")
+    //KRATOS_WATCH("DEBUG get value on integration 3")
   if (rVariable == DETERMINANT_F){
 
     const unsigned int& integration_points_number = mConstitutiveLawVector.size();
@@ -258,8 +258,13 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
 
     void UpdatedLagrangianFbarElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
     {
-        KRATOS_WATCH("DEBUG ENTRA LHS")
-        KRATOS_TRY
+		KRATOS_WATCH("DEBUG ENTRA LHS2")
+		KRATOS_TRY
+
+		int i = 0; //  bucle infinito
+		while (i == 0){
+			i = i;
+		}
 
         //contributions of the stiffness matrix calculated on the reference configuration
         if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -301,7 +306,7 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
         }
 
         //KRATOS_WATCH( rLeftHandSideMatrix )
-        KRATOS_WATCH("DEBUG SALE LHS")
+        //KRATOS_WATCH("DEBUG SALE LHS")
         KRATOS_CATCH( "" )
     }
 
@@ -316,6 +321,8 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
     {
         KRATOS_TRY
 
+		//noalias(rLeftHandSideMatrix) += prod(trans(rVariables.B), rIntegrationWeight * Matrix(prod(rVariables.ConstitutiveMatrix, rVariables.B))); //to be optimized to remove the temporary
+
         // Kmar = fact*B'*C*B
         double factor = std::sqrt(rVariables.detF0 / rVariables.detFT) ; // only for plain strain
 
@@ -324,7 +331,9 @@ void UpdatedLagrangianFbarElement::FinalizeStepVariables( GeneralVariables & rVa
 
         // std::cout<<std::endl;
         // std::cout<<" Kmat "<<rLeftHandSideMatrix<<std::endl;
-KRATOS_WATCH("DEBUG KUUM")
+		//KRATOS_WATCH("DEBUG KUUM")
+
+		//KRATOS_WATCH(rLeftHandSideMatrix)
         KRATOS_CATCH( "" )
     }
 
@@ -340,27 +349,91 @@ KRATOS_WATCH("DEBUG KUUM")
     {
         KRATOS_TRY
 
-        // Kgeom = fact*B'*C*F*(B'*F0^{-1} - B'*F^{-1})'/pot
+		// Kgeom = fact*B'*C*F*(B'*F0^{-1} - B'*F^{-1})'/pot
+		//unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+		//
+		//Matrix StressTensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
+		//Matrix ReducedKg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(StressTensor, trans(rVariables.DN_DX)))); //to be optimized
+		//MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, ReducedKg, dimension);
+		
+		unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const unsigned int number_of_nodes = GetGeometry().size();
+		unsigned int element_size = number_of_nodes * dimension;
+		unsigned int voigt_size = 3; // ver si no hace falta colocar la fila z 
 
-        unsigned int dimension = 2 ;
+		if (dimension == 3) { 
+			KRATOS_THROW_ERROR(std::invalid_argument, "something is wrong with the dimension, solo esta hecho para 2D!!!", ""); //	voigt_size = 6; 
+		}
+
         double factor = 0.5; // only for plain strain
         //unsigned double fact = (rVariables.detF0/rVariables.detFT)^{1/pot} ;    //Calculating the inverse of the F and F0
-        Matrix InvF0;
-        //MathUtils<double>::InvertMatrix( rVariables.F0[rPointNumber], InvF0, rVariables.detF0);
-        MathUtils<double>::InvertMatrix( rVariables.F0, InvF0, rVariables.detF0);
-        Matrix InvF;
-        //MathUtils<double>::InvertMatrix( rVariables.F[rPointNumber], InvF, rVariables.detF);
-        MathUtils<double>::InvertMatrix( rVariables.F, InvF, rVariables.detF);
+		//Matrix InvF0;
+		//noalias(InvF0) = ZeroMatrix(dimension, dimension);		
+		//noalias(F0) = IdentityMatrix(dimension);
+		//noalias(InvF0) = ZeroMatrix(dimension, dimension);
 
+
+		Matrix InvF0;
+		Matrix InvF;
+		MathUtils<double>::InvertMatrix(rVariables.F0, InvF0, rVariables.detF0);
+		MathUtils<double>::InvertMatrix(rVariables.F, InvF, rVariables.detF);
+
+		Vector v_InvF0 = MathUtils<double>::SymmetricTensorToVector(InvF0);
+		Vector v_InvF  = MathUtils<double>::SymmetricTensorToVector( InvF);
+		Vector v_F     = MathUtils<double>::SymmetricTensorToVector(rVariables.F);
+		//static inline Vector SymmetricTensorToVector(const Matrix& rTensor, unsigned int rSize = 0)
+		//KRATOS_WATCH(v_InvF0);
+		//int i = 0; //  bucle infinito
+		//while (i == 0) {
+		//	i = i;
+		//}
         // InvBF = ((B'*F0^{-1}) - (B'*F^{-1}))/pot ;
-        Matrix InvBF = factor * prod( trans(rVariables.B), Matrix( InvF0 - InvF) ) ; // JLM ver la resta de matrices
-        Matrix ReducedKg = prod(trans(rVariables.B), rIntegrationWeight * Matrix(prod(rVariables.ConstitutiveMatrix, Matrix(prod(rVariables.F, trans(InvBF)))))); //to be optimized
+        //Vector InvBF = factor * prod( trans(rVariables.B), Vector v_InvF0 ) ; // JLM ver la resta de matrices
+		VectorType v_InvBF = factor * prod(trans(rVariables.B), (v_InvF0-v_InvF));
+		//KRATOS_WATCH(v_InvF0)
+		//	KRATOS_WATCH(v_InvF)
+		Matrix m_BFB = ZeroMatrix(voigt_size, element_size);
+		for (int idof = 0; idof < element_size; idof++)  //prod(v_F, trans(v_InvBF)) = Matrix
+		{
+			for (int ivoigt = 0; ivoigt < voigt_size; ivoigt++)
+			{
+				m_BFB(ivoigt, idof) = v_F(ivoigt) * v_InvBF(idof);
+			}
+		}
 
+		//KRATOS_WATCH(v_F);
+		//KRATOS_WATCH(v_InvBF);
+		//KRATOS_WATCH(m_BFB);
+
+		//int i = 0; //  bucle infinito
+		//while (i == 0) {
+		//	i = i;
+		//}
+		//Vector C(dimension); 
+		//noalias(C) = prod(trans(rVariables.B), v_InvF0);
+		//MatrixType m_FBF = prod(trans(v_InvBF), v_F);
+		//fact*B'*C*F*(B'*F0^{ -1 } -B'*F^{-1})' / pot
+		
+		Matrix ReducedKg = prod(trans(rVariables.B), rIntegrationWeight * Matrix(prod(rVariables.ConstitutiveMatrix, m_BFB ))); //to be optimized
+		//Matrix ReducedKg = ZeroMatrix(8, 8);
+		//ReducedKg *= 0. ;
+		//KRATOS_WATCH(ReducedKg.size2())
+
+		//KRATOS_WATCH(ReducedKg.size1())
+		//KRATOS_WATCH(rLeftHandSideMatrix)
+		KRATOS_WATCH(ReducedKg)
         MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
 
         // std::cout<<std::endl;
         // std::cout<<" Kmat + Kgeo "<<rLeftHandSideMatrix<<std::endl;
-        KRATOS_WATCH("DEBUG Kuug")
+
+        //KRATOS_WATCH(ReducedKg.size2())
+
+		//KRATOS_WATCH(ReducedKg)
+		//int i = 0; //  bucle infinito
+		//while (i == 0) {
+		//	i = i;
+		//}
         KRATOS_CATCH( "" )
     }
 
@@ -371,7 +444,8 @@ KRATOS_WATCH("DEBUG KUUM")
 void UpdatedLagrangianFbarElement::CalculateKinematics(GeneralVariables& rVariables,
         const double& rPointNumber)
 
-{        KRATOS_WATCH("DEBUG kinematics")
+{        
+	//KRATOS_WATCH("DEBUG kinematics FBAR")
     KRATOS_TRY
 
     //Get the parent coodinates derivative [dN/d£]
@@ -546,7 +620,7 @@ void UpdatedLagrangianFbarElement::CalculateDeformationMatrix(Matrix& rB,
 
 void UpdatedLagrangianFbarElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_WATCH("DEBUG on integration points 1")
+    //KRATOS_WATCH("DEBUG on integration points 1")
     KRATOS_TRY
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
