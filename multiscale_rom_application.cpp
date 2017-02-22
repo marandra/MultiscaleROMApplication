@@ -3,12 +3,14 @@
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "multiscale_rom_application.h"
 namespace Kratos {
     //Application variables creation: (see solid_mechanics_application_variables.cpp)
     //Application Constructor:
     KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
         mSmallDisplacementBbarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mSmallDisplacementBbarElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
         mUpdatedLagrangianFbarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMinimalKineticCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mMinimalKineticCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
@@ -29,6 +31,7 @@ namespace Kratos {
         KRATOS_REGISTER_VARIABLE(INITIAL_STRAIN_VECTOR)
 
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N )
+        KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement3D8N", mSmallDisplacementBbarElement3D8N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianFbarElement2D4N", mUpdatedLagrangianFbarElement2D4N )
 
         KRATOS_REGISTER_CONDITION( "MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N)

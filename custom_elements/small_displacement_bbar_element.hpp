@@ -761,20 +761,6 @@ protected:
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-
-    /**
-     * Calculation of the Displacement Gradient H
-     */
-    void CalculateDisplacementGradient(Matrix& rH,
-                                       const Matrix& rDN_DX);
-
-
-    /**
-     * Calculation of the Velocity Gradient
-     */
-    void CalculateVelocityGradient(const Matrix& rDN_DX,
-                                   Matrix& rDF );
-
     /**
      * Calculation of the Deformation Matrix  BL
      */
@@ -795,8 +781,6 @@ protected:
      * Calculation of the Volume Force of the Element
      */
     virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables );
-
-    void CalculateHydrostaticDeformationMatrix(Matrix& rB, Matrix& rBh, const Matrix& rDN_DX);
 
     void CalculateHydrostaticDeformationMatrix(GeneralVariables& rVariables);
 
