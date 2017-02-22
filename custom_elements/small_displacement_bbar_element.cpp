@@ -1866,7 +1866,7 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
 
                         //reading integration points
                         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
+                        double TotalArea = 0.0;
                         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
                         {
                             const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -1877,25 +1877,18 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
 
                             this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
 
-                            //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
-
+                            //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight() / GetGeometry().DomainSize();
+                            double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
+                            TotalArea += IntegrationWeight;
                             for (unsigned int i = 0; i < number_of_nodes*2; i++)
                             {
                                 //Bh = Bh + sum(Bs(1:3, : ))*wg(iPG)*detJ;
-                                rVariables.Bh(0, i) += (rVariables.B(0, i) + rVariables.B(1, i)) / integration_points.size();
+                                rVariables.Bh(0, i) += (rVariables.B(0, i) + rVariables.B(1, i)) * IntegrationWeight;
                             }
-
-                            //for (unsigned int i = 0; i < number_of_nodes*2; i++)
-                            //{
-                            //   rVariables.Bh(0, i) /= GetGeometry().DomainSize();
-                            //}
-
-
                         }
-
-
-
-
+                        for (unsigned int i = 0; i < number_of_nodes*2; i++) {
+                            rVariables.Bh(0, i) /= TotalArea;
+                        }
                     KRATOS_CATCH("")
             }
 
