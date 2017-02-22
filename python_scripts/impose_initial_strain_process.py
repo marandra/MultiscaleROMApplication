@@ -58,7 +58,7 @@ class ImposeInitialStrainProcess(km.Process):
 #        init_strain_list =  parameters_get_list_doubles(settings["initial_strain"])
 #        self.nr_gp_elem = len(
 #            self.model_part.Elements[1].GetValuesOnIntegrationPoints(
-#                km.INITIAL_STRAIN, self.process_info))
+#                km.INITIAL_STRAIN_VECTOR, self.process_info))
 #        self.len_strain = len(init_strain_list)
 #        self.initial_strain = km.Vector(self.len_strain)
 #        for i, s in enumerate(init_strain_list):
@@ -83,8 +83,8 @@ class ImposeInitialStrainProcess(km.Process):
         scaling_factor = get_multiplier(self)
         for i in range(self.num_materials):
             strain = scaling_factor * self.initial_strain
-            self.model_part.Properties[i + 1].SetValue(km.INITIAL_STRAIN, strain)
-            print(self.model_part.Properties[i + 1].GetValue(km.INITIAL_STRAIN))
+            self.model_part.Properties[i + 1].SetValue(km.INITIAL_STRAIN_VECTOR, strain)
+            print(self.model_part.Properties[i + 1].GetValue(km.INITIAL_STRAIN_VECTOR))
 
     def ExecuteFinalizeSolutionStep(self):
         pass

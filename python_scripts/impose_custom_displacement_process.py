@@ -55,8 +55,9 @@ class ApplyCustomDisplacementProcess(km.Process):
                                              self.lookuptable['mult'])
 
     def ExecuteInitialize(self):
-        node = self.model_part.Nodes[1]
-        self.final_value = node.GetSolutionStepValue(km.DISPLACEMENT)
+        for node in self.model_part.Nodes:
+        #node = self.model_part.Nodes[1]
+            self.final_value = node.GetSolutionStepValue(km.DISPLACEMENT)
 
     def ExecuteInitializeSolutionStep(self):
         multiplier = get_multiplier(self)
