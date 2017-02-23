@@ -106,6 +106,27 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
+
+
+// //************* GETTING METHODS
+
+    //SET
+
+    /**
+     * Set a double  Value on the Element Constitutive Law
+     */
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+    //GET:
+
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+
     //************* STARTING - ENDING  METHODS
 
     /**
@@ -170,6 +191,47 @@ protected:
     TotalLagrangianFbarElement() : LargeDisplacementElement()
     {
     }
+
+
+    /**
+     * Initialize Element General Variables
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
+
+
+
+    /**
+     * Finalize Element Internal Variables
+     */
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, 
+				       const double& rPointNumber );
+
+
+
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+
+    /**
+     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
+     */
+
+    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+                                     GeneralVariables& rVariables,
+                                     double& rIntegrationWeight);
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                                     GeneralVariables& rVariables,
+                                     double& rIntegrationWeight);
+
 
 
     /**
