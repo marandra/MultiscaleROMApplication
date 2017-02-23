@@ -1437,7 +1437,7 @@ void SmallDisplacementBbarElement::CalculateKinematics(GeneralVariables& rVariab
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     //Displacement Gradient H  [dU/dx_n]
-    this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
+    //this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
@@ -1600,18 +1600,13 @@ void SmallDisplacementBbarElement::CalculateInfinitesimalStrainBbar(const Matrix
                     rB( 0, index + 0 ) = rDN_DX( i, 0 );
                     rB( 1, index + 1 ) = rDN_DX( i, 1 );
                     rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
                     rB( 3, index + 0 ) = rDN_DX( i, 1 );
                     rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
                     rB( 4, index + 1 ) = rDN_DX( i, 2 );
                     rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
                     rB( 5, index + 0 ) = rDN_DX( i, 2 );
                     rB( 5, index + 2 ) = rDN_DX( i, 0 );
-
                 }
-
             }
             else
             {
@@ -1629,7 +1624,7 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB, Ma
 {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
 
     if(dimension == 3){
@@ -1757,9 +1752,8 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB, Ma
 void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(GeneralVariables & rVariables)
             {
                     KRATOS_TRY
-
                         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-                        //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+                        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
                         //unsigned int voigt_size = dimension * (dimension + 1) * 0.5;
 
                         //if (rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes)
@@ -1769,28 +1763,58 @@ void SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(General
 
                         //reading integration points
                         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-                        double TotalArea = 0.0;
-                        for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-                        {
-                            const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
-                            Matrix InvJ;
 
-                            MathUtils<double>::InvertMatrix( rVariables.J[PointNumber], InvJ, rVariables.detJ);
-                            noalias( rVariables.DN_DX ) = prod( DN_De[PointNumber] , InvJ );
-
-                            this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
-
-                            //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight() / GetGeometry().DomainSize();
-                            double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
-                            TotalArea += IntegrationWeight;
-                            for (unsigned int i = 0; i < number_of_nodes*2; i++)
+                        if(dimension==2){
+                            double TotalArea = 0.0;
+                            for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
                             {
-                                //Bh = Bh + sum(Bs(1:3, : ))*wg(iPG)*detJ;
-                                rVariables.Bh(0, i) += (rVariables.B(0, i) + rVariables.B(1, i)) * IntegrationWeight;
+                                const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+                                Matrix InvJ;
+
+                                MathUtils<double>::InvertMatrix( rVariables.J[PointNumber], InvJ, rVariables.detJ);
+                                noalias( rVariables.DN_DX ) = prod( DN_De[PointNumber] , InvJ );
+
+                                this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
+
+                                //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight() / GetGeometry().DomainSize();
+                                double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
+                                TotalArea += IntegrationWeight;
+                                for (unsigned int i = 0; i < number_of_nodes*2; i++)
+                                {
+                                    //Bh = Bh + sum(Bs(1:3, : ))*wg(iPG)*detJ;
+                                    rVariables.Bh(0, i) += (rVariables.B(0, i) + rVariables.B(1, i)) * IntegrationWeight;
+                                }
                             }
+                            for (unsigned int i = 0; i < number_of_nodes*2; i++) {
+                                rVariables.Bh(0, i) /= TotalArea;
+                            }
+
                         }
-                        for (unsigned int i = 0; i < number_of_nodes*2; i++) {
-                            rVariables.Bh(0, i) /= TotalArea;
+                        else{
+                            double TotalArea = 0.0;
+                            for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
+                            {
+                                const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+                                Matrix InvJ;
+
+                                MathUtils<double>::InvertMatrix( rVariables.J[PointNumber], InvJ, rVariables.detJ);
+                                noalias( rVariables.DN_DX ) = prod( DN_De[PointNumber] , InvJ );
+
+                                this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
+
+                                //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight() / GetGeometry().DomainSize();
+                                double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
+                                TotalArea += IntegrationWeight;
+                                for (unsigned int i = 0; i < number_of_nodes*2; i++)
+                                {
+                                    //Bh = Bh + sum(Bs(1:3, : ))*wg(iPG)*detJ;
+                                    rVariables.Bh(0, i) += (rVariables.B(0, i) + rVariables.B(1, i)) * IntegrationWeight;
+                                }
+                            }
+                            for (unsigned int i = 0; i < number_of_nodes*2; i++) {
+                                rVariables.Bh(0, i) /= TotalArea;
+                            }
+
                         }
                     KRATOS_CATCH("")
             }
