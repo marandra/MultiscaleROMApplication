@@ -1,4 +1,5 @@
 import KratosMultiphysics as km
+import KratosMultiphysics.MultiscaleROMApplication as msr
 import bisect
 import os
 
@@ -83,8 +84,8 @@ class ImposeInitialStrainProcess(km.Process):
         scaling_factor = get_multiplier(self)
         for i in range(self.num_materials):
             strain = scaling_factor * self.initial_strain
-            self.model_part.Properties[i + 1].SetValue(km.INITIAL_STRAIN_VECTOR, strain)
-            print(self.model_part.Properties[i + 1].GetValue(km.INITIAL_STRAIN_VECTOR))
+            self.model_part.Properties[i + 1].SetValue(msr.INITIAL_STRAIN_VECTOR, strain)
+            print("DEUBG PROCESS: {}".format(self.model_part.Properties[i + 1].GetValue(msr.INITIAL_STRAIN_VECTOR)))
 
     def ExecuteFinalizeSolutionStep(self):
         pass

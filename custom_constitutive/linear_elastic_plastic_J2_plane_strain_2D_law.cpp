@@ -199,8 +199,9 @@ namespace Kratos
     	Vector& StressVector = rValues.GetStressVector();
         Matrix ElasticityTensor;
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); //TODO find proper getter
+
         mInitStrain = matprops[INITIAL_STRAIN_VECTOR];
-        //KRATOS_WATCH(mInitStrain)
+        KRATOS_WATCH(mInitStrain)
         //noalias(epsilon) += mInitStrain;
 
         double hardening_modulus =  matprops[ISOTROPIC_HARDENING_MODULUS];
