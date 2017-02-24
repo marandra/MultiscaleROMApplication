@@ -29,9 +29,10 @@ Begin Nodes
     9    0.50000e+00    0.50000e+00    0.00000e+00
 End Nodes
 
-Begin Elements UpdatedLagrangianFbarElement2D4N
+Begin Elements TotalLagrangianFbarElement2D4N
+//Begin Elements UpdatedLagrangianFbarElement2D4N
 //Begin Elements UpdatedLagrangianElement2D4N
-///Begin Elements TotalLagrangianElement2D4N
+//Begin Elements TotalLagrangianElement2D4N
 //Begin Elements SmallDisplacementElement2D4N
 //Begin Elements SmallDisplacementBbarElement2D4N
          1          1          1         2         9         8    
