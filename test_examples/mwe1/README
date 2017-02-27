@@ -1,0 +1,6 @@
+Test Minimal Kinetic Restriction, using small displacement elements and linear
+elastic constitutive model from Solid Mechanics Application.
+
+Receives initial strain.
+
+MainKratos.py adds the Lagrange multipliers as Dofs.

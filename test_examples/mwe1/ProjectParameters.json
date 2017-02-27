@@ -3,40 +3,38 @@
         "problem_name": "Multiscale",
         "part_name": "TRIANGLES",
         "domain_size": 2,
-        "parallel_type": "OpenMP",
-        "time_step": 0.1,
+        "time_step": 1.0,
         "start_time": 0.0,
         "end_time": 1.0,
-        "echo_level": 0
+        "verbose": true
         },
     "solver_settings": {
         "solver_type": "solid_mechanics_static_solver",
-        "echo_level": 0,
+        "echo_level": 1,
         "solution_type": "Static",
-        "analysis_type": "Non-Linear",
+        "analysis_type": "Linear",
         "model_import_settings": {
             "input_filename" : "model",
             "input_type": "mdpa",
-            "constitutive_law": "HyperElasticPlaneStrain2DLaw",
-            "input_file_label" : 0
+            "constitutive_law": "LinearElasticPlaneStrain2DLaw"
             },
         "line_search": false,
         "convergence_criterion": "Residual_criterion",
-        "displacement_relative_tolerance": 1e-8,
-        "displacement_absolute_tolerance": 1e-12,
-        "residual_relative_tolerance": 1e-8,
-        "residual_absolute_tolerance": 1e-12,
-        "max_iteration": 20,
-        "problem_domain_sub_model_part_list": ["RVE"],
-        "processes_sub_model_part_list": ["FIXED_X", "FIXED_Y", "DISP_X"],
-        "rotation_dofs": false,        
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-9,
+        "max_iteration": 10,
         "linear_solver_settings": {
             "solver_type": "SuperLUSolver",
-            "scaling": false,
-            "verbosity": 0
-            }
+            "scaling": true,
+            "verbosity": 1
+            },
+        "problem_domain_sub_model_part_list": ["RVE"],
+        "processes_sub_model_part_list": ["FIXED_X", "FIXED_Y", "RVE"],
+        "rotation_dofs": false
         },
-    "constraints_process_list": [{  
+    "constraints_process_list": [{
         "implemented_in_file": "impose_vector_value_by_components_process",
         "implemented_in_module": "KratosMultiphysics",
         "help": "This process fixes the selected components of a given vector variable",
@@ -45,24 +43,10 @@
             "mesh_id": 0,
             "model_part_name": "FIXED_X",
             "variable_name": "DISPLACEMENT",
-            "is_fixed_x": false,
-            "is_fixed_y": false,
-            "is_fixed_z": false,
-            "value": [0.0,0.0,0.0]
-            }
-        },{
-        "implemented_in_file": "impose_vector_value_by_components_process",
-        "implemented_in_module": "KratosMultiphysics",
-        "help": "This process fixes the selected components of a given vector variable",
-        "process_name": "ImposeVectorValueByComponentsProcess",
-        "Parameters": {
-            "mesh_id": 0,
-            "model_part_name": "DISP_X",
-            "variable_name": "DISPLACEMENT",
             "is_fixed_x": true,
             "is_fixed_y": false,
-            "is_fixed_z": false,
-            "value": [0.01,0.0,0.0]
+            "is_fixed_z": true,
+            "value": [0.0,0.0,0.0]
             }
         },{
         "implemented_in_file": "impose_vector_value_by_components_process",
@@ -74,12 +58,25 @@
             "model_part_name": "FIXED_Y",
             "variable_name": "DISPLACEMENT",
             "is_fixed_x": false,
-            "is_fixed_y": false,
-            "is_fixed_z": false,
+            "is_fixed_y": true,
+            "is_fixed_z": true,
             "value": [0.0,0.0,0.0]
             }
         }],
-    "loads_process_list"       : [],
+    "loads_process_list"       : [{
+        "implemented_in_file"   : "impose_initial_strain_process",
+        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+        "help": "",
+        "process_name": "ImposeInitialStrainProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "RVE",
+            "variable_name": "INITIAL_STRAIN",
+	    "initial_strain": [-0.01, 0.0, -0.01],
+	    "lookuptable_time": [0.0, 1.0],
+	    "lookuptable_mult": [0.0, 1.0]
+	    }
+        }],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

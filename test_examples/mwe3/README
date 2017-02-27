@@ -1,5 +1,1 @@
-Small case to test minimal kinetic restriction, using small displacement
-elements.
-
-MainKratos.py includes the adding of lagrange multipliers as Dofs.
-Move this to the solver.
+Case for testing TotalLagrangianFbarElement

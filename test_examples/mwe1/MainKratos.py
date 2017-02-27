@@ -6,7 +6,6 @@ import operator
 import KratosMultiphysics as km
 import KratosMultiphysics.SolidMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
-from KratosMultiphysics.ExternalSolversApplication import *
 import process_factory
 from gid_output_process import GiDOutputProcess
 km.CheckForPreviousImport()
@@ -64,8 +63,8 @@ def create_solver_complete_model_part(model_part, parameters):
     model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)
     model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_2)
     model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_3)
-    constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
-    aux_obj_getter = operator.methodcaller(constitutive_law_name)
+    #constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
+    #aux_obj_getter = operator.methodcaller(constitutive_law_name)
     #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(msr))
     #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
     #model_part.Properties[2].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
