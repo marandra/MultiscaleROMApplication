@@ -1279,8 +1279,7 @@ void SmallDisplacementBbarElement::CalculateAndAddInternalForces(VectorType& rRi
 
     VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
     noalias( rRightHandSideVector ) -= InternalForces;
-KRATOS_WATCH(InternalForces)
-     std::cout<<std::endl;
+        //std::cout<<std::endl;
     // std::cout<<" Fint "<<InternalForces<<std::endl;
 
     KRATOS_CATCH( "" )
