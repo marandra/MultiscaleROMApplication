@@ -1,0 +1,152 @@
+{
+    "problem_data": {
+        "problem_name": "Multiscale",
+        "part_name": "TRIANGLES",
+        "domain_size": 2,
+        "time_step": 0.05,
+        "start_time": 0.0,
+        "end_time": 1.0,
+        "verbose": false
+        },
+    "solver_settings": {
+        "solver_type": "solid_mechanics_static_solver",
+        "echo_level": 1,
+        "solution_type": "Static",
+        "analysis_type": "Non-Linear",
+        "model_import_settings": {
+            "input_filename" : "model",
+            "input_type": "mdpa",
+            "constitutive_law": "LinearElasticPlaneStrain2DLaw",
+            "constitutive_law": "HyperElasticPlasticJ2PlaneStrain2DLaw"
+            },
+        "line_search": false,
+        "convergence_criterion": "Residual_criterion",
+        "displacement_relative_tolerance": 1e-8,
+        "displacement_absolute_tolerance": 1e-12,
+        "residual_relative_tolerance": 1e-8,
+        "residual_absolute_tolerance": 1e-12,
+        "max_iteration": 20,
+        "linear_solver_settings": {
+            "solver_type": "SuperLUSolver",
+            "scaling": true,
+            "verbosity": 0
+            },
+        "problem_domain_sub_model_part_list": ["RVE"],
+        "processes_sub_model_part_list": ["NODE1","NODE2","NODE3","NODE5","DISP_X"],
+        "rotation_dofs": false
+        },
+    "constraints_process_list": [{
+        "implemented_in_file": "impose_vector_value_by_components_process",
+        "implemented_in_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "ImposeVectorValueByComponentsProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "NODE1",
+            "variable_name": "DISPLACEMENT",
+            "is_fixed_x": true,
+            "is_fixed_y": false,
+            "is_fixed_z": false,
+            "value": [0.0,0.0,0.0]
+            }
+        },{
+        "implemented_in_file": "impose_vector_value_by_components_process",
+        "implemented_in_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "ImposeVectorValueByComponentsProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "NODE2",
+            "variable_name": "DISPLACEMENT",
+            "is_fixed_x": true,
+            "is_fixed_y": false,
+            "is_fixed_z": true,
+            "value": [0.0,0.0,0.0]
+            }
+        },{
+        "implemented_in_file": "impose_vector_value_by_components_process",
+        "implemented_in_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "ImposeVectorValueByComponentsProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "NODE3",
+            "variable_name": "DISPLACEMENT",
+            "is_fixed_x": true,
+            "is_fixed_y": true,
+            "is_fixed_z": false,
+            "value": [0.0,0.0,0.0]
+            }
+        },{
+        "implemented_in_file": "impose_vector_value_by_components_process",
+        "implemented_in_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "ImposeVectorValueByComponentsProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "NODE5",
+            "variable_name": "DISPLACEMENT",
+            "is_fixed_x": true,
+            "is_fixed_y": true,
+            "is_fixed_z": true,
+            "value": [0.0,0.0,0.0]
+            }
+        },{
+        "implemented_in_file": "impose_vector_value_by_components_process",
+        "implemented_in_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "ImposeVectorValueByComponentsProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "DISP_X",
+            "variable_name": "DISPLACEMENT",
+            "is_fixed_x": true,
+            "is_fixed_y": false,
+            "is_fixed_z": false,
+            "value": [1.0,0.0,0.0]
+            }
+        }],
+    "loads_process_list"       : [{
+        "implemented_in_file"   : "impose_custom_displacement_process",
+        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+        "help": "",
+        "process_name": "ApplyCustomDisplacementProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "DISP_X",
+            "variable_name": "DISPLACEMENT",
+	    "lookuptable_time": [0.0, 1.0],
+	    "lookuptable_mult": [0.0, 1.0]
+	    }
+        }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostAscii",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+                },
+            "file_label"          : "step",
+            "output_control_type" : "time",
+            "output_frequency"    : 0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY"]
+            },
+        "point_data_configuration"  : []
+        },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+        },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+        }
+    }
