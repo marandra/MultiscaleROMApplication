@@ -100,7 +100,7 @@ protected:
         Vector  StressVector;
         Vector  N;
         Matrix  B;
-        Matrix  Bh;
+        Vector  Bh;
         Matrix  H;
         Matrix  F;
         Matrix  F0;
@@ -162,7 +162,7 @@ protected:
 	  noalias(N) = ZeroVector(number_of_nodes);
 	  //matrices
 	  B.resize(voigt_size, dimension*number_of_nodes,false);
-      Bh.resize(1, dimension*number_of_nodes,false);
+      Bh.resize(dimension*number_of_nodes,false);
 	  H.resize(dimension, dimension,false);
 	  F.resize(dimension, dimension,false);
 	  F0.resize(dimension, dimension,false);
@@ -171,7 +171,7 @@ protected:
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
 
       noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-      noalias(Bh)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
+      noalias(Bh)  = ZeroVector(dimension*number_of_nodes);
 	  noalias(H)  = ZeroMatrix(dimension, dimension);
 	  noalias(F)  = IdentityMatrix(dimension);
 	  noalias(F0) = IdentityMatrix(dimension);
@@ -761,20 +761,6 @@ protected:
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-
-    /**
-     * Calculation of the Displacement Gradient H
-     */
-    void CalculateDisplacementGradient(Matrix& rH,
-                                       const Matrix& rDN_DX);
-
-
-    /**
-     * Calculation of the Velocity Gradient
-     */
-    void CalculateVelocityGradient(const Matrix& rDN_DX,
-                                   Matrix& rDF );
-
     /**
      * Calculation of the Deformation Matrix  BL
      */
@@ -796,13 +782,15 @@ protected:
      */
     virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables );
 
-    void CalculateHydrostaticDeformationMatrix(Matrix& rB, Matrix& rBh, const Matrix& rDN_DX);
-
     void CalculateHydrostaticDeformationMatrix(GeneralVariables& rVariables);
 
-    void CalculateDeformationMatrixBbar(Matrix& rB, Matrix& rBh, const Matrix& rDN_DX);
+    void CalculateDeformationMatrixBbar(Matrix& rB, Vector& rBh, const Matrix& rDN_DX);
 
     virtual void CalculateInfinitesimalStrainBbar(const Matrix& rB, Vector& rStrainVector);
+
+    virtual void CalculateInfinitesimalStrain(const Matrix& rH, Vector& rStrainVector);
+
+    void CalculateDisplacementGradient(Matrix& rH, const Matrix& rDN_DX);
 
     ///@}
     ///@name Protected  Access

@@ -99,6 +99,7 @@ namespace Kratos {
        private:
            //elements
            const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;
+           const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D8N;
            const UpdatedLagrangianFbarElement mUpdatedLagrangianFbarElement2D4N;
            const TotalLagrangianFbarElement mTotalLagrangianFbarElement2D4N;
            //conditions
