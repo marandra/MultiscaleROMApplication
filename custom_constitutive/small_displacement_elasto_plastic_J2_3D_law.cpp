@@ -1,65 +1,65 @@
 #include <solid_mechanics_application_variables.h>
-#include "linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "small_displacement_elasto_plastic_J2_3D_law.hpp"
 #include "multiscale_rom_application_variables.h"
-#include "../../../kratos/includes/variables.h"
+
 
 namespace Kratos
 {
     // CONSTRUCTOR
     //ElastoplasticJ2PlanStrain2DLaw
-    LinearElasticPlasticJ2PlaneStrain2DLaw::LinearElasticPlasticJ2PlaneStrain2DLaw() 
+    SmallDisplacementElastoPlasticJ23DLaw::SmallDisplacementElastoPlasticJ23DLaw() 
     	: ConstitutiveLaw()
     	, mInitStrain()
     {
     }
     
     // CLONE
-    ConstitutiveLaw::Pointer LinearElasticPlasticJ2PlaneStrain2DLaw::Clone() const
+    ConstitutiveLaw::Pointer SmallDisplacementElastoPlasticJ23DLaw::Clone() const
     {
-    	return ConstitutiveLaw::Pointer(new LinearElasticPlasticJ2PlaneStrain2DLaw());
+    	return ConstitutiveLaw::Pointer(new SmallDisplacementElastoPlasticJ23DLaw());
     }
     
-    LinearElasticPlasticJ2PlaneStrain2DLaw::SizeType LinearElasticPlasticJ2PlaneStrain2DLaw::WorkingSpaceDimension()
+    SmallDisplacementElastoPlasticJ23DLaw::SizeType SmallDisplacementElastoPlasticJ23DLaw::WorkingSpaceDimension()
     {
     	return 2;
     }
     
-    LinearElasticPlasticJ2PlaneStrain2DLaw::SizeType LinearElasticPlasticJ2PlaneStrain2DLaw::GetStrainSize()
+    SmallDisplacementElastoPlasticJ23DLaw::SizeType SmallDisplacementElastoPlasticJ23DLaw::GetStrainSize()
     {
     	return 6;
     }
     
-    bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<double>& rThisVariable)
+    bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<double>& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<Vector>& rThisVariable)
+    bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<Vector>& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<Matrix>& rThisVariable)
+    bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<Matrix>& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<array_1d<double, 2 > >& rThisVariable)
+    bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<array_1d<double, 2 > >& rThisVariable)
     {
     	return false;
     }
     
-    bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
+    bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
     {
     	return false;
     }
     
-    double& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
+    double& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
     {
     	return rValue;
     }
     
-    Vector& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+    Vector& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
     	if (rThisVariable == INITIAL_STRAIN) {
     		if (rValue.size() != mInitStrain.size())
@@ -69,28 +69,28 @@ namespace Kratos
     	return (rValue);
     }
     
-    Matrix& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
+    Matrix& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
     {
     	return rValue;
     }
     
-    array_1d<double, 2 > & LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<array_1d<double, 2 > >& rVariable, array_1d<double, 2 > & rValue)
+    array_1d<double, 2 > & SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<array_1d<double, 2 > >& rVariable, array_1d<double, 2 > & rValue)
     {
     	return rValue;
     }
     
-    array_1d<double, 3 > & LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & rValue)
+    array_1d<double, 3 > & SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & rValue)
     {
     	return rValue;
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<double>& rVariable,
+    void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<double>& rVariable,
     	const double& rValue,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<Vector >& rVariable,
+    void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<Vector >& rVariable,
     	const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
     	if (rVariable == INITIAL_STRAIN) {
@@ -99,44 +99,44 @@ namespace Kratos
     	}
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<Matrix >& rVariable,
+    void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<Matrix >& rVariable,
     	const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 2 > >& rVariable,
+    void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<array_1d<double, 2 > >& rVariable,
     	const array_1d<double, 2 > & rValue,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
+    void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
     	const array_1d<double, 3 > & rValue,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    bool LinearElasticPlasticJ2PlaneStrain2DLaw::ValidateInput(const Properties& rMaterialProperties)
+    bool SmallDisplacementElastoPlasticJ23DLaw::ValidateInput(const Properties& rMaterialProperties)
     {
 	return true;
     }
     
-    LinearElasticPlasticJ2PlaneStrain2DLaw::StrainMeasure LinearElasticPlasticJ2PlaneStrain2DLaw::GetStrainMeasure()
+    SmallDisplacementElastoPlasticJ23DLaw::StrainMeasure SmallDisplacementElastoPlasticJ23DLaw::GetStrainMeasure()
     {
         return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
     
-    LinearElasticPlasticJ2PlaneStrain2DLaw::StressMeasure LinearElasticPlasticJ2PlaneStrain2DLaw::GetStressMeasure()
+    SmallDisplacementElastoPlasticJ23DLaw::StressMeasure SmallDisplacementElastoPlasticJ23DLaw::GetStressMeasure()
     {
     	return ConstitutiveLaw::StressMeasure_Cauchy;
     }
     
-    bool LinearElasticPlasticJ2PlaneStrain2DLaw::IsIncremental()
+    bool SmallDisplacementElastoPlasticJ23DLaw::IsIncremental()
     {
     	return false;
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeMaterial(
+    void SmallDisplacementElastoPlasticJ23DLaw::InitializeMaterial(
     	const Properties& material_prop,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues)
@@ -147,14 +147,14 @@ namespace Kratos
         mInitStrain = ZeroVector(this->GetStrainSize());
     }
 	    
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
+    void SmallDisplacementElastoPlasticJ23DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
+    void SmallDisplacementElastoPlasticJ23DLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
@@ -163,36 +163,36 @@ namespace Kratos
         mAccumulatedPlasticStrainOld = mAccumulatedPlasticStrain;
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeNonLinearIteration(const Properties& rMaterialProperties,
+    void SmallDisplacementElastoPlasticJ23DLaw::InitializeNonLinearIteration(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+    void SmallDisplacementElastoPlasticJ23DLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
     {
     	CalculateMaterialResponseCauchy(rValues);
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
     {
     	CalculateMaterialResponseCauchy(rValues);
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
     {
     	CalculateMaterialResponseCauchy(rValues);
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     {
     	const Properties& matprops = rValues.GetMaterialProperties();
     	Vector& epsilon = rValues.GetStrainVector();
@@ -281,32 +281,32 @@ namespace Kratos
 
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
     {
     	FinalizeMaterialResponseCauchy(rValues);
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
     {
     	FinalizeMaterialResponseCauchy(rValues);
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
     {
     	FinalizeMaterialResponseCauchy(rValues);
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+    void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
     {
     }
     
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::ResetMaterial(const Properties& rMaterialProperties,
+    void SmallDisplacementElastoPlasticJ23DLaw::ResetMaterial(const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues)
     {
     }
 
-    double LinearElasticPlasticJ2PlaneStrain2DLaw::GetDeltaGamma(double norm_s_trial, const Properties& rMaterialProperties){
+    double SmallDisplacementElastoPlasticJ23DLaw::GetDeltaGamma(double norm_s_trial, const Properties& rMaterialProperties){
         double E = rMaterialProperties[YOUNG_MODULUS];
         double poisson_ratio = rMaterialProperties[POISSON_RATIO];
         double yield_stress = rMaterialProperties[YIELD_STRESS];
@@ -332,7 +332,7 @@ namespace Kratos
         return dgamma;
     }
 
-    double LinearElasticPlasticJ2PlaneStrain2DLaw::yieldFunction(const double norm_dev_stress, const Properties& rMaterialProperties){
+    double SmallDisplacementElastoPlasticJ23DLaw::yieldFunction(const double norm_dev_stress, const Properties& rMaterialProperties){
         double yield_stress = rMaterialProperties[YIELD_STRESS];
         double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
         double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
@@ -345,7 +345,7 @@ namespace Kratos
     }
 
 
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateElasticityTensor(
+    void SmallDisplacementElastoPlasticJ23DLaw::CalculateElasticityTensor(
             const Properties& props, Matrix& D){
         double E = props[YOUNG_MODULUS];
         double poisson_ratio = props[POISSON_RATIO];
@@ -364,7 +364,7 @@ namespace Kratos
         D(5, 5) = mu;
     }
 
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateTangentTensor(double dgamma, double norm_s_trial,
+    void SmallDisplacementElastoPlasticJ23DLaw::CalculateTangentTensor(double dgamma, double norm_s_trial,
                                                                         const Vector& N_new, const Properties& props,
                                                                         Matrix& D){
         double hardening_modulus = props[ISOTROPIC_HARDENING_MODULUS];
@@ -424,7 +424,7 @@ namespace Kratos
         D(5, 5) =                                       mu * theta_new - (2 * mu * theta_new_b * (N_new(5) * N_new(5)));
     }
 
-    void LinearElasticPlasticJ2PlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+    void SmallDisplacementElastoPlasticJ23DLaw::GetLawFeatures(Features& rFeatures)
     {
     	rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     	rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -434,15 +434,15 @@ namespace Kratos
     	rFeatures.mSpaceDimension = WorkingSpaceDimension();
     }
     
-    int LinearElasticPlasticJ2PlaneStrain2DLaw::Check(
+    int SmallDisplacementElastoPlasticJ23DLaw::Check(
     	const Properties& rMaterialProperties,
     	const GeometryType& rElementGeometry,
     	const ProcessInfo& rCurrentProcessInfo)
     {
     		if(!rMaterialProperties.Has(YOUNG_MODULUS)) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearElasticPlasticJ2PlaneStrain2DLaw - missing YOUNG_MODULUS", "");
+    		    KRATOS_THROW_ERROR(std::invalid_argument, "SmallDisplacementsElastoPlasticJ23DLaw - missing YOUNG_MODULUS", "");
     		if(!rMaterialProperties.Has(POISSON_RATIO)) 
-    		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearElasticPlasticJ2PlaneStrain2DLaw - missing POISSON_RATIO", "");
+    		    KRATOS_THROW_ERROR(std::invalid_argument, "SmallDisplacementsElastoPlasticJ23DLaw - missing POISSON_RATIO", "");
     		return 0;
     }
 

@@ -21,6 +21,7 @@
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/small_displacement_elasto_plastic_J2_3D_law.hpp"
 
 namespace Kratos {
     ///@name Type Definitions
@@ -109,6 +110,7 @@ namespace Kratos {
            const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
            const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
            const LinearElasticPlasticJ2PlaneStrain2DLaw mLinearElasticPlasticJ2PlaneStrain2DLaw;
+           const SmallDisplacementElastoPlasticJ23DLaw mSmallDisplacementElastoPlasticJ23DLaw;
            /// Assignment operator.
            KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
            /// Copy constructor.

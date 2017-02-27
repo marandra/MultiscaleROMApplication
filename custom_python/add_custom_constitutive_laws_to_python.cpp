@@ -24,6 +24,7 @@
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/small_displacement_elasto_plastic_J2_3D_law.hpp"
 #include "custom_constitutive/rve_law.h"
 
 //For RVELaw
@@ -64,8 +65,14 @@ void  AddCustomConstitutiveLawsToPython()
     ( "ExponentialIsotropicDamagePlaneStrain2DLaw",
       init<>() )
     ;
+
     class_< LinearElasticPlasticJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "LinearElasticPlasticJ2PlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< SmallDisplacementElastoPlasticJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "SmallDisplacementElastoPlasticJ23DLaw",
       init<>() )
     ;
 

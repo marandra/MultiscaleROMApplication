@@ -1,5 +1,5 @@
-#if !defined (KRATOS_LINEAR_ELASTIC_PLASTIC_J2_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_LINEAR_ELASTIC_PLASTIC_J2_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_SMALL_DISPLACEMENTS_ELASTO_PLASTIC_J2_3D_LAW_H_INCLUDED)
+#define  KRATOS_SMALL_DISPLACEMENTS_ELASTO_PLASTIC_J2_3D_LAW_H_INCLUDED
 
 
 /* System includes */
@@ -15,25 +15,25 @@ namespace Kratos
 	/**
 	* Base class of constitutive laws.
 	*/
-	class KRATOS_API(MULTISCALE_ROM_APPLICATION) LinearElasticPlasticJ2PlaneStrain2DLaw : public ConstitutiveLaw
+	class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementElastoPlasticJ23DLaw : public ConstitutiveLaw
 
 	{
 
 	public:
 
-		KRATOS_CLASS_POINTER_DEFINITION(LinearElasticPlasticJ2PlaneStrain2DLaw);
+		KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementElastoPlasticJ23DLaw);
 
 	//public:
 
 		/**
 		* Constructor.
 		*/
-		LinearElasticPlasticJ2PlaneStrain2DLaw();
+		SmallDisplacementElastoPlasticJ23DLaw();
 
 		/**
 		* Destructor.
 		*/
-		virtual ~LinearElasticPlasticJ2PlaneStrain2DLaw(){};
+		virtual ~SmallDisplacementElastoPlasticJ23DLaw(){};
 
 		/**
 		* Clone function (has to be implemented by any derived class)
@@ -448,6 +448,6 @@ namespace Kratos
 
 		///@}
 
-	}; /* class LinearElasticPlasticJ2PlaneStrain2DLaw */
+	}; /* class SmallDisplacementsElastoPlasticJ23DLaw */
 } /* namespace Kratos */
 #endif /* KRATOS_LINEAR_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED defined */
