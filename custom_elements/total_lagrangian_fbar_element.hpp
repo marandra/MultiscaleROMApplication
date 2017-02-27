@@ -41,8 +41,8 @@ namespace Kratos
  * Implements a total Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D
  */
-
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) TotalLagrangianFbarElement
+//class KRATOS_API(SOLID_MECHANICS_APPLICATION) TotalLagrangianFbarElement
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) TotalLagrangianFbarElement
     : public LargeDisplacementElement
 {
 public:
@@ -105,27 +105,6 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
-
-
-
-// //************* GETTING METHODS
-
-    //SET
-
-    /**
-     * Set a double  Value on the Element Constitutive Law
-     */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
-    //GET:
-
-    /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
 
     //************* STARTING - ENDING  METHODS
 
@@ -191,21 +170,6 @@ protected:
     TotalLagrangianFbarElement() : LargeDisplacementElement()
     {
     }
-
-
-    /**
-     * Initialize Element General Variables
-     */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo);
-
-
-
-    /**
-     * Finalize Element Internal Variables
-     */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, 
-				       const double& rPointNumber );
 
 
 
