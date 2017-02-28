@@ -1451,7 +1451,7 @@ void SmallDisplacementBbarElement::CalculateKinematics(GeneralVariables& rVariab
     //    KRATOS_WATCH(rVariables.StrainVector)
     //    KRATOS_WATCH("STRAIN BBar:")
     this->CalculateInfinitesimalStrainBbar(rVariables.B,rVariables.StrainVector);
-        KRATOS_WATCH(rVariables.StrainVector)
+       // KRATOS_WATCH(rVariables.StrainVector)
 
     KRATOS_CATCH("")
 }
