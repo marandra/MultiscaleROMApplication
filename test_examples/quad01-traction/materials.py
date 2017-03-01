@@ -6,11 +6,9 @@ from KratosMultiphysics.MultiscaleROMApplication import *
 
 def AssignMaterial(Properties):
 
-    mat = LinearElasticPlasticJ2PlaneStrain2DLaw()
+    mat = LinearElasticPlaneStrain2DLaw()
+    #mat = LinearElasticPlasticJ2PlaneStrain2DLaw()
     #mat = LinearIsotropicDamagePlaneStrain2DLaw()
-    #mat = LinearElasticPlaneStrain2DLaw()
-    #mat = HyperElasticPlaneStrain2DLaw()
-    #mat = HyperElasticPlasticJ2PlaneStrain2DLaw()
 
     Properties[1].SetValue(CONSTITUTIVE_LAW, mat.Clone())
     Properties[2].SetValue(CONSTITUTIVE_LAW, mat.Clone())

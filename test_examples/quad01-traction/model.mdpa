@@ -25,11 +25,9 @@ Begin Nodes
     6    0.50000e+00    1.00000e+00    0.00000e+00
     7    0.00000e+00    1.00000e+00    0.00000e+00
     8    0.00000e+00    0.50000e+00    0.00000e+00
-    9    0.60000e+00    0.70000e+00    0.00000e+00
-//    9    0.50000e+00    0.50000e+00    0.00000e+00
+    9    0.60000e+00    0.70000e+00    0.00000e+00  //note displaced node
 End Nodes
 
-//Begin Elements SmallDisplacementElement2D4N
 Begin Elements SmallDisplacementBbarElement2D4N
          1          1          1         2         9         8    
          2          1          2         3         4         9    
@@ -58,9 +56,29 @@ Begin SubModelPart RVE
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart FIXED_X
+
+Begin SubModelPart PINNED
     Begin SubModelPartNodes
          1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart FIXED_Y_DISP_X
+    Begin SubModelPartNodes
+         3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart FREE_Y
+    Begin SubModelPartNodes
          7
          8
     End SubModelPartNodes
@@ -70,18 +88,10 @@ Begin SubModelPart FIXED_X
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart FIXED_Y
+Begin SubModelPart DISP
     Begin SubModelPartNodes
-         1
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-
-Begin SubModelPart DISP_X
-    Begin SubModelPartNodes
+         3
+         4
          5
     End SubModelPartNodes
     Begin SubModelPartElements
