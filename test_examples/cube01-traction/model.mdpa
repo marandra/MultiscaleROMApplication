@@ -58,11 +58,31 @@ Begin SubModelPart PINNED
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart FIXED_X
+Begin SubModelPart FREE_Y
+    Begin SubModelPartNodes
+         2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+
+Begin SubModelPart FREE_Z
+    Begin SubModelPartNodes
+         3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+
+Begin SubModelPart FREE_YZ
     Begin SubModelPartNodes
          1
-         2
-         3
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
