@@ -1,0 +1,14 @@
+MESH "Kratos_Hexahedra3D8_Mesh_1" dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+1 0 1 1
+2 0 1 0
+3 0 0 1
+4 1 1 1
+5 0 0 0
+6 1 1 0
+7 1 0 1
+8 1 0 0
+End Coordinates
+Elements
+1 7 4 6 8 3 1 2 5 2
+End Elements
