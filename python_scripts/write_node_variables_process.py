@@ -1,10 +1,9 @@
 import KratosMultiphysics as km
-import KratosMultiphysics.MultiScaleApplication as mss # <- check is used
 import os
 import operator
 
 def Factory(settings, Model):
-    return WriteNodesVariables(settings["Parameters"], Model)
+    return WriteNodeVariablesProcess(settings["Parameters"], Model)
 
 
 def parameters_get_list_int(ilist):
@@ -14,10 +13,9 @@ def parameters_get_list_int(ilist):
     return olist
 
 
-class WriteNodesVariables(km.Process):
+class WriteNodeVariablesProcess(km.Process):
     def __init__(self, param, Model):
-        self.Model = Model[param['model_part_name'].GetString()]
-        self.BaseName = None
+        self.model_part = Model[param['model_part_name'].GetString()]
         self.filename = param['filename'].GetString()
         self.vname1 = param['variable_1'].GetString()
         f = operator.attrgetter(self.vname1)
@@ -31,18 +29,21 @@ class WriteNodesVariables(km.Process):
         self.vname4 = param['variable_4'].GetString()
         f = operator.attrgetter(self.vname4)
         self.Var4 = f(km)
-        self.node = param['node'].GetInt()
-    
+        for node in self.model_part.Nodes:
+            if node.Id == param['node'].GetInt():
+                self.node = node
+                break
+
     def write_results(self):
         with open(self.filename, 'a') as ofile:
-                var1 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var1)
-                ofile.write("  {}".format(var1))
-                var2 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var2)
-                ofile.write("  {}".format(var2))
-                var3 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var3)
-                ofile.write("  {}".format(var3))
-                var4 = self.Model.Nodes[self.node].GetSolutionStepValue(self.Var4)
-                ofile.write("  {}".format(var4))
+                var1 = self.node.GetSolutionStepValue(self.Var1)
+                ofile.write("  {:.8e}".format(var1))
+                var2 = self.node.GetSolutionStepValue(self.Var2)
+                ofile.write("  {:.8e}".format(var2))
+                var3 = self.node.GetSolutionStepValue(self.Var3)
+                ofile.write("  {:.8e}".format(var3))
+                var4 = self.node.GetSolutionStepValue(self.Var4)
+                ofile.write("  {:.8e}".format(var4))
                 ofile.write("\n".format())
     
     def ExecuteInitialize(self):
@@ -51,7 +52,7 @@ class WriteNodesVariables(km.Process):
         except OSError:
             pass
         with open(self.filename, 'a') as ofile:
-            ofile.write("#  node {}\n#".format(self.node))
+            ofile.write("#  node {}\n#".format(self.node.Id))
             ofile.write("  {}".format(self.vname1))
             ofile.write("  {}".format(self.vname2))
             ofile.write("  {}".format(self.vname3))
@@ -71,9 +72,7 @@ class WriteNodesVariables(km.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        #t = self.Model.ProcessInfo[km.TIME]
-        #if t == self.Model.ProcessInfo[km.END_TIME] or self.__check_write_freq(t):
-        self.write_results() 
+        self.write_results()
     
     def ExecuteFinalize(self):
         pass
