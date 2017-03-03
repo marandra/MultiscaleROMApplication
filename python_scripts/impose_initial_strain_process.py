@@ -17,7 +17,7 @@ def parameters_get_list_doubles(settings_list):
     return olist
 
 
-def get_multiplier(self):
+def get_scaling_factor(self):
     time = self.model_part.ProcessInfo[km.TIME]
     # interpolator is only valid within range defined in lookuptable
     # for times outside range, we force time to be the corresponding extreme.
@@ -50,42 +50,26 @@ class ImposeInitialStrainProcess(km.Process):
     def __init__(self, Model, settings):
         km.Process.__init__(self)
         self.model_part = Model[settings["model_part_name"].GetString()]
-#        self.process_info = self.model_part.ProcessInfo
         self.lookuptable = {
             'time': parameters_get_list_doubles(settings["lookuptable_time"]),
             'mult': parameters_get_list_doubles(settings["lookuptable_mult"])}
         self.time_interpolator = Interpolate(
             self.lookuptable['time'], self.lookuptable['mult'])
-#        init_strain_list =  parameters_get_list_doubles(settings["initial_strain"])
-#        self.nr_gp_elem = len(
-#            self.model_part.Elements[1].GetValuesOnIntegrationPoints(
-#                km.INITIAL_STRAIN_VECTOR, self.process_info))
-#        self.len_strain = len(init_strain_list)
-#        self.initial_strain = km.Vector(self.len_strain)
-#        for i, s in enumerate(init_strain_list):
-#            self.initial_strain[i] = s
 
-        self.num_materials = 2
-        init_strain_list = [0.01, 0.02, 0.03, 0.04]
-        self.initial_strain = km.Vector(4)
-        for i, s in enumerate(init_strain_list):
+        initial_strain_list = parameters_get_list_doubles(settings["initial_strain"])
+        self.initial_strain = km.Vector(len(initial_strain_list))
+        for i, s in enumerate(initial_strain_list):
             self.initial_strain[i] = s
-        #for i in range(self.num_materials):
-        #    self.initial_strain.append(self.model_part.Properties[i + 1].GetValue(km.INITIAL_STRAIN))
-        #print("DEBUG")
-        #for i in self.initial_strain[0]:
-        #print(self.model_part.Properties[1].GetValue(km.INITIAL_STRAIN))
-        #print("FIN DEBUG")
+        # TODO set it early so CL can check correct size. Not actually working.
+        #self.model_part.ProcessInfo[msr.INITIAL_STRAIN_VECTOR] = self.initial_strain
 
     def ExecuteInitialize(self):
+        self.model_part.ProcessInfo[msr.INITIAL_STRAIN_VECTOR] = self.initial_strain
         pass
 
     def ExecuteInitializeSolutionStep(self):
-        scaling_factor = get_multiplier(self)
-        for i in range(self.num_materials):
-            strain = scaling_factor * self.initial_strain
-            self.model_part.Properties[i + 1].SetValue(msr.INITIAL_STRAIN_VECTOR, strain)
-            print("DEUBG PROCESS: {}".format(self.model_part.Properties[i + 1].GetValue(msr.INITIAL_STRAIN_VECTOR)))
+        strain = get_scaling_factor(self) * self.initial_strain
+        self.model_part.ProcessInfo[msr.INITIAL_STRAIN_VECTOR] = strain
 
     def ExecuteFinalizeSolutionStep(self):
         pass

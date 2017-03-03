@@ -9,7 +9,6 @@ namespace Kratos
     //ElastoplasticJ2PlanStrain2DLaw
     LinearElasticPlasticJ2PlaneStrain2DLaw::LinearElasticPlasticJ2PlaneStrain2DLaw() 
     	: ConstitutiveLaw()
-    	, mInitStrain()
     {
     }
     
@@ -61,12 +60,7 @@ namespace Kratos
     
     Vector& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
-    	if (rThisVariable == INITIAL_STRAIN) {
-    		if (rValue.size() != mInitStrain.size())
-    		    rValue.resize(mInitStrain.size());
-    		noalias(rValue) = mInitStrain;
-    	}
-    	return (rValue);
+    	return rValue;
     }
     
     Matrix& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
@@ -93,10 +87,6 @@ namespace Kratos
     void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<Vector >& rVariable,
     	const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
-    	if (rVariable == INITIAL_STRAIN) {
-    		if (rValue.size() == mInitStrain.size())
-    			noalias(mInitStrain) = rValue;
-    	}
     }
     
     void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<Matrix >& rVariable,
@@ -141,10 +131,8 @@ namespace Kratos
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues)
     {
-        //mPlasticStrainOld.resize(4);
         mPlasticStrainOld = ZeroVector(this->GetStrainSize());
         mAccumulatedPlasticStrainOld = 0.;
-        mInitStrain = ZeroVector(this->GetStrainSize());
     }
 	    
     void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
@@ -199,20 +187,18 @@ namespace Kratos
     	Vector& StressVector = rValues.GetStressVector();
         Matrix ElasticityTensor;
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); //TODO find proper getter
-
-        mInitStrain = matprops[INITIAL_STRAIN_VECTOR];
-        KRATOS_WATCH(mInitStrain)
-        //noalias(epsilon) += mInitStrain;
-
         double hardening_modulus =  matprops[ISOTROPIC_HARDENING_MODULUS];
         double delta_k =  matprops[INFINITY_HARDENING_MODULUS];
         double hardening_exponent =  matprops[HARDENING_EXPONENT];
         double trial_yield_function;
-
         double E = matprops[YOUNG_MODULUS];
         double poisson_ratio = matprops[POISSON_RATIO];
         double mu = E / (2. + 2. * poisson_ratio);
         double volumetric_modulus = E / (3 * (1 - 2 * poisson_ratio));
+
+        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR)){
+            noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
+        }
 
         mPlasticStrain = mPlasticStrainOld;
         mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
@@ -409,11 +395,16 @@ namespace Kratos
     	const GeometryType& rElementGeometry,
     	const ProcessInfo& rCurrentProcessInfo)
     {
-    		if(!rMaterialProperties.Has(YOUNG_MODULUS)) 
+
+        if(!rMaterialProperties.Has(YOUNG_MODULUS))
     		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearElasticPlasticJ2PlaneStrain2DLaw - missing YOUNG_MODULUS", "");
     		if(!rMaterialProperties.Has(POISSON_RATIO)) 
     		    KRATOS_THROW_ERROR(std::invalid_argument, "LinearElasticPlasticJ2PlaneStrain2DLaw - missing POISSON_RATIO", "");
-    		return 0;
+            // TODO how to check the size of INITIAL STRAIN VECTOR? At this point it has not been define by the process
+            //if(rCurrentProcessInfo.Has(INITIAL_STRAIN_VECTOR) && rCurrentProcessInfo[INITIAL_STRAIN_VECTOR].size() != this->GetStrainSize())
+            //    KRATOS_THROW_ERROR(std::invalid_argument, "LinearElasticPlasticJ2PlaneStrain2DLaw - wrong size of INITIAL_STRAIN_VECTOR", "");
+
+        return 0;
     }
 
 
