@@ -1,7 +1,7 @@
 Tests 
 =====
 - Small displacement Bbar 3D element
-- Linear Elastic J2 PlaneStrain 2D Law
+- Linear ElasticPlastic J2 PlaneStrain 2D Law
 
 Geometry
 ========
@@ -17,3 +17,27 @@ Convergence should be quadratic
 
 Plots
 =====
+
+  reaction X
+  +--------------------------------------------------------------***********
+  |                                               ***************          |
+  |                                    ***********                         |
+  |                                 ***                                    |
+  |                               **                                       |
+  |                             **                                         |
+  |                           **                                           |
+  |                         **                                             |
+  |                       **                                               |
+  |                    ***                                                 |
+  |                 ***                                                    |
+  |               **                                                       |
+  |              *                                                         |
+  |            **                                                          |
+  |          **                                                            |
+  |        **                                                              |
+  |      **                                                                |
+  |    **                                                                  |
+  |  **                                                        case ****** |
+  |**                                                                      |
+  *----------------------------displacement X------------------------------+
+

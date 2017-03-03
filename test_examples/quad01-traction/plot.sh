@@ -14,5 +14,5 @@ set key bottom;
 set xlabel 'displacement X';
 set ylabel 'reaction X';
 plot 'displacement-reaction.dat' u 1:2 title 'case' w lp,
-     'displacement-reaction.dat' u 1:2 title 'goldstandard' w lp;
+     './MatlabResults/quad01-traction_bbar_Matlab.dat' u 1:2 title 'MatlabReference' w lp;
 "
