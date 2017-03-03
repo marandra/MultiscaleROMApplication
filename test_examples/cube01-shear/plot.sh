@@ -14,5 +14,5 @@ set key bottom;
 set xlabel 'displacement Y';
 set ylabel 'reaction Y';
 plot 'displacement-reaction.dat' u 3:4 title 'case' w lp,
-     'displacement-reaction.dat' u 3:4 title 'goldstandard' w lp;
+     'displacement-reaction-original.dat' u 3:4 title 'goldstandard' w lp;
 "
