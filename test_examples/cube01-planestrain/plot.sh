@@ -4,7 +4,7 @@ set key bottom;
 set notics;
 set xlabel 'displacement X';
 set ylabel 'reaction X';
-plot 'displacement-reaction.dat' u 1:2 title 'case' w l;
+plot 'displacement-reaction.dat' u 1:2 title 'kratos test' w l;
 "
 
 gnuplot -e "
@@ -13,6 +13,6 @@ set output 'displacement-reaction.png';
 set key bottom;
 set xlabel 'displacement X';
 set ylabel 'reaction X';
-plot 'displacement-reaction.dat' u 1:2 title 'case' w lp,
-     'displacement-reaction.dat' u 1:2 title 'goldstandard' w lp;
+plot 'displacement-reaction.dat' u 1:2 title 'kratos test' w lp,
+     './MatlabResults/Plasticity2D.dat' u 1:2 title 'Matlab Reference' w lp;
 "

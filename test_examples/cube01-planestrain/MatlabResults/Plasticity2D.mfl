@@ -1,0 +1,73 @@
+$------------------------------------------------------------------------------
+CSDA:  MECHANICAL ANALYSIS 
+$------------------------------------------------------------------------------
+START:  NEW_RUN
+$------------------------------------------------------------------CONTROL_DATA
+CONTROL_DATA
+   GEOMETRY:     1 
+   DIMENSIONS:   NELEM=1 NPOIN=4 NELFR=0 NDPEL=4 NGAUS=2 NSETS=1 NSTAGE=1
+END_CONTROL_DATA
+$------------------------------------------------------------------GENERAL_DATA
+GENERAL_DATA
+  GEOMETRY:
+
+$ --- connectivity
+      1        1         1         2         3         4
+
+$ --- nodes position   
+    1    0.00000e+00    0.00000e+00    0.00000e+00
+    2    1.00000e+00    0.00000e+00    0.00000e+00
+    3    1.00000e+00    1.00000e+00    0.00000e+00
+    4    0.00000e+00    1.00000e+00    0.00000e+00
+  END_GEOMETRY
+$---------------------------------------------------------------------SETS_DATA
+  SETS
+$---------------------------------------------------------------------SET
+$ Unidades en N/mm2, energia de fractura en N/mm (la del hormigon)
+   SET=1 
+ ELEMENT_DATA:  TYPE=8 MODEL=2 THICKNESS=1.0
+ MATERIAL_DATA: YOUNG=100.0  POISS=0.3 FTULT=50 HBA=10 /
+                TIT=1 KIN=0 KCE=0 DEL=0 IMPLEX=0
+   END_SET
+   END_SETS
+END_GENERAL_DATA
+$-----------------------------------------------------------------INTERVAL_DATA
+STAGE_DATA: ISTAGE=1 NLOAD=1 NSTEP=20 END_TIME=1.0
+  INTERVAL_DATA: ILOAD=1
+$----------------------------------------------------------------------FUNCTION
+    FUNCTION: NPFUN=2
+      0.0  0.0
+      1.0  1.0
+    END_FUNCTION
+$--------------------------------------------------------------------------LOAD
+   LOAD: NEW_LOAD
+    POINT_LOAD
+    END_POINT_LOAD
+  END_LOAD
+$----------------------------------------------------------------------BOUNDARY
+  BOUNDARY: NEW_BOUNDARY ROTATED 0
+1   11  0.0  0.0 
+2   11  1.0  0.0
+3   10  1.0  0.0
+4   10  0.0  0.0
+  END_BOUNDARY
+$----------------------------------------------------------------------STRATEGY
+  STRATEGY: NEW_STRATEGY
+    LINE_SEARCH:  OFF
+    CONVERGENCE:  TOL_NEWTON=1E-6 TOL_CONST_MODEL=1E-8 ETA_MIN=0.01  ETA_MAX=1 /
+        ETA_PAR=2  TOLER=0.6  STRATEGY=1 DS=0.00007
+    POST_PROCESS  STEP=1  FUNCP=1
+$-------------------------------------------------------------POSTPROCESSING
+$ --- Graphs
+      PLOT: NGRAF=1
+$ --- Fx VS Dx on the left stiff band $ Nx=2 Ny=1 X=Dn Y=Fn
+		Nx=3 Ny=3 X=Dx   Y=Fx
+$		Nx=1 Ny=1 X=Ehyy Y=Shyy
+$		Nx=1 Ny=1 X=Ehxy Y=Shxy
+$----------------------------------------------------------------------PRINT
+  PRINT:
+  IRES=1
+  END_STRATEGY
+$-----------------------------------------------------------------------------
+END_INTERVAL_DATA
+STOP
