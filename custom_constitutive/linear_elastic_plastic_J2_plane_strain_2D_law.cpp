@@ -131,7 +131,6 @@ namespace Kratos
     	const GeometryType& rElementGeometry,
     	const Vector& rShapeFunctionsValues)
     {
-        //mPlasticStrainOld.resize(4);
         mPlasticStrainOld = ZeroVector(this->GetStrainSize());
         mAccumulatedPlasticStrainOld = 0.;
     }

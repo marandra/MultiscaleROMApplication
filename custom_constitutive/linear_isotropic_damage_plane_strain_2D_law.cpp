@@ -6,8 +6,6 @@ namespace Kratos
     // CONSTRUCTOR
     LinearIsotropicDamagePlaneStrain2DLaw::LinearIsotropicDamagePlaneStrain2DLaw() 
     	: ConstitutiveLaw()
-    	//, m_initialized(false)
-    	, m_init_strain()
     {
     }
     
@@ -59,12 +57,7 @@ namespace Kratos
     
     Vector& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
-    	if (rThisVariable == INITIAL_STRAIN) {
-    		if (rValue.size() != m_init_strain.size())
-    		    rValue.resize(m_init_strain.size());
-    		noalias(rValue) = m_init_strain;
-    	}
-    	return (rValue);
+    	return rValue;
     }
     
     Matrix& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
@@ -91,10 +84,6 @@ namespace Kratos
     void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Vector >& rVariable,
     	const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
-    	if (rVariable == INITIAL_STRAIN) {
-    		if (rValue.size() == m_init_strain.size())
-    			noalias(m_init_strain) = rValue;
-    	}
     }
     
     void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Matrix >& rVariable,
@@ -141,7 +130,6 @@ namespace Kratos
     {
 	r_prev = material_prop[YIELD_STRESS] / std::sqrt(material_prop[YOUNG_MODULUS]);
 	tau_epsilon = 0.;
-        m_init_strain = ZeroVector(this->GetStrainSize());
     }
 	    
     void LinearIsotropicDamagePlaneStrain2DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
@@ -196,92 +184,67 @@ namespace Kratos
     	Vector& sigma_bar = rValues.GetStressVector();
     	Vector sigma_bar_pos;
     	Matrix& constitutiveMatrix = rValues.GetConstitutiveMatrix();
-	double H = matprops[ISOTROPIC_DAMAGE_MODULUS];
-	double dpointcoeff;
-	double d, q;
-	double sigma_xx, sigma_yy, sigma_xy;
+		double H = matprops[ISOTROPIC_DAMAGE_MODULUS];
+		double dpointcoeff;
+		double d, q;
+		double sigma_xx, sigma_yy, sigma_xy;
         double hyp, sigma_1, sigma_2, angle, cos_a, sin_a;
-	bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
+		bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
 
-	noalias(epsilon) -= m_init_strain;
-	// sigma_bar = C : epsilon
-	CalculateConstitutiveMatrix(matprops, constitutiveMatrix);
-	sigma_bar = prod(constitutiveMatrix, epsilon);
-	sigma_bar_pos = prod(constitutiveMatrix, epsilon);
-
-	// for tension-only fluency law:
-	// originally sigma and sigma_positive are the same (as it is in the
-	// symmetrical case), this block modifies sigma_positive
-	//KRATOS_WATCH(sigma_bar)
-	if (TRACTION_ONLY){
-		sigma_xx = sigma_bar(0);
-		sigma_yy = sigma_bar(1);
-		sigma_xy = sigma_bar(2);
-		hyp = std::hypot(0.5 * (sigma_xx - sigma_yy), sigma_xy);
-		sigma_1 = 0.5 * (sigma_xx + sigma_yy) + hyp;
-		sigma_2 = 0.5 * (sigma_xx + sigma_yy) - hyp;
-		angle = 0.5 * std::atan2(2.0 * sigma_xy, sigma_xx - sigma_yy);
-		cos_a = std::cos(angle);
-		sin_a = std::sin(angle);
-		sigma_bar_pos(0) = 0.0;
-		sigma_bar_pos(1) = 0.0;
-		sigma_bar_pos(2) = 0.0;
-		if(sigma_1 > 0){
-			sigma_bar_pos(0) += sigma_1 * cos_a * cos_a;
-			sigma_bar_pos(1) += sigma_1 * sin_a * sin_a;
-			sigma_bar_pos(2) += sigma_1 * sin_a * cos_a;
+		if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR)){
+			noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
 		}
-		if(sigma_2 > 0){
-			sigma_bar_pos(0) += sigma_2 * sin_a * sin_a;
-			sigma_bar_pos(1) += sigma_2 * cos_a * cos_a;
-			sigma_bar_pos(2) -= sigma_2 * sin_a * cos_a;
+
+		CalculateConstitutiveMatrix(matprops, constitutiveMatrix);
+		sigma_bar = prod(constitutiveMatrix, epsilon);
+		sigma_bar_pos = prod(constitutiveMatrix, epsilon);
+
+		// for tension-only fluency law:
+		// originally sigma and sigma_positive are the same (as it is in the
+		// symmetrical case), this block modifies sigma_positive
+		if (TRACTION_ONLY){
+			sigma_xx = sigma_bar(0);
+			sigma_yy = sigma_bar(1);
+			sigma_xy = sigma_bar(2);
+			hyp = std::hypot(0.5 * (sigma_xx - sigma_yy), sigma_xy);
+			sigma_1 = 0.5 * (sigma_xx + sigma_yy) + hyp;
+			sigma_2 = 0.5 * (sigma_xx + sigma_yy) - hyp;
+			angle = 0.5 * std::atan2(2.0 * sigma_xy, sigma_xx - sigma_yy);
+			cos_a = std::cos(angle);
+			sin_a = std::sin(angle);
+			sigma_bar_pos(0) = 0.0;
+			sigma_bar_pos(1) = 0.0;
+			sigma_bar_pos(2) = 0.0;
+			if(sigma_1 > 0){
+				sigma_bar_pos(0) += sigma_1 * cos_a * cos_a;
+				sigma_bar_pos(1) += sigma_1 * sin_a * sin_a;
+				sigma_bar_pos(2) += sigma_1 * sin_a * cos_a;
+			}
+			if(sigma_2 > 0){
+				sigma_bar_pos(0) += sigma_2 * sin_a * sin_a;
+				sigma_bar_pos(1) += sigma_2 * cos_a * cos_a;
+				sigma_bar_pos(2) -= sigma_2 * sin_a * cos_a;
+			}
 		}
-		//KRATOS_WATCH(hyp)
-		//KRATOS_WATCH(sigma_1)
-		//KRATOS_WATCH(sigma_2)
-		//KRATOS_WATCH(angle)
-	}
-	//KRATOS_WATCH(sigma_bar_pos)
 
-	tau_epsilon = std::sqrt(inner_prod(sigma_bar_pos, epsilon));
-	//KRATOS_WATCH(epsilon)
-	//KRATOS_WATCH(sigma_bar)
-	//KRATOS_WATCH(tau_epsilon)
+		tau_epsilon = std::sqrt(inner_prod(sigma_bar_pos, epsilon));
 
-            if (tau_epsilon <= r_prev) {
-	        std::cout << "ELASTIC " << std::endl;
-                r = r_prev;
-                q = CalculateQ(r, matprops);
-                d = 1. - q / r;
-                constitutiveMatrix *= (1 - d); 
-                sigma_bar *= (1 - d); 
-	    }
-	    else {
-	        std::cout << "NON ELASTIC " << std::endl;
-                r = tau_epsilon;
-                q = CalculateQ(r, matprops);
-                d = 1. - q / r;
-                dpointcoeff = (q - H * r)/(r * r * r);
-                constitutiveMatrix *= (1. - d); 
-                constitutiveMatrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar); 
-                sigma_bar *= (1. - d);
-	    }
-
-	    //std::cout << "DEBUG FLOW_RULE_IS_TRACTION_ONLY " << matprops[FLOW_RULE_IS_TRACTION_ONLY] << std::endl;
-	    //std::cout << "DEBUG YOUNG_MODULUS " << matprops[YOUNG_MODULUS] << std::endl;
-	    //std::cout << "DEBUG POISSON_RATIO " << matprops[POISSON_RATIO] << std::endl;
-	    //std::cout << "DEBUG THICKNESS " << matprops[THICKNESS] << std::endl;
-	    //std::cout << "DEBUG BODY_FORCE " << matprops[BODY_FORCE] << std::endl;
-	    //std::cout << "DEBUG YIELD_STRESS " << matprops[YIELD_STRESS] << std::endl;
-	    //std::cout << "DEBUG ISOTROPIC_DAMAGE_MODULUS " << matprops[ISOTROPIC_DAMAGE_MODULUS] << std::endl;
-	    //std::cout << "DEBUG INFINITY_YIELD_STRESS " << matprops[INFINITY_YIELD_STRESS] << std::endl;
-	    //std::cout << "DEBUG epsilon " << epsilon<< std::endl;
-	    //std::cout << "DEBUG sigma_bar " << sigma_bar<< std::endl;
-	    //std::cout << "DEBUG tau            " << tau_epsilon << std::endl;
-	    //std::cout << "DEBUG r " << r_prev << std::endl;
-	    //std::cout << "DEBUG C_sec " << constitutiveMatrix << std::endl;
-	    //std::cout << "DEBUG curve " << tau_epsilon << " " << r << " " << q << " " << std::endl;
-
+		if (tau_epsilon <= r_prev) {
+			r = r_prev;
+			q = CalculateQ(r, matprops);
+			d = 1. - q / r;
+			constitutiveMatrix *= (1 - d);
+			sigma_bar *= (1 - d);
+		}
+		else {
+				r = tau_epsilon;
+				q = CalculateQ(r, matprops);
+				d = 1. - q / r;
+				dpointcoeff = (q - H * r)/(r * r * r);
+				constitutiveMatrix *= (1. - d);
+				constitutiveMatrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
+				sigma_bar *= (1. - d);
+		}
     }
     
     void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
