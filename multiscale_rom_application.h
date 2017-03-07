@@ -16,6 +16,7 @@
 #include "multiscale_rom_application_variables.h"
 #include "custom_conditions/minimal_kinetic_2D.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
+#include "custom_elements/small_displacement_bmatrix_element.hpp"
 #include "custom_elements/updated_lagrangian_fbar_element.hpp"
 #include "custom_elements/total_lagrangian_fbar_element.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
@@ -100,7 +101,9 @@ namespace Kratos {
        private:
            //elements
            const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;
+           const SmallDisplacementBmatrixElement mSmallDisplacementBmatrixElement2D4N;
            const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D8N;
+           const SmallDisplacementBmatrixElement mSmallDisplacementBmatrixElement3D8N;
            const UpdatedLagrangianFbarElement mUpdatedLagrangianFbarElement2D4N;
            const TotalLagrangianFbarElement mTotalLagrangianFbarElement2D4N;
            //conditions

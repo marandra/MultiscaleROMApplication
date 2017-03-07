@@ -5,6 +5,7 @@
 #include <boost/python.hpp>
 // Project includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_elements/small_displacement_bbar_element.hpp"
 #include "multiscale_rom_application.h"
 
 namespace Kratos {
@@ -13,7 +14,14 @@ namespace Kratos {
         BOOST_PYTHON_MODULE(KratosMultiscaleROMApplication) {
             class_<KratosMultiscaleROMApplication, KratosMultiscaleROMApplication::Pointer,
                    bases<KratosApplication>, boost::noncopyable >("KratosMultiscaleROMApplication");
-        
+
+            /*
+            class_< SmallDisplacementBbarElement, bases< Element >, boost::noncopyable >
+                    ( "SmallDisplacementBbarElement", init<>() )
+                    .def("GetBMatrix",&SmallDisplacementBbarElement::GetBMatrix)
+                    ;
+             */
+
             AddCustomConstitutiveLawsToPython();   
             
             //registering variables in python ( if must to be seen from python )
@@ -23,8 +31,8 @@ namespace Kratos {
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(LAGRANGE_MULTIPLIER_1)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(LAGRANGE_MULTIPLIER_2)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(LAGRANGE_MULTIPLIER_3)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(B_MATRIX)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(INITIAL_STRAIN_VECTOR)
-
         }
     }  // namespace Python.
 }  // namespace Kratos.
