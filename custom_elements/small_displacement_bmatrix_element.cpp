@@ -469,17 +469,23 @@ void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variabl
 void SmallDisplacementBmatrixElement::Initialize()
 {
     KRATOS_TRY
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+    if(dimension == 3) voigt_size = 6;
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-	// NOTE:
-	// The following check on the constitutiveLawVector size
-	// has been moved into the method InitializeMaterial()
+    if (mBMatrixVector.size() != integration_points.size()){
+        mBMatrixVector.resize(integration_points.size());
+    }
 
-    //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    ////Constitutive Law initialisation
-    //if ( mConstitutiveLawVector.size() != integration_points.size() )
-    //{
-    //    mConstitutiveLawVector.resize( integration_points.size() );
-    //}
+    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
+
+        if (mBMatrixVector[PointNumber].size1() != voigt_size ||
+            mBMatrixVector[PointNumber].size2() != number_of_nodes * dimension){
+            mBMatrixVector[PointNumber].resize(voigt_size, number_of_nodes * dimension);
+        }
+    }
 
     //Material initialisation
     InitializeMaterial();
@@ -589,8 +595,8 @@ void SmallDisplacementBmatrixElement::InitializeSystemMatrices(MatrixType& rLeft
 
 
 
-//************************************************************************************
-//******************************************************* JLM aca esta quid del asunto
+//*******************************************************
+//*******************************************************
 
 void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
 							 ProcessInfo& rCurrentProcessInfo)
@@ -617,23 +623,14 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
     Vector VolumeForce(dimension);
     noalias(VolumeForce) = ZeroVector(dimension);
 
-    Matrix& BE = this->GetValue(B_MATRIX);
-
-	//compute Hydrostatic B-Matrix
-    this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-        for (auto i = 0; i < 6; i++){
-            for (auto j = 0; j < 8 * 3; j++){
-                Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-            }
-        }
-        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+
         //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
+
         //compute stresses and constitutive parameters
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
@@ -683,27 +680,14 @@ void SmallDisplacementBmatrixElement::CalculateDynamicSystem( LocalSystemCompone
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, rLocalSystem.CalculationFlags );
 
-    Matrix BE = this->GetValue(B_MATRIX);
-
-    //compute Hydrostatic B-Matrix
-    this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-        for (auto i = 0; i < 6; i++){
-            for (auto j = 0; j < 8 * 3; j++){
-                Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-            }
-        }
-
 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
 
         if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
@@ -1114,6 +1098,26 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixT
 
 void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+    if(dimension == 3) voigt_size = 6;
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+    Matrix &BMatrixImported = this->GetValue(B_MATRIX);
+
+    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
+        for (unsigned int i = 0; i < voigt_size; i++){
+            for (unsigned int j = 0; j < number_of_nodes * dimension; j++){
+                mBMatrixVector[PointNumber](i, j) = BMatrixImported(PointNumber, i * number_of_nodes * dimension + j);
+            }
+        }
+        KRATOS_WATCH(mBMatrixVector[PointNumber])
+    }
+
+
+
     ClearNodalForces();
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1156,22 +1160,10 @@ void SmallDisplacementBmatrixElement::FinalizeSolutionStep( ProcessInfo& rCurren
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    Matrix BE = this->GetValue(B_MATRIX);
-
-    this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
-
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-        for (auto i = 0; i < 6; i++){
-            for (auto j = 0; j < 8 * 3; j++){
-                Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-            }
-        }
-
 
         //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -1456,25 +1448,20 @@ void SmallDisplacementBmatrixElement::CalculateKinematics(GeneralVariables& rVar
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives  [dN/dx_n]
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+    noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber] , InvJ );
 
     //Displacement Gradient H  [dU/dx_n]
     //this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    rVariables.N=row(Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-        //this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX );     //JLM debe entrar rBh
-        this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.Bh, rVariables.DN_DX );     //JLM debe entrar rBh
+    //this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.Bh, rVariables.DN_DX );
+    rVariables.B = mBMatrixVector[rPointNumber];
 
     //Compute infinitessimal strain
-    //    KRATOS_WATCH("STRAIN STANDARD:")
-    //this->CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
-    //    KRATOS_WATCH(rVariables.StrainVector)
-    //    KRATOS_WATCH("STRAIN BBar:")
     this->CalculateInfinitesimalStrainBbar(rVariables.B,rVariables.StrainVector);
-       // KRATOS_WATCH(rVariables.StrainVector)
 
     KRATOS_CATCH("")
 }
@@ -1951,22 +1938,11 @@ double& SmallDisplacementBmatrixElement::CalculateTotalMass( double& rTotalMass,
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    //compute Hydrostatic B-Matrix
-    this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
-        Matrix BE = this->GetValue(B_MATRIX);
-
     //reading integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
 	    //compute element kinematics
 	    this->CalculateKinematics(Variables,PointNumber);
-        //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-        for (auto i = 0; i < 6; i++){
-            for (auto j = 0; j < 8 * 3; j++){
-                Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-            }
-        }
 
         //getting informations for integration
         double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
@@ -2390,21 +2366,10 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-        Matrix BE = this->GetValue(B_MATRIX);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {	  
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-            for (auto i = 0; i < 6; i++){
-                for (auto j = 0; j < 8 * 3; j++){
-                    Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-                }
-            }
 
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -2440,22 +2405,12 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
 
-        Matrix BE = this->GetValue(B_MATRIX);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
       {
              
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-          for (auto i = 0; i < 6; i++){
-              for (auto j = 0; j < 8 * 3; j++){
-                  Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-              }
-          }
-          //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+
         //to take in account previous step writing
         //if( mFinalizedStep ){
           //this->GetHistoricalVariables(Variables,PointNumber);
@@ -2516,22 +2471,11 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-        Matrix BE = this->GetValue(B_MATRIX);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-            for (auto i = 0; i < 6; i++){
-                for (auto j = 0; j < 8 * 3; j++){
-                    Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-                }
-            }
 
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -2556,22 +2500,11 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
-        Matrix BE = this->GetValue(B_MATRIX);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-            for (auto i = 0; i < 6; i++){
-                for (auto j = 0; j < 8 * 3; j++){
-                    Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-                }
-            }
 
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
                 rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
@@ -2658,23 +2591,11 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        Matrix BE = this->GetValue(B_MATRIX);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-            for (auto i = 0; i < 6; i++){
-                for (auto j = 0; j < 8 * 3; j++){
-                    Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-                }
-            }
-
 
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -2698,22 +2619,11 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
-        Matrix BE = this->GetValue(B_MATRIX);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-            for (auto i = 0; i < 6; i++){
-                for (auto j = 0; j < 8 * 3; j++){
-                    Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-                }
-            }
 
             if( rOutput[PointNumber].size2() != Variables.F.size2() )
                 rOutput[PointNumber].resize( Variables.F.size1() , Variables.F.size2() , false );
@@ -2727,22 +2637,11 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
-        Matrix BE = this->GetValue(B_MATRIX);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(Variables);
-
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
-            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-            for (auto i = 0; i < 6; i++){
-                for (auto j = 0; j < 8 * 3; j++){
-                    Variables.B(i, j) = BE(PointNumber, i * 6 + j);
-                }
-            }
 
             if( rOutput[PointNumber].size2() != Variables.B.size2() )
                 rOutput[PointNumber].resize( Variables.B.size1() , Variables.B.size2() , false );

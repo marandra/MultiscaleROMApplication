@@ -612,6 +612,11 @@ protected:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+    /**
+     * Container for B matrix instances on each integration point
+     */
+    std::vector<Matrix> mBMatrixVector;
+
 
     ///@}
     ///@name Protected Operators
