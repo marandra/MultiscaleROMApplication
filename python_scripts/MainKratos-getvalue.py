@@ -36,7 +36,7 @@ def analysis(parameters, processes, gid_output, solver, model_part):
             for elem in model_part.Elements:
                 for B in elem.GetValuesOnIntegrationPoints(msr.B_MATRIX, model_part.ProcessInfo):
                     for b in B:
-                        fo.write("{} ".format(b))
+                        fo.write("{:18.16f} ".format(b))
                     fo.write("\n")
 
             for process in processes:

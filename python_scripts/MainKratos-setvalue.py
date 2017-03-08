@@ -8,7 +8,6 @@ import KratosMultiphysics.SolidMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
 from gid_output_process import GiDOutputProcess
-km.CheckForPreviousImport()
 
 
 def analysis(parameters, processes, gid_output, solver, model_part):
@@ -28,21 +27,24 @@ def analysis(parameters, processes, gid_output, solver, model_part):
             for process in processes:
                 process.ExecuteInitializeSolutionStep()
             gid_output.ExecuteInitializeSolutionStep()
+
+            ngausspoints = 4
+            voigtsize = 4
+            nnodes = 4
+            ndim = 2
+            for elem in model_part.Elements:
+                BE = km.Matrix(ngausspoints, voigtsize * nnodes * ndim)
+                for i in range(ngausspoints):
+                    line = fo.readline().strip().split()
+                    for j, value in enumerate(line):
+                        BE[i, j] = float(value)
+                elem.SetValue(msr.B_MATRIX, BE)
+
             solver.Solve()
+
             for process in processes:
                 process.ExecuteFinalizeSolutionStep()
             gid_output.ExecuteFinalizeSolutionStep()
-            ngausspoints = 8
-            for elem in model_part.Elements:
-                BE = km.Matrix(ngausspoints, 6 * 24)
-                for i in range(ngausspoints):
-                    line = fo.readline().strip().split()
-                    for j in range(6 * 24):
-                        BE[i, j] = float(line[j])
-                #elem.SetValuesOnIntegrationPoints(msr.INITIAL_STRAIN_VECTOR, B, 6 * 24, model_part.ProcessInfo)
-                #elem.SetValue(msr.B_MATRIX, BE, model_part.ProcessInfo)
-                elem.SetValue(msr.B_MATRIX, BE)
-
             for process in processes:
                 process.ExecuteBeforeOutputStep()
             if gid_output.IsOutputStep():
