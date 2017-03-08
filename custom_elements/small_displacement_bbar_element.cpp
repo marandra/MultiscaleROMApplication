@@ -2,6 +2,7 @@
 #include "includes/constitutive_law.h"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "solid_mechanics_application_variables.h"
+#include "multiscale_rom_application_variables.h"
 
 namespace Kratos
 {
@@ -2646,6 +2647,29 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
                 rOutput[PointNumber].resize( Variables.F.size1() , Variables.F.size2() , false );
 
             rOutput[PointNumber] = Variables.F;
+
+        }
+    }
+    else if ( rVariable == B_MATRIX )  // VARIABLE SET FOR TRANSFER PURPOUSES
+    {
+        //create and initialize element variables:
+        GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+        //compute Hydrostatic B-Matrix
+        this->SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(Variables);
+
+        //reading integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            //compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematics(Variables,PointNumber);
+            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
+
+            if( rOutput[PointNumber].size2() != Variables.B.size2() )
+                rOutput[PointNumber].resize( Variables.B.size1() , Variables.B.size2() , false );
+
+            rOutput[PointNumber] = Variables.B;
 
         }
     }
