@@ -18,7 +18,7 @@
 #include "includes/element.h"
 // in solid mechanics application:
 #include "custom_utilities/comparison_utilities.hpp"
-
+#include "multiscale_rom_application_variables.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -100,7 +100,6 @@ protected:
         Vector  StressVector;
         Vector  N;
         Matrix  B;
-        Vector  Bh;
         Matrix  H;
         Matrix  F;
         Matrix  F0;
@@ -140,10 +139,8 @@ protected:
             return *pNcontainer;
         };
 
-        void Initialize( const unsigned int& voigt_size, 
-			 const unsigned int& dimension, 
-			 const unsigned int& number_of_nodes )
-        {
+      void Initialize(const unsigned int &voigt_size, const unsigned int &dimension, const unsigned int &number_of_nodes, const  ProcessInfo &rCurrentProcessInfo) {
+      const unsigned int number_of_modes = rCurrentProcessInfo[NUMBER_REDUCED_MODES];
 
 	  StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 	  //doubles
@@ -155,14 +152,13 @@ protected:
 	  detJ  = 1;
 	  //vectors
 	  StrainVector.resize(voigt_size,false);
-          StressVector.resize(voigt_size,false);
+      StressVector.resize(voigt_size,false);
 	  N.resize(number_of_nodes,false);
 	  noalias(StrainVector) = ZeroVector(voigt_size);
-          noalias(StressVector) = ZeroVector(voigt_size);
+      noalias(StressVector) = ZeroVector(voigt_size);
 	  noalias(N) = ZeroVector(number_of_nodes);
 	  //matrices
-	  B.resize(voigt_size, dimension*number_of_nodes,false);
-      Bh.resize(dimension*number_of_nodes,false);
+	  B.resize(voigt_size, number_of_modes, false);
 	  H.resize(dimension, dimension,false);
 	  F.resize(dimension, dimension,false);
 	  F0.resize(dimension, dimension,false);
@@ -170,8 +166,7 @@ protected:
 	  ConstitutiveMatrix.resize(voigt_size, voigt_size,false);
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
 
-      noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-      noalias(Bh)  = ZeroVector(dimension*number_of_nodes);
+      noalias(B)  = ZeroMatrix(voigt_size, number_of_modes);
 	  noalias(H)  = ZeroMatrix(dimension, dimension);
 	  noalias(F)  = IdentityMatrix(dimension);
 	  noalias(F0) = IdentityMatrix(dimension);
@@ -188,9 +183,9 @@ protected:
 	  //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;
-	}
+    }
 
-    };
+  };
 
 
     struct LocalSystemComponents
@@ -612,10 +607,8 @@ protected:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    /**
-     * Container for B matrix instances on each integration point
-     */
     std::vector<Matrix> mBMatrixVector;
+
 
 
     ///@}
@@ -786,10 +779,6 @@ protected:
      * Calculation of the Volume Force of the Element
      */
     virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables );
-
-    void CalculateHydrostaticDeformationMatrix(GeneralVariables& rVariables);
-
-    void CalculateDeformationMatrixBbar(Matrix& rB, Vector& rBh, const Matrix& rDN_DX);
 
     virtual void CalculateInfinitesimalStrainBbar(const Matrix& rB, Vector& rStrainVector);
 

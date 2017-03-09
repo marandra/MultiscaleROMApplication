@@ -469,23 +469,6 @@ void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variabl
 void SmallDisplacementBmatrixElement::Initialize()
 {
     KRATOS_TRY
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
-    if(dimension == 3) voigt_size = 6;
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-    if (mBMatrixVector.size() != integration_points.size()){
-        mBMatrixVector.resize(integration_points.size());
-    }
-
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-
-        if (mBMatrixVector[PointNumber].size1() != voigt_size ||
-            mBMatrixVector[PointNumber].size2() != number_of_nodes * dimension){
-            mBMatrixVector[PointNumber].resize(voigt_size, number_of_nodes * dimension);
-        }
-    }
 
     //Material initialisation
     InitializeMaterial();
@@ -527,12 +510,9 @@ void SmallDisplacementBmatrixElement::InitializeGeneralVariables (GeneralVariabl
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+    if(dimension == 3) voigt_size = 6;
 
-    if(dimension == 3){
-        voigt_size = 6;
-    }
-
-    rVariables.Initialize(voigt_size,dimension,number_of_nodes);
+    rVariables.Initialize(voigt_size, dimension, number_of_nodes, rCurrentProcessInfo);
 
     //needed parameters for consistency with the general constitutive law: small displacements
     rVariables.detF  = 1.0;
@@ -1099,7 +1079,9 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixT
 void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
+
+
+    const unsigned int number_of_modes = rCurrentProcessInfo[NUMBER_REDUCED_MODES];
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
     if(dimension == 3) voigt_size = 6;
@@ -1107,14 +1089,21 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
 
     Matrix &BMatrixImported = this->GetValue(B_MATRIX);
 
+    //TODO: donde poner esto para que se inicialice una sola vez?
+    mBMatrixVector.resize(integration_points.size());
+    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
+        mBMatrixVector[PointNumber].resize(voigt_size, number_of_modes);
+    }
+
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
         for (unsigned int i = 0; i < voigt_size; i++){
-            for (unsigned int j = 0; j < number_of_nodes * dimension; j++){
-                mBMatrixVector[PointNumber](i, j) = BMatrixImported(PointNumber, i * number_of_nodes * dimension + j);
+            for (unsigned int j = 0; j < number_of_modes; j++){
+                mBMatrixVector[PointNumber](i, j) = BMatrixImported(PointNumber, i * number_of_modes + j);
             }
         }
         KRATOS_WATCH(mBMatrixVector[PointNumber])
     }
+
 
 
 
@@ -1745,181 +1734,7 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
         KRATOS_CATCH( "" )
     }
 
-//************************************************************************************
-//************************************************************** JLM aca calcula B
-void SmallDisplacementBmatrixElement::CalculateDeformationMatrixBbar(Matrix& rB, Vector& rBh,
-        const Matrix& rDN_DX)   // JLM debe entrar rBh
-{
-    KRATOS_TRY
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
 
-    if(dimension == 3){
-        voigt_size = 6;
-    }
-
-    if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
-      rB.resize(voigt_size, dimension*number_of_nodes, false );
-
-	//Inicializar rBs de 3x8
-    Matrix rBn;
-    rBn.resize(voigt_size, dimension*number_of_nodes,false);
-    noalias(rBn)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-
-    this->CalculateDeformationMatrix(rB, rDN_DX );
-
-        if( dimension == 2 ) {
-		    rBn(0, 0) =  2. / 3. * rB(0, 0);
-		    rBn(0, 1) = -1. / 3. * rB(1, 1);
-
-
-
-		    rBn(0, 2) =  2. / 3. * rB(0, 2);
-		    rBn(0, 3) = -1. / 3. * rB(1, 3);
-		    rBn(0, 4) =  2. / 3. * rB(0, 4);
-		    rBn(0, 5) = -1. / 3. * rB(1, 5);
-		    rBn(0, 6) =  2. / 3. * rB(0, 6);
-		    rBn(0, 7) = -1. / 3. * rB(1, 7);
-
-		    rBn(1, 0) = -1. / 3. * rB(0, 0);
-		    rBn(1, 1) =  2. / 3. * rB(1, 1);
-
-
-		    rBn(1, 2) = -1. / 3. * rB(0, 2);
-		    rBn(1, 3) =  2. / 3. * rB(1, 3);
-		    rBn(1, 4) = -1. / 3. * rB(0, 4);
-		    rBn(1, 5) =  2. / 3. * rB(1, 5);
-		    rBn(1, 6) = -1. / 3. * rB(0, 6);
-		    rBn(1, 7) =  2. / 3. * rB(1, 7);
-
-            rBn(2, 0) = -1. / 3. * rB(0, 0);
-            rBn(2, 1) = -1. / 3. * rB(1, 1);
-
-
-            rBn(2, 2) = -1. / 3. * rB(0, 2);
-            rBn(2, 3) = -1. / 3. * rB(1, 3);
-            rBn(2, 4) = -1. / 3. * rB(0, 4);
-            rBn(2, 5) = -1. / 3. * rB(1, 5);
-            rBn(2, 6) = -1. / 3. * rB(0, 6);
-            rBn(2, 7) = -1. / 3. * rB(1, 7);
-
-		    for (unsigned int i = 0; i < number_of_nodes*dimension; i++) {
-		    	//unsigned int index = 2 * i;
-		    	rBn(0, i) += 1. / 3. * rBh(i);
-		    	rBn(1, i) += 1. / 3. * rBh(i);
-                rBn(2, i) += 1. / 3. * rBh(i);
-			    rBn(3, i) = rB(3, i);
-		    }
-        }
-    else if( dimension == 3 ) {
-            for ( unsigned int i = 0; i < number_of_nodes; i++ ) {
-                    unsigned int index = 3 * i;
-
-                rBn( 0, index + 0 ) =  2. / 3. * rB(0, index + 0);
-                rBn( 1, index + 0 ) = -1. / 3. * rB(0, index + 0);
-                rBn( 2, index + 0 ) = -1. / 3. * rB(0, index + 0);
-                rBn( 0, index + 1 ) = -1. / 3. * rB(1, index + 1);
-                rBn( 1, index + 1 ) =  2. / 3. * rB(1, index + 1);
-                rBn( 2, index + 1 ) = -1. / 3. * rB(1, index + 1);
-                rBn( 0, index + 2 ) = -1. / 3. * rB(2, index + 2);
-                rBn( 1, index + 2 ) = -1. / 3. * rB(2, index + 2);
-                rBn( 2, index + 2 ) =  2. / 3. * rB(2, index + 2);
-
-            }
-            for (unsigned int i = 0; i < number_of_nodes * dimension; i++) {
-                rBn(0, i) += 1. / 3. * rBh(i);
-                rBn(1, i) += 1. / 3. * rBh(i);
-                rBn(2, i) += 1. / 3. * rBh(i);
-                rBn(3, i) = rB(3, i);
-                rBn(4, i) = rB(4, i);
-                rBn(5, i) = rB(5, i);
-            }
-
-    }
-    else
-    {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
-
-    }
-
-    rB = rBn;
-
-    KRATOS_CATCH( "" )
-}
-
-
-
-void SmallDisplacementBmatrixElement::CalculateHydrostaticDeformationMatrix(GeneralVariables & rVariables)
-            {
-                    KRATOS_TRY
-                        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-                        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-                        //if (rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes)
-                        //    rB.resize(voigt_size, dimension*number_of_nodes, false);
-
-                        rVariables.Bh.resize(dimension*number_of_nodes, false);;
-                        noalias(rVariables.Bh)  = ZeroVector(dimension*number_of_nodes);
-                        //reading integration points
-                        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-                        if(dimension==2){
-                            double TotalArea = 0.0;
-                            for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-                            {
-                                const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
-                                Matrix InvJ;
-
-                                MathUtils<double>::InvertMatrix( rVariables.J[PointNumber], InvJ, rVariables.detJ);
-                                noalias( rVariables.DN_DX ) = prod( DN_De[PointNumber] , InvJ );
-
-                                this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
-
-                                //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight() / GetGeometry().DomainSize();
-                                double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
-                                TotalArea += IntegrationWeight;
-                                for (unsigned int i = 0; i < number_of_nodes*2; i++)
-                                {
-                                    //Bh = Bh + sum(Bs(1:3, : ))*wg(iPG)*detJ;
-                                    rVariables.Bh(i) += (rVariables.B(0, i) + rVariables.B(1, i)) * IntegrationWeight;
-                                }
-                            }
-                            for (unsigned int i = 0; i < number_of_nodes * 2; i++) {
-                                rVariables.Bh(i) /= TotalArea;
-                            }
-
-                        }
-                        else{
-                            double TotalVolume = 0.0;
-                            for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-                            {
-                                const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
-                                Matrix InvJ;
-
-                                MathUtils<double>::InvertMatrix( rVariables.J[PointNumber], InvJ, rVariables.detJ);
-                                noalias( rVariables.DN_DX ) = prod( DN_De[PointNumber] , InvJ );
-
-                                this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
-
-                                //double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight() / GetGeometry().DomainSize();
-                                double IntegrationWeight = rVariables.detJ * integration_points[PointNumber].Weight();
-                                TotalVolume += IntegrationWeight;
-                                for (unsigned int i = 0; i < number_of_nodes; i++)
-                                {
-                                    //Bh = Bh + sum(Bs(1:3, : ))*wg(iPG)*detJ;
-                                    rVariables.Bh(i * 3 + 0) += rVariables.B(0, i * 3 + 0) * IntegrationWeight;
-                                    rVariables.Bh(i * 3 + 1) += rVariables.B(1, i * 3 + 1) * IntegrationWeight;
-                                    rVariables.Bh(i * 3 + 2) += rVariables.B(2, i * 3 + 2) * IntegrationWeight;
-                                }
-                            }
-                            for (unsigned int i = 0; i < number_of_nodes*3; i++) {
-                                rVariables.Bh(i) /= TotalVolume;
-                            }
-                        }
-                    KRATOS_CATCH("")
-            }
 
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
