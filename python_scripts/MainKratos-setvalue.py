@@ -20,6 +20,7 @@ def analysis(parameters, processes, gid_output, solver, model_part):
     delta_time = parameters["problem_data"]["time_step"].GetDouble()
     time = parameters["problem_data"]["start_time"].GetDouble()
     end_time = parameters["problem_data"]["end_time"].GetDouble()
+    number_modes = parameters["problem_data"]["number_modes"].GetInt()
     with open("bmatrix.dat", "r") as fo:
         while(time <= end_time):
             time = time + delta_time
@@ -30,10 +31,8 @@ def analysis(parameters, processes, gid_output, solver, model_part):
 
             ngausspoints = 4
             voigtsize = 4
-            nnodes = 4
-            ndim = 2
             for elem in model_part.Elements:
-                BE = km.Matrix(ngausspoints, voigtsize * nnodes * ndim)
+                BE = km.Matrix(ngausspoints, voigtsize * number_modes)
                 for i in range(ngausspoints):
                     line = fo.readline().strip().split()
                     for j, value in enumerate(line):
@@ -61,6 +60,9 @@ def create_model(parameters):
     model_part_name = parameters["problem_data"]["part_name"].GetString()
     model_part = km.ModelPart(model_part_name)
     model_part.ProcessInfo.SetValue(km.DOMAIN_SIZE, domain_size)
+    number_modes = parameters["problem_data"]["number_modes"].GetInt()
+    model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES] = number_modes
+    print(model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES])
     Model = {model_part_name: model_part}
     return Model
 
