@@ -32,6 +32,7 @@ namespace Kratos {
         KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_3)
         KRATOS_REGISTER_VARIABLE(B_MATRIX)
         KRATOS_REGISTER_VARIABLE(INITIAL_STRAIN_VECTOR)
+        KRATOS_REGISTER_VARIABLE(NUMBER_REDUCED_MODES)
 
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N )
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementBmatrixElement2D4N", mSmallDisplacementBmatrixElement2D4N )
