@@ -602,6 +602,8 @@ protected:
      */
     IntegrationMethod mThisIntegrationMethod;
 
+    std::size_t mNumberOfModes;
+
     /**
      * Container for constitutive law instances on each integration point
      */
