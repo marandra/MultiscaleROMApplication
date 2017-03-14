@@ -30,6 +30,7 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
+#include "multiscale_rom_application_variables.h"
 
 // #define USE_GOOGLE_HASH
 #ifdef USE_GOOGLE_HASH
@@ -236,12 +237,11 @@ public:
 			{
 				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
 				//assemble the elemental contribution
 #ifdef _OPENMP
 				Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
 #else
-                                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
 				// clean local elemental memory
 				pScheme->CleanMemory(*(it.base()));
@@ -829,6 +829,8 @@ public:
         ProcessInfo& CurrentProcessInfo
     )
     {
+        std::size_t number_of_modes = CurrentProcessInfo[NUMBER_REDUCED_MODES];
+
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
         {
@@ -858,26 +860,24 @@ public:
         //resizing the system vectors and matrix
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
-            A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+            A.resize(number_of_modes, number_of_modes, false);
             ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
         }
         else
         {
-            if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
+            if (A.size1() != number_of_modes || A.size2() != number_of_modes)
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
-                A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
+                A.resize(number_of_modes, number_of_modes, true);
                 ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
             }
         }
-        if (Dx.size() != BaseType::mEquationSystemSize)
-            Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
-            b.resize(BaseType::mEquationSystemSize, false);
+        if (Dx.size() != number_of_modes)
+            Dx.resize(number_of_modes, false);
+        if (b.size() != number_of_modes)
+            b.resize(number_of_modes, false);
 
-        //
-
-
+        //TODO fix or remove this block
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
         {
@@ -1021,28 +1021,31 @@ protected:
 #endif
     )
     {
-        unsigned int local_size = LHS_Contribution.size1();
+        std::size_t local_size = LHS_Contribution.size1();
+        std::size_t global_size = LHS_Contribution.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
+        for (std::size_t i_local = 0; i_local < local_size; i_local++)
         {
-            unsigned int i_global = EquationId[i_local];
+            std::size_t i_global = EquationId[i_local];
 
-            if (i_global < BaseType::mEquationSystemSize)
+            if (i_global < global_size)
             {
 #ifdef _OPENMP
-                omp_set_lock(&lock_array[i_global]);
+                //TODO remove the comments
+                //omp_set_lock(&lock_array[i_global]);
 #endif
                 b[i_global] += RHS_Contribution(i_local);
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
+                for (std::size_t j_local = 0; j_local < local_size; j_local++)
                 {
-                    unsigned int j_global = EquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize)
+                    std::size_t j_global = EquationId[j_local];
+                    if (j_global < global_size)
                     {
                         A(i_global, j_global) += LHS_Contribution(i_local, j_local);
                     }
                 }
 #ifdef _OPENMP
-                omp_unset_lock(&lock_array[i_global]);
+                //TODO remove the comments
+                //omp_unset_lock(&lock_array[i_global]);
 #endif
 
             }
@@ -1061,7 +1064,7 @@ protected:
 		//filling with zero the matrix (creating the structure)
 		Timer::Start("MatrixStructure");
 
-		const std::size_t equation_size = BaseType::mEquationSystemSize;
+		const std::size_t equation_size = CurrentProcessInfo[NUMBER_REDUCED_MODES];
 
 #ifdef USE_GOOGLE_HASH
 		std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
@@ -1091,19 +1094,21 @@ protected:
 
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
-				if (ids[i] < BaseType::mEquationSystemSize)
+				if (ids[i] < equation_size)
 				{
 #ifdef _OPENMP
-                                    omp_set_lock(&mlock_array[ids[i]]);
+                    //TODO remove comments
+                    // omp_set_lock(&mlock_array[ids[i]]);
 #endif
 					auto& row_indices = indices[ids[i]];
 					for (auto it = ids.begin(); it != ids.end(); it++)
 					{
-						if (*it < BaseType::mEquationSystemSize)
+						if (*it < equation_size)
 							row_indices.insert(*it);
 					}
 #ifdef _OPENMP
-					omp_unset_lock(&mlock_array[ids[i]]);
+                    //TODO remove comments
+				//	omp_unset_lock(&mlock_array[ids[i]]);
 #endif
 				}
 			}
@@ -1118,7 +1123,7 @@ protected:
 			(i_condition)->EquationIdVector(ids, CurrentProcessInfo);
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
-				if (ids[i] < BaseType::mEquationSystemSize)
+				if (ids[i] < equation_size)
 				{
 #ifdef _OPENMP
 					omp_set_lock(&mlock_array[ids[i]]);
@@ -1126,7 +1131,7 @@ protected:
 					auto& row_indices = indices[ids[i]];
 					for (auto it = ids.begin(); it != ids.end(); it++)
 					{
-						if (*it < BaseType::mEquationSystemSize)
+						if (*it < equation_size)
 							row_indices.insert(*it);
 					}
 #ifdef _OPENMP
@@ -1371,7 +1376,8 @@ private:
 		const Element::EquationIdVectorType& EquationId
 	)
 	{
-		unsigned int local_size = RHS_Contribution.size();
+		std::size_t local_size = RHS_Contribution.size();
+		std::size_t global_size = RHS_Contribution.size();
 
                 if (BaseType::mCalculateReactionsFlag == false)
                 {
@@ -1379,7 +1385,7 @@ private:
                     {
                             const unsigned int i_global = EquationId[i_local];
 
-                            if (i_global < BaseType::mEquationSystemSize) //free dof
+                            if (i_global < global_size) //free dof
                             {
                                     // ASSEMBLING THE SYSTEM VECTOR
                                     double& b_value = b[i_global];
@@ -1397,7 +1403,7 @@ private:
                     {
                             const unsigned int i_global = EquationId[i_local];
 
-                            if (i_global < BaseType::mEquationSystemSize) //free dof
+                            if (i_global < global_size) //free dof
                             {
                                     // ASSEMBLING THE SYSTEM VECTOR
                                     double& b_value = b[i_global];
