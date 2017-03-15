@@ -6,6 +6,7 @@
 // Project includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_elements/small_displacement_bbar_element.hpp"
+#include "custom_python/add_custom_strategies_to_python.h"
 #include "multiscale_rom_application.h"
 
 namespace Kratos {
@@ -15,15 +16,9 @@ namespace Kratos {
             class_<KratosMultiscaleROMApplication, KratosMultiscaleROMApplication::Pointer,
                    bases<KratosApplication>, boost::noncopyable >("KratosMultiscaleROMApplication");
 
-            /*
-            class_< SmallDisplacementBbarElement, bases< Element >, boost::noncopyable >
-                    ( "SmallDisplacementBbarElement", init<>() )
-                    .def("GetBMatrix",&SmallDisplacementBbarElement::GetBMatrix)
-                    ;
-             */
+            AddCustomConstitutiveLawsToPython();
+            AddCustomStrategiesToPython();
 
-            AddCustomConstitutiveLawsToPython();   
-            
             //registering variables in python ( if must to be seen from python )
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(ISOTROPIC_DAMAGE_MODULUS)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(INFINITY_YIELD_STRESS)

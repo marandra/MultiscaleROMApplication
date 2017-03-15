@@ -161,22 +161,14 @@ void SmallDisplacementBmatrixElement::GetDofList( DofsVectorType& rElementalDofL
 
 void SmallDisplacementBmatrixElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * dimension;
+    //TODO mNumberOfModes is not initialized yet
+    std::size_t number_of_modes =  rCurrentProcessInfo[NUMBER_REDUCED_MODES];
 
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
+    if ( rResult.size() != number_of_modes )
+        rResult.resize( number_of_modes, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        int index = i * dimension;
-        rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-        if( dimension == 3)
-            rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-    }
-
+    for (std::size_t i = 0; i < number_of_modes; i++ )
+        rResult[i] = static_cast<unsigned long>(i);
 }
 
 //*********************************DISPLACEMENT***************************************
@@ -547,14 +539,8 @@ void SmallDisplacementBmatrixElement::InitializeGeneralVariables (GeneralVariabl
 void SmallDisplacementBmatrixElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         Flags& rCalculationFlags)
-
 {
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
+    unsigned int MatSize = mNumberOfModes;
 
     if ( rCalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
@@ -620,7 +606,6 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight ); // TODO revisar el uso de THICKNESS
         //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
-
         if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
@@ -637,7 +622,6 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
         }
 
     }
-
 
     KRATOS_CATCH( "" )
 }
@@ -739,7 +723,6 @@ void SmallDisplacementBmatrixElement::CalculateAndAddLHS(LocalSystemComponents& 
 
   }
 
-    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -777,20 +760,14 @@ void SmallDisplacementBmatrixElement::CalculateAndAddRHS(LocalSystemComponents& 
 	}
     }
     else{
-      
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
       this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
-      //KRATOS_WATCH( rRightHandSideVector )
-
       // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
-
-      //KRATOS_WATCH( rRightHandSideVector )
     }
-
 }
 
 //************************************************************************************
@@ -830,8 +807,6 @@ void SmallDisplacementBmatrixElement::CalculateAndAddDynamicLHS(MatrixType& rLef
       
       indexi += dimension;
     }
-
-  //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -889,9 +864,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddDynamicRHS(VectorType& rRig
 
 
   noalias(rRightHandSideVector) = prod( MassMatrix, CurrentAccelerationVector );
-  
-  //KRATOS_WATCH( rRightHandSideVector )
-  
+
   KRATOS_CATCH( "" )  
 }
 
@@ -1080,18 +1053,16 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixT
 
 void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-
-
-
-    const size_t number_of_modes = static_cast<size_t>(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
+    const unsigned int dimension = static_cast<const unsigned int>(GetGeometry().WorkingSpaceDimension());
+    mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     size_t row_counter;
     Matrix &BMatrixImported = this->GetValue(B_MATRIX);
 
-    //TODO: donde poner esto para que se inicialice una sola vez?
+    //TODO: where to leave this code to make the resize only once?
     mBMatrixVector.resize(integration_points.size());
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-        mBMatrixVector[PointNumber].resize(mVoigtSize, number_of_modes);
+        mBMatrixVector[PointNumber].resize(voigt_size, mNumberOfModes);
     }
 
     row_counter = 0;
@@ -1104,9 +1075,6 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
         }
         KRATOS_WATCH(mBMatrixVector[PointNumber])
     }
-
-
-
 
     ClearNodalForces();
 
