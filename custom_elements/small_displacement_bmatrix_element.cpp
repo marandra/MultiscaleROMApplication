@@ -470,9 +470,13 @@ void SmallDisplacementBmatrixElement::Initialize()
 {
     KRATOS_TRY
 
+    mVoigtSize = 4;
+    if (GetGeometry().WorkingSpaceDimension() == 3) {
+        mVoigtSize = 6;
+    }
+
     //Material initialisation
     InitializeMaterial();
-
 
     KRATOS_CATCH( "" )
 }
@@ -507,12 +511,10 @@ void SmallDisplacementBmatrixElement::SetGeneralVariables(GeneralVariables& rVar
 void SmallDisplacementBmatrixElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
-    if(dimension == 3) voigt_size = 6;
+    const size_t number_of_nodes = GetGeometry().size();
+    const size_t dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rVariables.Initialize(voigt_size, dimension, number_of_nodes, rCurrentProcessInfo);
+    rVariables.Initialize(mVoigtSize, dimension, number_of_nodes, rCurrentProcessInfo);
 
     //needed parameters for consistency with the general constitutive law: small displacements
     rVariables.detF  = 1.0;
@@ -1082,9 +1084,6 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
 
 
     const size_t number_of_modes = static_cast<size_t>(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
-    const size_t dimension = static_cast<size_t>(GetGeometry().WorkingSpaceDimension());
-    size_t voigt_size = 4;
-    if(dimension == 3) voigt_size = 6;
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     size_t row_counter;
     Matrix &BMatrixImported = this->GetValue(B_MATRIX);
@@ -1092,12 +1091,12 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
     //TODO: donde poner esto para que se inicialice una sola vez?
     mBMatrixVector.resize(integration_points.size());
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-        mBMatrixVector[PointNumber].resize(voigt_size, number_of_modes);
+        mBMatrixVector[PointNumber].resize(mVoigtSize, number_of_modes);
     }
 
     row_counter = 0;
     for (size_t PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-        for (size_t voigt_component = 0; i < voigt_size; i++){
+        for (size_t voigt_component = 0; voigt_component < mVoigtSize; voigt_component++){
             for (size_t mode = 0; mode < number_of_modes; mode++){
                 mBMatrixVector[PointNumber](voigt_component, mode) = BMatrixImported(row_counter, mode);
             }
@@ -1622,21 +1621,12 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
-
-    if(dimension == 3){
-        voigt_size = 6;
-    }
 
     rStrainVector.clear();
-    noalias(rStrainVector) = ZeroVector(voigt_size);
+    noalias(rStrainVector) = ZeroVector(mVoigtSize);
 
     if( dimension == 2 )
     {
-        //Infinitesimal Strain Calculation
-        //if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-
-
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -1649,13 +1639,9 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
     }
     else if( dimension == 3 )
     {
-
-
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-
             rStrainVector[0] += Displacement[0] * rB(0, i * 3) + Displacement[1] * rB(0, i * 3 + 1) + Displacement[2] * rB(0, i * 3 + 2); // xx
             rStrainVector[1] += Displacement[0] * rB(1, i * 3) + Displacement[1] * rB(1, i * 3 + 1) + Displacement[2] * rB(1, i * 3 + 2); // yy
             rStrainVector[2] += Displacement[0] * rB(2, i * 3) + Displacement[1] * rB(2, i * 3 + 1) + Displacement[2] * rB(2, i * 3 + 2); // zz

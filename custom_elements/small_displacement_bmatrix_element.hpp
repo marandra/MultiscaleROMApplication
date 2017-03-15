@@ -61,7 +61,8 @@ public:
     /// Counted pointer of SmallDisplacementBmatrixElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBmatrixElement );
     ///@}
-
+private:
+    size_t mVoigtSize;
 protected:
 
     /**
@@ -139,8 +140,8 @@ protected:
             return *pNcontainer;
         };
 
-      void Initialize(const unsigned int &voigt_size, const unsigned int &dimension, const unsigned int &number_of_nodes, const  ProcessInfo &rCurrentProcessInfo) {
-      const unsigned int number_of_modes = rCurrentProcessInfo[NUMBER_REDUCED_MODES];
+      void Initialize(const size_t &voigt_size, const size_t &dimension, const size_t &number_of_nodes, const  ProcessInfo &rCurrentProcessInfo) {
+      const size_t number_of_modes = rCurrentProcessInfo[NUMBER_REDUCED_MODES];
 
 	  StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 	  //doubles
