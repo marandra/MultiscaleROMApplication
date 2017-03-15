@@ -1081,12 +1081,12 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
 
 
 
-    const unsigned int number_of_modes = rCurrentProcessInfo[NUMBER_REDUCED_MODES];
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
+    const size_t number_of_modes = static_cast<size_t>(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
+    const size_t dimension = static_cast<size_t>(GetGeometry().WorkingSpaceDimension());
+    size_t voigt_size = 4;
     if(dimension == 3) voigt_size = 6;
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    size_t row_counter;
     Matrix &BMatrixImported = this->GetValue(B_MATRIX);
 
     //TODO: donde poner esto para que se inicialice una sola vez?
@@ -1095,11 +1095,13 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
         mBMatrixVector[PointNumber].resize(voigt_size, number_of_modes);
     }
 
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-        for (unsigned int i = 0; i < voigt_size; i++){
-            for (unsigned int j = 0; j < number_of_modes; j++){
-                mBMatrixVector[PointNumber](i, j) = BMatrixImported(PointNumber, i * number_of_modes + j);
+    row_counter = 0;
+    for (size_t PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
+        for (size_t voigt_component = 0; i < voigt_size; i++){
+            for (size_t mode = 0; mode < number_of_modes; mode++){
+                mBMatrixVector[PointNumber](voigt_component, mode) = BMatrixImported(row_counter, mode);
             }
+            row_counter++;
         }
         KRATOS_WATCH(mBMatrixVector[PointNumber])
     }
