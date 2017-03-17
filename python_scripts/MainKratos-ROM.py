@@ -25,7 +25,7 @@ def analysis(parameters, processes, gid_output, solver, model_part):
                 line = fo.readline().strip().split()
                 for j, value in enumerate(line):
                     BE[i, j] = float(value)
-            elem.SetValue(msr.B_MATRIX, BE)
+            elem.SetValue(msr.REDUCED_MODES_MATRIX, BE)
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
     gid_output.ExecuteBeforeSolutionLoop()

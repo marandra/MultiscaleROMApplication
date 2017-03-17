@@ -1060,7 +1060,7 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
     size_t row_counter;
 
     //TODO: initialize only once
-    Matrix &BMatrixImported = this->GetValue(B_MATRIX);
+    Matrix &BMatrixImported = this->GetValue(REDUCED_MODES_MATRIX);
     mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
     mBMatrixVector.resize(integration_points.size());
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
@@ -1597,17 +1597,17 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
     noalias(rStrainVector) = ZeroVector(mVoigtSize);
 
     if( dimension == 2 )
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {/*
+        for ( unsigned int i = 0; i < nNumberOfModes; i++ )
         {
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            //array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-            rStrainVector[0] += Displacement[0] * rB(0, i * 2) + Displacement[1] * rB(0, i * 2 + 1); // xx
-            rStrainVector[1] += Displacement[0] * rB(1, i * 2) + Displacement[1] * rB(1, i * 2 + 1); // yy
-            rStrainVector[2] += Displacement[0] * rB(2, i * 2) + Displacement[1] * rB(2, i * 2 + 1); // zz
-            rStrainVector[3] += Displacement[0] * rB(3, i * 2) + Displacement[1] * rB(3, i * 2 + 1); // xy
+            rStrainVector[0] += Weight[i] * rB(0, i); // xx
+            rStrainVector[1] += Weight[i] * rB(1, i); // yy
+            rStrainVector[2] += Weight[i] * rB(2, i); // zz
+            rStrainVector[3] += Weight[i] * rB(3, i); // xy
         }
-    }
+    */}
     else if( dimension == 3 )
     {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -2406,7 +2406,7 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
 
         }
     }
-    else if (rVariable == B_MATRIX){
+    else if (rVariable == REDUCED_MODES_MATRIX){
         //create and initialize element variables:
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
