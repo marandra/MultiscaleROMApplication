@@ -201,92 +201,29 @@ public:
 			if (!pScheme)
 				KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
-		//getting the elements from the model
 		const int nelements = static_cast<int>(r_model_part.Elements().size());
-
-		//getting the array of the conditions
-		const int nconditions = static_cast<int>(r_model_part.Conditions().size());
 
 		ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 		ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
 		ModelPart::ConditionsContainerType::iterator cond_begin = r_model_part.ConditionsBegin();
 
-		//contributions to the system
 		LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 		LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-		//vector containing the localization in the system of the different
-		//terms
 		Element::EquationIdVectorType EquationId;
 
-		// assemble all elements
-		double start_build = OpenMPUtils::GetCurrentTime();
-//TODO: commenting this out for debugging
-//#pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
 		for (int k = 0; k < nelements; k++)
 		{
 			ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
-			//detect if the element is active or not. If the user did not make any choice the element
-			//is active by default
-			bool element_is_active = true;
-			if ((it)->IsDefined(ACTIVE))
-				element_is_active = (it)->Is(ACTIVE);
-
-			if (element_is_active)
-			{
-				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-				//assemble the elemental contribution
 
-#ifdef _OPENMP
-				Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-				// clean local elemental memory
+
+                A += LHS_Contribution;
+                b += RHS_Contribution;
+
 				pScheme->CleanMemory(*(it.base()));
-                                
-			}
 
 		}
-
-#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId )
-		for (int k = 0; k < nconditions; k++)
-		{
-			ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-
-			//detect if the element is active or not. If the user did not make any choice the element
-			//is active by default
-			bool condition_is_active = true;
-			if ((it)->IsDefined(ACTIVE))
-				condition_is_active = (it)->Is(ACTIVE);
-
-			if (condition_is_active)
-			{
-				//calculate elemental contribution
-				pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-#ifdef _OPENMP
-				Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-                                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-
-				// clean local elemental memory
-				pScheme->CleanMemory(*(it.base()));
-			}
-	}
-
-		double stop_build = OpenMPUtils::GetCurrentTime();
-		if (this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
-			std::cout << "build time: " << stop_build - start_build << std::endl;
-
-		if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-		{
-			KRATOS_WATCH("finished building");
-		}
-
 
         KRATOS_CATCH("")
 
