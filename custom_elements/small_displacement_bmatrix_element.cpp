@@ -569,7 +569,7 @@ void SmallDisplacementBmatrixElement::InitializeSystemMatrices(MatrixType& rLeft
 void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
 							 ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  //  KRATOS_TRY
 
     //create and initialize element variables:
     GeneralVariables Variables;
@@ -593,6 +593,7 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
+        KRATOS_WATCH(PointNumber)
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
@@ -622,8 +623,8 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
         }
 
     }
-
-    KRATOS_CATCH( "" )
+KRATOS_WATCH("FUERA DEL LOOP")
+   // KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -989,8 +990,10 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( MatrixType& rLeftHan
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    KRATOS_WATCH("ANTES")
 
+    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    KRATOS_WATCH("DESPUES")
 }
 
 
@@ -1053,22 +1056,22 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixT
 
 void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int dimension = static_cast<const unsigned int>(GetGeometry().WorkingSpaceDimension());
-    mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     size_t row_counter;
-    Matrix &BMatrixImported = this->GetValue(B_MATRIX);
 
-    //TODO: where to leave this code to make the resize only once?
+    //TODO: initialize only once
+    Matrix &BMatrixImported = this->GetValue(B_MATRIX);
+    mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
     mBMatrixVector.resize(integration_points.size());
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-        mBMatrixVector[PointNumber].resize(voigt_size, mNumberOfModes);
+        mBMatrixVector[PointNumber].resize(mVoigtSize, mNumberOfModes);
     }
 
     row_counter = 0;
+    KRATOS_WATCH(this->Id())
     for (size_t PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
         for (size_t voigt_component = 0; voigt_component < mVoigtSize; voigt_component++){
-            for (size_t mode = 0; mode < number_of_modes; mode++){
+            for (size_t mode = 0; mode < mNumberOfModes; mode++){
                 mBMatrixVector[PointNumber](voigt_component, mode) = BMatrixImported(row_counter, mode);
             }
             row_counter++;
