@@ -14,55 +14,55 @@ def analysis(parameters, processes, gid_output, solver, model_part):
     for process in processes:
         process.ExecuteInitialize()
     gid_output.ExecuteInitialize()
+
+    number_modes = parameters["problem_data"]["number_reduced_modes"].GetInt()
+    ngausspoints = 4
+    voigtsize = 4
+    with open("reduced_bases.dat", "r") as fo:
+        for elem in model_part.Elements:
+            BE = km.Matrix(ngausspoints * voigtsize, number_modes)
+            for i in range(ngausspoints * voigtsize):
+                line = fo.readline().strip().split()
+                for j, value in enumerate(line):
+                    BE[i, j] = float(value)
+            elem.SetValue(msr.B_MATRIX, BE)
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
     gid_output.ExecuteBeforeSolutionLoop()
     delta_time = parameters["problem_data"]["time_step"].GetDouble()
     time = parameters["problem_data"]["start_time"].GetDouble()
     end_time = parameters["problem_data"]["end_time"].GetDouble()
-    number_modes = parameters["problem_data"]["number_modes"].GetInt()
-    with open("bmatrix.dat", "r") as fo:
-        while(time <= end_time):
-            time = time + delta_time
-            model_part.CloneTimeStep(time)
-            for process in processes:
-                process.ExecuteInitializeSolutionStep()
-            gid_output.ExecuteInitializeSolutionStep()
 
-            ngausspoints = 4
-            voigtsize = 4
-            for elem in model_part.Elements:
-                BE = km.Matrix(ngausspoints, voigtsize * number_modes)
-                for i in range(ngausspoints):
-                    line = fo.readline().strip().split()
-                    for j, value in enumerate(line):
-                        BE[i, j] = float(value)
-                elem.SetValue(msr.B_MATRIX, BE)
+    while(time <= end_time):
+        time = time + delta_time
+        model_part.CloneTimeStep(time)
+        for process in processes:
+            process.ExecuteInitializeSolutionStep()
+        gid_output.ExecuteInitializeSolutionStep()
 
-            solver.Solve()
+        solver.Solve()
 
-            for process in processes:
-                process.ExecuteFinalizeSolutionStep()
-            gid_output.ExecuteFinalizeSolutionStep()
-            for process in processes:
-                process.ExecuteBeforeOutputStep()
-            if gid_output.IsOutputStep():
-                gid_output.PrintOutput()
-            for process in processes:
-                process.ExecuteAfterOutputStep()
+        for process in processes:
+            process.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalizeSolutionStep()
+        for process in processes:
+            process.ExecuteBeforeOutputStep()
+        if gid_output.IsOutputStep():
+            gid_output.PrintOutput()
+        for process in processes:
+            process.ExecuteAfterOutputStep()
     for process in processes:
         process.ExecuteFinalize()
     gid_output.ExecuteFinalize()
- 
+
 
 def create_model(parameters):
     domain_size = parameters["problem_data"]["domain_size"].GetInt()
     model_part_name = parameters["problem_data"]["part_name"].GetString()
     model_part = km.ModelPart(model_part_name)
     model_part.ProcessInfo.SetValue(km.DOMAIN_SIZE, domain_size)
-    number_modes = parameters["problem_data"]["number_modes"].GetInt()
+    number_modes = parameters["problem_data"]["number_reduced_modes"].GetInt()
     model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES] = number_modes
-    print(model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES])
     Model = {model_part_name: model_part}
     return Model
 
