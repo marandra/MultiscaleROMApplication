@@ -61,8 +61,6 @@ public:
     /// Counted pointer of SmallDisplacementBmatrixElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBmatrixElement );
     ///@}
-private:
-    size_t mVoigtSize;
 protected:
 
     /**
@@ -603,14 +601,16 @@ protected:
      */
     IntegrationMethod mThisIntegrationMethod;
 
+    std::size_t mVoigtSize;
     std::size_t mNumberOfModes;
+    Vector mModesWeights;
+    std::vector<Matrix> mBMatrixVector;
 
     /**
      * Container for constitutive law instances on each integration point
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    std::vector<Matrix> mBMatrixVector;
 
 
 

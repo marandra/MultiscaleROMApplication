@@ -1060,6 +1060,7 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
     size_t row_counter;
 
     //TODO: initialize only once
+    mModesWeights = rCurrentProcessInfo[REDUCED_MODES_WEIGHTS];
     Matrix &BMatrixImported = this->GetValue(REDUCED_MODES_MATRIX);
     mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
     mBMatrixVector.resize(integration_points.size());
@@ -1590,48 +1591,24 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const std::size_t dimension = static_cast<std::size_t>(GetGeometry().WorkingSpaceDimension());
 
     rStrainVector.clear();
     noalias(rStrainVector) = ZeroVector(mVoigtSize);
 
-    if( dimension == 2 )
-    {/*
-        for ( unsigned int i = 0; i < nNumberOfModes; i++ )
-        {
-            //array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-            rStrainVector[0] += Weight[i] * rB(0, i); // xx
-            rStrainVector[1] += Weight[i] * rB(1, i); // yy
-            rStrainVector[2] += Weight[i] * rB(2, i); // zz
-            rStrainVector[3] += Weight[i] * rB(3, i); // xy
+    for ( unsigned int i = 0; i < mNumberOfModes; i++ ) {
+        rStrainVector[0] += mModesWeights[i] * rB(0, i); // xx
+        rStrainVector[1] += mModesWeights[i] * rB(1, i); // yy
+        rStrainVector[2] += mModesWeights[i] * rB(2, i); // zz
+        rStrainVector[3] += mModesWeights[i] * rB(3, i); // xy
+        if( dimension == 3 ){
+            rStrainVector[4] += mModesWeights[i] * rB(4, i); // yz
+            rStrainVector[5] += mModesWeights[i] * rB(5, i); // xz
         }
-    */}
-    else if( dimension == 3 )
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rStrainVector[0] += Displacement[0] * rB(0, i * 3) + Displacement[1] * rB(0, i * 3 + 1) + Displacement[2] * rB(0, i * 3 + 2); // xx
-            rStrainVector[1] += Displacement[0] * rB(1, i * 3) + Displacement[1] * rB(1, i * 3 + 1) + Displacement[2] * rB(1, i * 3 + 2); // yy
-            rStrainVector[2] += Displacement[0] * rB(2, i * 3) + Displacement[1] * rB(2, i * 3 + 1) + Displacement[2] * rB(2, i * 3 + 2); // zz
-            rStrainVector[3] += Displacement[0] * rB(3, i * 3) + Displacement[1] * rB(3, i * 3 + 1) + Displacement[2] * rB(3, i * 3 + 2); // xy
-            rStrainVector[4] += Displacement[0] * rB(4, i * 3) + Displacement[1] * rB(4, i * 3 + 1) + Displacement[2] * rB(4, i * 3 + 2); // yz
-            rStrainVector[5] += Displacement[0] * rB(5, i * 3) + Displacement[1] * rB(5, i * 3 + 1) + Displacement[2] * rB(5, i * 3 + 2); // xz
-        }
-    }
-    else
-    {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
-
     }
 
     KRATOS_CATCH( "" )
-
 }
-
 
 
 //************************************************************************************
