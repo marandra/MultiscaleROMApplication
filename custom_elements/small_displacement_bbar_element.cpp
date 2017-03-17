@@ -2650,29 +2650,6 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints( const Variable<
 
         }
     }
-    else if ( rVariable == B_MATRIX )  // VARIABLE SET FOR TRANSFER PURPOUSES
-    {
-        //create and initialize element variables:
-        GeneralVariables Variables;
-        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-        //compute Hydrostatic B-Matrix
-        this->SmallDisplacementBbarElement::CalculateHydrostaticDeformationMatrix(Variables);
-
-        //reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-        {
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
-            //if(PointNumber == 1){KRATOS_WATCH(Variables.B);KRATOS_WATCH(Variables.Bh);}
-
-            if( rOutput[PointNumber].size2() != Variables.B.size2() )
-                rOutput[PointNumber].resize( Variables.B.size1() , Variables.B.size2() , false );
-
-            rOutput[PointNumber] = Variables.B;
-
-        }
-    }
     else
     {
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
