@@ -221,8 +221,8 @@ public:
 
 		// assemble all elements
 		double start_build = OpenMPUtils::GetCurrentTime();
-
-#pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
+//TODO: commenting this out for debugging
+//#pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
 		for (int k = 0; k < nelements; k++)
 		{
 			ModelPart::ElementsContainerType::iterator it = el_begin + k;
@@ -238,6 +238,7 @@ public:
 				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 				//assemble the elemental contribution
+
 #ifdef _OPENMP
 				Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
 #else
@@ -1031,8 +1032,8 @@ protected:
             if (i_global < global_size)
             {
 #ifdef _OPENMP
-                //TODO remove the comments
-                //omp_set_lock(&lock_array[i_global]);
+                //TODO commented out for debigging
+//                omp_set_lock(&lock_array[i_global]);
 #endif
                 b[i_global] += RHS_Contribution(i_local);
                 for (std::size_t j_local = 0; j_local < local_size; j_local++)
@@ -1044,7 +1045,7 @@ protected:
                     }
                 }
 #ifdef _OPENMP
-                //TODO remove the comments
+                //TODO commented out for debigging
                 //omp_unset_lock(&lock_array[i_global]);
 #endif
 
