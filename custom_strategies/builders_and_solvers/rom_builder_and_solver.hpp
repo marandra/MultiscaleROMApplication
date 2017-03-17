@@ -539,6 +539,8 @@ public:
             std::cout << "RHS vector = " << b << std::endl;
         }
 
+        r_model_part.GetProcessInfo().SetValue(REDUCED_MODES_WEIGHTS, Dx);
+
         KRATOS_CATCH("")
     }
 

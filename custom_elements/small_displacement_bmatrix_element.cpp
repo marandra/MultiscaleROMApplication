@@ -593,7 +593,6 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
-        KRATOS_WATCH(PointNumber)
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
@@ -623,7 +622,7 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
         }
 
     }
-KRATOS_WATCH("FUERA DEL LOOP")
+
    // KRATOS_CATCH( "" )
 }
 
@@ -741,11 +740,12 @@ void SmallDisplacementBmatrixElement::CalculateAndAddRHS(LocalSystemComponents& 
       for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
 	{
 	  bool calculated = false;
-	  if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
+
+	  /*if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
 	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
 	    this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rVolumeForce, rIntegrationWeight );
 	    calculated = true;
-	  }
+	  }*/
 	  
 	  if( rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR ){
 	    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
@@ -764,7 +764,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddRHS(LocalSystemComponents& 
       VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+      //this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
       // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
@@ -990,10 +990,7 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( MatrixType& rLeftHan
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    KRATOS_WATCH("ANTES")
-
     CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-    KRATOS_WATCH("DESPUES")
 }
 
 
@@ -1060,6 +1057,7 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
     size_t row_counter;
 
     //TODO: initialize only once
+    mModesWeights.resize(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
     mModesWeights = rCurrentProcessInfo[REDUCED_MODES_WEIGHTS];
     Matrix &BMatrixImported = this->GetValue(REDUCED_MODES_MATRIX);
     mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
