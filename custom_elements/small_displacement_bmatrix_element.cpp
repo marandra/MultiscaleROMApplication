@@ -1057,27 +1057,28 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
     size_t row_counter;
 
     //TODO: initialize only once
-    mModesWeights.resize(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
-    mModesWeights = rCurrentProcessInfo[REDUCED_MODES_WEIGHTS];
-    Matrix &BMatrixImported = this->GetValue(REDUCED_MODES_MATRIX);
-    mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
-    mBMatrixVector.resize(integration_points.size());
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-        mBMatrixVector[PointNumber].resize(mVoigtSize, mNumberOfModes);
-    }
-
-    row_counter = 0;
-    KRATOS_WATCH(this->Id())
-    for (size_t PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
-        for (size_t voigt_component = 0; voigt_component < mVoigtSize; voigt_component++){
-            for (size_t mode = 0; mode < mNumberOfModes; mode++){
-                mBMatrixVector[PointNumber](voigt_component, mode) = BMatrixImported(row_counter, mode);
-            }
-            row_counter++;
+    {
+        mModesWeights.resize(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
+        Matrix &BMatrixImported = this->GetValue(REDUCED_MODES_MATRIX);
+        mNumberOfModes = static_cast<std::size_t >(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
+        mBMatrixVector.resize(integration_points.size());
+        for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
+            mBMatrixVector[PointNumber].resize(mVoigtSize, mNumberOfModes);
         }
-        KRATOS_WATCH(mBMatrixVector[PointNumber])
+        row_counter = 0;
+        //KRATOS_WATCH(this->Id())
+        for (size_t PointNumber = 0; PointNumber < integration_points.size(); PointNumber++){
+            for (size_t voigt_component = 0; voigt_component < mVoigtSize; voigt_component++){
+                for (size_t mode = 0; mode < mNumberOfModes; mode++){
+                    mBMatrixVector[PointNumber](voigt_component, mode) = BMatrixImported(row_counter, mode);
+                }
+                row_counter++;
+            }
+            //KRATOS_WATCH(mBMatrixVector[PointNumber])
+        }
     }
 
+    mModesWeights = rCurrentProcessInfo[REDUCED_MODES_WEIGHTS];
     ClearNodalForces();
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1092,6 +1093,7 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
 ////************************************************************************************
 void SmallDisplacementBmatrixElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+    mModesWeights = rCurrentProcessInfo[REDUCED_MODES_WEIGHTS];
     ClearNodalForces();
 }
 
