@@ -22,6 +22,7 @@
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_strategies/builders_and_solvers/rom_builder_and_solver.hpp"
+#include "custom_strategies/schemes/residualbased_incremental_rom_static_scheme.h"
 
 namespace Kratos
 {
@@ -39,22 +40,28 @@ void  AddCustomStrategiesToPython()
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    //typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
     //custom builder_and_solver types
     typedef ROMBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ROMBuilderAndSolverType;
+    typedef ResidualBasedIncrementalROMStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalROMStaticSchemeType;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
 
 
-    // Component Wise Builder and Solver
     class_< ROMBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
             (
               "ROMBuilderAndSolver", init< LinearSolverType::Pointer > ()
             );
+
+    class_< ResidualBasedIncrementalROMStaticSchemeType, bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                    "ResidualBasedIncrementalROMStaticScheme")
+            .def("Initialize", &ResidualBasedIncrementalROMStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
 
 }
 
