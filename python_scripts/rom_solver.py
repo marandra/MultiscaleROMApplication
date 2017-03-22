@@ -380,7 +380,7 @@ class ROMSolver(object):
                 mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble()) #static scheme needed for component_wise
             else:
                 mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-
+        mechanical_scheme = msr.ResidualBasedIncrementalROMStaticScheme()
         print("::[ROM Solver]:: {} selected".format(mechanical_scheme))
         return mechanical_scheme
     
