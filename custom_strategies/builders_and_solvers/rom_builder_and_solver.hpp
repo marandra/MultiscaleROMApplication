@@ -42,67 +42,6 @@
 
 namespace Kratos
 {
-
-/**@name Kratos Globals */
-/*@{ */
-
-
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-
-/** Short class definition.
-
-Detail class definition.
-
-Current class provides an implementation for standard builder and solving operations.
-
-the RHS is constituted by the unbalanced loads (residual)
-
-Degrees of freedom are reordered putting the restrained degrees of freedom at
-the end of the system ordered in reverse order with respect to the DofSet.
-
-Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
-this information.
-
-Calculation of the reactions involves a cost very similiar to the calculation of the total residual
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
- */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
@@ -190,17 +129,6 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-
-    void FinalizeSolutionStep(
-            ModelPart& r_model_part,
-            TSystemMatrixType& A,
-            TSystemVectorType& Dx,
-            TSystemVectorType& b)
-    {
-    mModesWeights += Dx;
-        KRATOS_WATCH("DEBUG UPDATING MODES")
-        KRATOS_WATCH(mModesWeights)
-    }
 
     void Build(
         typename TSchemeType::Pointer pScheme,
@@ -430,8 +358,6 @@ public:
             std::cout << "unknowns vector = " << Dx << std::endl;
             std::cout << "RHS vector = " << b << std::endl;
         }
-
-        r_model_part.GetProcessInfo().SetValue(REDUCED_MODES_WEIGHTS, Dx);
 
         KRATOS_CATCH("")
     }
@@ -711,13 +637,6 @@ public:
         std::size_t number_of_modes = CurrentProcessInfo[NUMBER_REDUCED_MODES];
 
         KRATOS_TRY
-            if (mModesWeightsIsInitialized == false) {
-                if (mModesWeights.size() != number_of_modes)
-                    mModesWeights.resize(number_of_modes, false);
-                mModesWeights = ZeroVector(number_of_modes);
-                mModesWeightsIsInitialized = true;
-                KRATOS_WATCH("DEBUG INITIALIZED MODES")
-            }
 
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
         {
@@ -1128,11 +1047,6 @@ private:
             }
         }
     }
-
-    protected:
-        Vector mModesWeights = ZeroVector(0);
-        bool mModesWeightsIsInitialized = false;
-
 
 }; /* Class ROMBuilderAndSolver */
 
