@@ -18,6 +18,10 @@ def analysis(parameters, processes, gid_output, solver, model_part):
     number_modes = parameters["problem_data"]["number_reduced_modes"].GetInt()
     ngausspoints = 4
     voigtsize = 4
+    modes_weights = km.Vector(number_modes)
+    for i in range(number_modes):
+        modes_weights[i] = 0.0
+    model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS] = modes_weights
     with open("reduced_bases.dat", "r") as fo:
         for elem in model_part.Elements:
             BE = km.Matrix(ngausspoints * voigtsize, number_modes)
@@ -51,6 +55,10 @@ def analysis(parameters, processes, gid_output, solver, model_part):
             gid_output.PrintOutput()
         for process in processes:
             process.ExecuteAfterOutputStep()
+        print("OUTPUT MODES WEIGHTS:")
+        print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
+        print("\n")
+
     for process in processes:
         process.ExecuteFinalize()
     gid_output.ExecuteFinalize()
