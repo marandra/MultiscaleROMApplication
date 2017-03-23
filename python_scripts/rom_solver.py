@@ -413,7 +413,7 @@ class ROMSolver(object):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
-        builder_and_solver = msr.ROMBuilderAndSolver(self.linear_solver)
+        builder_and_solver = msr.ResidualBasedROMBuilderAndSolver(self.linear_solver)
         print("::[ROM Solver]:: {} selected".format(builder_and_solver))
         return builder_and_solver
 

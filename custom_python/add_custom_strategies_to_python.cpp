@@ -21,7 +21,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_strategies/builders_and_solvers/rom_builder_and_solver.hpp"
+#include "custom_strategies/builders_and_solvers/residualbased_rom_builder_and_solver.hpp"
 #include "custom_strategies/schemes/residualbased_incremental_rom_static_scheme.h"
 
 namespace Kratos
@@ -44,7 +44,7 @@ void  AddCustomStrategiesToPython()
     //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
     //custom builder_and_solver types
-    typedef ROMBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ROMBuilderAndSolverType;
+    typedef ResidualBasedROMBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedROMBuilderAndSolverType;
     typedef ResidualBasedIncrementalROMStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalROMStaticSchemeType;
 
     //********************************************************************
@@ -52,9 +52,9 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
 
 
-    class_< ROMBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+    class_< ResidualBasedROMBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
             (
-              "ROMBuilderAndSolver", init< LinearSolverType::Pointer > ()
+              "ResidualBasedROMBuilderAndSolver", init< LinearSolverType::Pointer > ()
             );
 
     class_< ResidualBasedIncrementalROMStaticSchemeType, bases< BaseSchemeType >,  boost::noncopyable >

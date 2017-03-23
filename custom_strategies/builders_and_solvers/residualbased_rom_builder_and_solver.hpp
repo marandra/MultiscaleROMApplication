@@ -24,13 +24,13 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class ROMBuilderAndSolver
+class ResidualBasedROMBuilderAndSolver
     : public ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
     /**@name Type Definitions */
     /*@{ */
-    KRATOS_CLASS_POINTER_DEFINITION(ROMBuilderAndSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedROMBuilderAndSolver);
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -64,7 +64,7 @@ public:
 
     /** Constructor.
      */
-    ROMBuilderAndSolver(
+    ResidualBasedROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
     {
@@ -75,7 +75,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ROMBuilderAndSolver()
+    virtual ~ResidualBasedROMBuilderAndSolver()
     {
     }
 
@@ -369,7 +369,7 @@ private:
 	std::vector< omp_lock_t > mlock_array;
 #endif
 
-}; /* Class ROMBuilderAndSolver */
+}; /* Class ResidualBasedROMBuilderAndSolver */
 
 
 
