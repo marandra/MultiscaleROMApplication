@@ -15,13 +15,18 @@ def analysis(parameters, processes, gid_output, solver, model_part):
         process.ExecuteInitialize()
     gid_output.ExecuteInitialize()
 
+    # TODO this should be automatized if only used here (eg from the columns in file)
+    # if in json, it should be used setting other aspects of the solver.
     number_modes = parameters["problem_data"]["number_reduced_modes"].GetInt()
+    # TODO this should be gotten automatically
     ngausspoints = 4
     voigtsize = 4
+    # TODO this initialization should be done in scheme
     modes_weights = km.Vector(number_modes)
     for i in range(number_modes):
         modes_weights[i] = 0.0
     model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS] = modes_weights
+    # TODO move this to a process
     with open("reduced_bases.dat", "r") as fo:
         for elem in model_part.Elements:
             BE = km.Matrix(ngausspoints * voigtsize, number_modes)
@@ -33,10 +38,10 @@ def analysis(parameters, processes, gid_output, solver, model_part):
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
     gid_output.ExecuteBeforeSolutionLoop()
+
     delta_time = parameters["problem_data"]["time_step"].GetDouble()
     time = parameters["problem_data"]["start_time"].GetDouble()
     end_time = parameters["problem_data"]["end_time"].GetDouble()
-
     while(time <= end_time):
         time = time + delta_time
         model_part.CloneTimeStep(time)
@@ -55,6 +60,7 @@ def analysis(parameters, processes, gid_output, solver, model_part):
             gid_output.PrintOutput()
         for process in processes:
             process.ExecuteAfterOutputStep()
+        # TODO there sould be a process to handle the output of weights
         print("OUTPUT MODES WEIGHTS:")
         print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
         print("\n")
