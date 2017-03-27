@@ -20,7 +20,7 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rve_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_2D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bmatrix_element.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_hprom_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fbar_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_fbar_element.cpp
 )

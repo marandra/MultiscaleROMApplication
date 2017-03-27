@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_BMATRIX_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_BMATRIX_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_HPROM_ELEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_HPROM_ELEMENT_H_INCLUDED
 
 // System includes 
 
@@ -43,7 +43,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementBmatrixElement
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementHpromElement
     : public Element
 {
 public:
@@ -59,7 +59,7 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     /// Counted pointer of SmallDisplacementBmatrixElement
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBmatrixElement );
+    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementHpromElement );
     ///@}
 protected:
 
@@ -243,25 +243,25 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    SmallDisplacementBmatrixElement();
+    SmallDisplacementHpromElement();
 
     /// Default constructors
-    SmallDisplacementBmatrixElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacementHpromElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SmallDisplacementBmatrixElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallDisplacementHpromElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SmallDisplacementBmatrixElement(SmallDisplacementBmatrixElement const& rOther);
+    SmallDisplacementHpromElement(SmallDisplacementHpromElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementBmatrixElement();
+    virtual ~SmallDisplacementHpromElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SmallDisplacementBmatrixElement& operator=(SmallDisplacementBmatrixElement const& rOther);
+    SmallDisplacementHpromElement& operator=(SmallDisplacementHpromElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -843,7 +843,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SmallDisplacementBmatrixElement
+}; // Class SmallDisplacementHpromElement
 
 ///@}
 ///@name Type Definitions

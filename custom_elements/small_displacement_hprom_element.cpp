@@ -1,6 +1,6 @@
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
-#include "custom_elements/small_displacement_bmatrix_element.hpp"
+#include "custom_elements/small_displacement_hprom_element.hpp"
 #include "solid_mechanics_application_variables.h"
 #include "multiscale_rom_application_variables.h"
 
@@ -10,15 +10,15 @@ namespace Kratos
 /**
  * Flags related to the element computation
  */
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBmatrixElement, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBmatrixElement, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBmatrixElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBmatrixElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
+KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementHpromElement, COMPUTE_RHS_VECTOR,                 0 );
+KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementHpromElement, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementHpromElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
+KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementHpromElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( )
+SmallDisplacementHpromElement::SmallDisplacementHpromElement( )
     : Element( )
 {
   //DO NOT CALL IT: only needed for Register and Serialization!!!
@@ -27,7 +27,7 @@ SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( )
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( IndexType NewId, GeometryType::Pointer pGeometry )
+SmallDisplacementHpromElement::SmallDisplacementHpromElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -37,7 +37,7 @@ SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( IndexType NewI
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+SmallDisplacementHpromElement::SmallDisplacementHpromElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
 {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
@@ -47,7 +47,7 @@ SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( IndexType NewI
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( SmallDisplacementBmatrixElement const& rOther)
+SmallDisplacementHpromElement::SmallDisplacementHpromElement( SmallDisplacementHpromElement const& rOther)
     :Element(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -58,7 +58,7 @@ SmallDisplacementBmatrixElement::SmallDisplacementBmatrixElement( SmallDisplacem
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
-SmallDisplacementBmatrixElement&  SmallDisplacementBmatrixElement::operator=(SmallDisplacementBmatrixElement const& rOther)
+SmallDisplacementHpromElement&  SmallDisplacementHpromElement::operator=(SmallDisplacementHpromElement const& rOther)
 {
     Element::operator=(rOther);
 
@@ -80,19 +80,19 @@ SmallDisplacementBmatrixElement&  SmallDisplacementBmatrixElement::operator=(Sma
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
-Element::Pointer SmallDisplacementBmatrixElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer SmallDisplacementHpromElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new SmallDisplacementBmatrixElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new SmallDisplacementHpromElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Element::Pointer SmallDisplacementBmatrixElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer SmallDisplacementHpromElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
-    SmallDisplacementBmatrixElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    SmallDisplacementHpromElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     //-----------//
 
@@ -117,14 +117,14 @@ Element::Pointer SmallDisplacementBmatrixElement::Clone( IndexType NewId, NodesA
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new SmallDisplacementBmatrixElement(NewElement) );
+    return Element::Pointer( new SmallDisplacementHpromElement(NewElement) );
 }
 
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-SmallDisplacementBmatrixElement::~SmallDisplacementBmatrixElement()
+SmallDisplacementHpromElement::~SmallDisplacementHpromElement()
 {
 }
 
@@ -133,7 +133,7 @@ SmallDisplacementBmatrixElement::~SmallDisplacementBmatrixElement()
 //************************************************************************************
 //************************************************************************************
 
-SmallDisplacementBmatrixElement::IntegrationMethod SmallDisplacementBmatrixElement::GetIntegrationMethod() const
+SmallDisplacementHpromElement::IntegrationMethod SmallDisplacementHpromElement::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }
@@ -141,7 +141,7 @@ SmallDisplacementBmatrixElement::IntegrationMethod SmallDisplacementBmatrixEleme
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
 {
     rElementalDofList.resize( 0 );
     const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
@@ -159,7 +159,7 @@ void SmallDisplacementBmatrixElement::GetDofList( DofsVectorType& rElementalDofL
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     //TODO mNumberOfModes is not initialized yet
     std::size_t number_of_modes =  rCurrentProcessInfo[NUMBER_REDUCED_MODES];
@@ -174,7 +174,7 @@ void SmallDisplacementBmatrixElement::EquationIdVector( EquationIdVectorType& rR
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::GetValuesVector( Vector& rValues, int Step )
+void SmallDisplacementHpromElement::GetValuesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -198,7 +198,7 @@ void SmallDisplacementBmatrixElement::GetValuesVector( Vector& rValues, int Step
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void SmallDisplacementHpromElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -220,7 +220,7 @@ void SmallDisplacementBmatrixElement::GetFirstDerivativesVector( Vector& rValues
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SmallDisplacementHpromElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -244,7 +244,7 @@ void SmallDisplacementBmatrixElement::GetSecondDerivativesVector( Vector& rValue
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void SmallDisplacementHpromElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -257,7 +257,7 @@ void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variabl
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void SmallDisplacementHpromElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -273,7 +273,7 @@ void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variabl
 //************************************************************************************
 
 
-void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void SmallDisplacementHpromElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -289,7 +289,7 @@ void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variabl
 //********************************SET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void SmallDisplacementHpromElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -321,7 +321,7 @@ void SmallDisplacementBmatrixElement::SetValueOnIntegrationPoints( const Variabl
 //************************************************************************************
 
 
-void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void SmallDisplacementHpromElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -351,7 +351,7 @@ void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variabl
 //************************************************************************************
 
 
-void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void SmallDisplacementHpromElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -394,7 +394,7 @@ void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variabl
 //***********************************GET MATRIX VALUE*********************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void SmallDisplacementHpromElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -432,7 +432,7 @@ void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variabl
 //********************************GET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void SmallDisplacementHpromElement::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -458,7 +458,7 @@ void SmallDisplacementBmatrixElement::GetValueOnIntegrationPoints( const Variabl
 //************************************************************************************
 
 
-void SmallDisplacementBmatrixElement::Initialize()
+void SmallDisplacementHpromElement::Initialize()
 {
     KRATOS_TRY
 
@@ -477,7 +477,7 @@ void SmallDisplacementBmatrixElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::SetGeneralVariables(GeneralVariables& rVariables,
+void SmallDisplacementHpromElement::SetGeneralVariables(GeneralVariables& rVariables,
         ConstitutiveLaw::Parameters& rValues,
         const int & rPointNumber)
 {
@@ -500,7 +500,7 @@ void SmallDisplacementBmatrixElement::SetGeneralVariables(GeneralVariables& rVar
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
     const size_t number_of_nodes = GetGeometry().size();
@@ -536,13 +536,13 @@ void SmallDisplacementBmatrixElement::InitializeGeneralVariables (GeneralVariabl
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+void SmallDisplacementHpromElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         Flags& rCalculationFlags)
 {
     unsigned int MatSize = mNumberOfModes;
 
-    if ( rCalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
@@ -552,7 +552,7 @@ void SmallDisplacementBmatrixElement::InitializeSystemMatrices(MatrixType& rLeft
 
 
     //resizing as needed the RHS
-    if ( rCalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
     {
         if ( rRightHandSideVector.size() != MatSize )
             rRightHandSideVector.resize( MatSize, false );
@@ -566,7 +566,7 @@ void SmallDisplacementBmatrixElement::InitializeSystemMatrices(MatrixType& rLeft
 //*******************************************************
 //*******************************************************
 
-void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
+void SmallDisplacementHpromElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
 							 ProcessInfo& rCurrentProcessInfo)
 {
   //  KRATOS_TRY
@@ -606,13 +606,13 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight ); // TODO revisar el uso de THICKNESS
         //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
-        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
             this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
         }
 
-        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
             VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
@@ -629,7 +629,7 @@ void SmallDisplacementBmatrixElement::CalculateElementalSystem( LocalSystemCompo
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
+void SmallDisplacementHpromElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 						       ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -655,7 +655,7 @@ void SmallDisplacementBmatrixElement::CalculateDynamicSystem( LocalSystemCompone
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
 
 	  LocalLeftHandSideMatrix.clear();
@@ -667,7 +667,7 @@ void SmallDisplacementBmatrixElement::CalculateDynamicSystem( LocalSystemCompone
 
         }
 
-        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
 	  LocalRightHandSideVector.clear();
 
@@ -689,11 +689,11 @@ void SmallDisplacementBmatrixElement::CalculateDynamicSystem( LocalSystemCompone
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void SmallDisplacementHpromElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
   //contributions of the stiffness matrix calculated on the reference configuration
-  if( rLocalSystem.CalculationFlags.Is( SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+  if( rLocalSystem.CalculationFlags.Is( SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
       std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
       const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
@@ -729,10 +729,10 @@ void SmallDisplacementBmatrixElement::CalculateAndAddLHS(LocalSystemComponents& 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void SmallDisplacementHpromElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     //contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    if( rLocalSystem.CalculationFlags.Is( SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
 
       std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
@@ -774,7 +774,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddRHS(LocalSystemComponents& 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void SmallDisplacementHpromElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
 
   //mass matrix
@@ -814,7 +814,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddDynamicLHS(MatrixType& rLef
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void SmallDisplacementHpromElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
       
@@ -873,7 +873,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddDynamicRHS(VectorType& rRig
 //************************************************************************************
 //************************************************************************************
 
-double& SmallDisplacementBmatrixElement::CalculateIntegrationWeight(double& rIntegrationWeight)
+double& SmallDisplacementHpromElement::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -887,13 +887,13 @@ double& SmallDisplacementBmatrixElement::CalculateIntegrationWeight(double& rInt
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -912,14 +912,14 @@ void SmallDisplacementBmatrixElement::CalculateRightHandSide( VectorType& rRight
 //************************************************************************************
 
 
-void SmallDisplacementBmatrixElement::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -947,13 +947,13 @@ void SmallDisplacementBmatrixElement::CalculateRightHandSide( std::vector< Vecto
 //************************************************************************************
 
 
-void SmallDisplacementBmatrixElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
@@ -973,14 +973,14 @@ void SmallDisplacementBmatrixElement::CalculateLeftHandSide( MatrixType& rLeftHa
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     //create local system components
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
 
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
@@ -997,7 +997,7 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( MatrixType& rLeftHan
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
+void SmallDisplacementHpromElement::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
 						     const std::vector< Variable< MatrixType > >& rLHSVariables,
 						     std::vector< VectorType >& rRightHandSideVectors,
 						     const std::vector< Variable< VectorType > >& rRHSVariables,
@@ -1007,8 +1007,8 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixT
     LocalSystemComponents LocalSystem;
 
     //calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
 
     //Initialize sizes for the system components:
@@ -1018,22 +1018,22 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixT
     if( rRHSVariables.size() != rRightHandSideVectors.size() )
       rRightHandSideVectors.resize(rRHSVariables.size());
     
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
     for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
       {
 	//Note: rRightHandSideVectors.size() > 0
 	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
       }
 
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX,false);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX,false);
 
     for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
       {
 	//Note: rLeftHandSideMatrices.size() > 0
     	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
       }
-    LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX,true);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX,true);
 
 
     //Set Variables to Local system components
@@ -1051,7 +1051,7 @@ void SmallDisplacementBmatrixElement::CalculateLocalSystem( std::vector< MatrixT
 ////************************************************************************************
 ////************************************************************************************
 
-void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     size_t row_counter;
@@ -1091,7 +1091,7 @@ void SmallDisplacementBmatrixElement::InitializeSolutionStep( ProcessInfo& rCurr
 
 ////************************************************************************************
 ////************************************************************************************
-void SmallDisplacementBmatrixElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     mModesWeights = rCurrentProcessInfo[REDUCED_MODES_WEIGHTS];
     ClearNodalForces();
@@ -1100,7 +1100,7 @@ void SmallDisplacementBmatrixElement::InitializeNonLinearIteration( ProcessInfo&
 ////************************************************************************************
 ////************************************************************************************
 
-void SmallDisplacementBmatrixElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
 
 }
@@ -1108,7 +1108,7 @@ void SmallDisplacementBmatrixElement::FinalizeNonLinearIteration( ProcessInfo& r
 ////************************************************************************************
 ////************************************************************************************
 
-void SmallDisplacementBmatrixElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     //create and initialize element variables:
     GeneralVariables Variables;
@@ -1144,7 +1144,7 @@ void SmallDisplacementBmatrixElement::FinalizeSolutionStep( ProcessInfo& rCurren
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::InitializeMaterial()
+void SmallDisplacementHpromElement::InitializeMaterial()
 {
     KRATOS_TRY
 
@@ -1205,7 +1205,7 @@ void SmallDisplacementBmatrixElement::InitializeMaterial()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::ResetConstitutiveLaw()
+void SmallDisplacementHpromElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
@@ -1221,7 +1221,7 @@ void SmallDisplacementBmatrixElement::ResetConstitutiveLaw()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+void SmallDisplacementHpromElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
         double& rIntegrationWeight)
@@ -1248,7 +1248,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddExternalForces(VectorType& 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+void SmallDisplacementHpromElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         double& rIntegrationWeight)
 {
@@ -1267,7 +1267,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddInternalForces(VectorType& 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+void SmallDisplacementHpromElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         double& rIntegrationWeight
                                                   )
@@ -1286,7 +1286,7 @@ void SmallDisplacementBmatrixElement::CalculateAndAddKuum(MatrixType& rLeftHandS
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::ClearNodalForces()
+void SmallDisplacementHpromElement::ClearNodalForces()
 {
     KRATOS_TRY
 
@@ -1313,7 +1313,7 @@ void SmallDisplacementBmatrixElement::ClearNodalForces()
 //***********************************************************************************
 //***********************************************************************************
 
-void SmallDisplacementBmatrixElement::AddExplicitContribution(const VectorType& rRHSVector, 
+void SmallDisplacementHpromElement::AddExplicitContribution(const VectorType& rRHSVector,
 						       const Variable<VectorType>& rRHSVariable, 
 						       Variable<array_1d<double,3> >& rDestinationVariable, 
 						       const ProcessInfo& rCurrentProcessInfo)
@@ -1394,7 +1394,7 @@ void SmallDisplacementBmatrixElement::AddExplicitContribution(const VectorType& 
 //********************************************************** JLM calcula la cinematica
 
 
-void SmallDisplacementBmatrixElement::CalculateKinematics(GeneralVariables& rVariables,
+void SmallDisplacementHpromElement::CalculateKinematics(GeneralVariables& rVariables,
         const double& rPointNumber)   // JLM debe entrar rBh
 
 {
@@ -1433,7 +1433,7 @@ void SmallDisplacementBmatrixElement::CalculateKinematics(GeneralVariables& rVar
 //************************************************************************************
 
 
-Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
+Matrix& SmallDisplacementHpromElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
@@ -1480,7 +1480,7 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
 //************************************************************************************
 
 
-    void SmallDisplacementBmatrixElement::CalculateDisplacementGradient(Matrix& rH,
+    void SmallDisplacementHpromElement::CalculateDisplacementGradient(Matrix& rH,
                                                                  const Matrix& rDN_DX)
     {
         KRATOS_TRY
@@ -1535,7 +1535,7 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
 
 
 
-    void SmallDisplacementBmatrixElement::CalculateInfinitesimalStrain(const Matrix& rH,
+    void SmallDisplacementHpromElement::CalculateInfinitesimalStrain(const Matrix& rH,
                                                                 Vector& rStrainVector )
     {
         KRATOS_TRY
@@ -1586,7 +1586,7 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
     }
 
 
-    void SmallDisplacementBmatrixElement::CalculateInfinitesimalStrainBbar(const Matrix& rB,
+    void SmallDisplacementHpromElement::CalculateInfinitesimalStrainBbar(const Matrix& rB,
         Vector& rStrainVector )
 {
     KRATOS_TRY
@@ -1613,7 +1613,7 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
 
 //************************************************************************************
 //************************************************************************************
-    void SmallDisplacementBmatrixElement::CalculateDeformationMatrix(Matrix& rB,
+    void SmallDisplacementHpromElement::CalculateDeformationMatrix(Matrix& rB,
                                                               const Matrix& rDN_DX)
     {
         KRATOS_TRY
@@ -1675,7 +1675,7 @@ Matrix& SmallDisplacementBmatrixElement::CalculateDeltaPosition(Matrix & rDeltaP
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& SmallDisplacementBmatrixElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
+double& SmallDisplacementHpromElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1714,7 +1714,7 @@ double& SmallDisplacementBmatrixElement::CalculateTotalMass( double& rTotalMass,
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************
 
-Vector& SmallDisplacementBmatrixElement::CalculateVolumeForce( Vector& rVolumeForce, GeneralVariables& rVariables )
+Vector& SmallDisplacementHpromElement::CalculateVolumeForce( Vector& rVolumeForce, GeneralVariables& rVariables )
 {
     KRATOS_TRY
 
@@ -1746,7 +1746,7 @@ Vector& SmallDisplacementBmatrixElement::CalculateVolumeForce( Vector& rVolumeFo
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1774,7 +1774,7 @@ void SmallDisplacementBmatrixElement::CalculateFirstDerivativesContributions(Mat
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1793,8 +1793,8 @@ void SmallDisplacementBmatrixElement::CalculateSecondDerivativesContributions(Ma
       LocalSystemComponents LocalSystem;
 
       //calculation flags 
-      LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR);
-      LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX);
+      LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
+      LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
     
       //Initialize sizes for the system components:
       this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
@@ -1847,7 +1847,7 @@ void SmallDisplacementBmatrixElement::CalculateSecondDerivativesContributions(Ma
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
       
@@ -1862,7 +1862,7 @@ void SmallDisplacementBmatrixElement::CalculateSecondDerivativesLHS(MatrixType& 
       LocalSystemComponents LocalSystem;
 
       //calculation flags   
-      LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX);
+      LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
 
       VectorType RightHandSideVector = Vector();
 
@@ -1890,7 +1890,7 @@ void SmallDisplacementBmatrixElement::CalculateSecondDerivativesLHS(MatrixType& 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1905,7 +1905,7 @@ void SmallDisplacementBmatrixElement::CalculateSecondDerivativesRHS(VectorType& 
       LocalSystemComponents LocalSystem;
 
       //calculation flags
-      LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_RHS_VECTOR);
+      LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
 
       MatrixType LeftHandSideMatrix = Matrix();
 
@@ -1962,7 +1962,7 @@ void SmallDisplacementBmatrixElement::CalculateSecondDerivativesRHS(VectorType& 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1977,7 +1977,7 @@ void SmallDisplacementBmatrixElement::CalculateMassMatrix( MatrixType& rMassMatr
       LocalSystemComponents LocalSystem;
 
       //calculation flags   
-      LocalSystem.CalculationFlags.Set(SmallDisplacementBmatrixElement::COMPUTE_LHS_MATRIX);
+      LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
 
       VectorType RightHandSideVector = Vector();
 
@@ -2031,7 +2031,7 @@ void SmallDisplacementBmatrixElement::CalculateMassMatrix( MatrixType& rMassMatr
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -2092,7 +2092,7 @@ void SmallDisplacementBmatrixElement::CalculateDampingMatrix( MatrixType& rDampi
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -2196,7 +2196,7 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -2279,7 +2279,7 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementHpromElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -2420,7 +2420,7 @@ void SmallDisplacementBmatrixElement::CalculateOnIntegrationPoints( const Variab
 //*************************DECIMAL CORRECTION OF STRAINS******************************
 //************************************************************************************
 
-void SmallDisplacementBmatrixElement::DecimalCorrection(Vector& rVector)
+void SmallDisplacementHpromElement::DecimalCorrection(Vector& rVector)
 {
     KRATOS_TRY
 
@@ -2446,7 +2446,7 @@ void SmallDisplacementBmatrixElement::DecimalCorrection(Vector& rVector)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  SmallDisplacementBmatrixElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  SmallDisplacementHpromElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -2552,7 +2552,7 @@ int  SmallDisplacementBmatrixElement::Check( const ProcessInfo& rCurrentProcessI
 }
 
 
-void SmallDisplacementBmatrixElement::save( Serializer& rSerializer ) const
+void SmallDisplacementHpromElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     int IntMethod = int(mThisIntegrationMethod);
@@ -2560,7 +2560,7 @@ void SmallDisplacementBmatrixElement::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
 }
 
-void SmallDisplacementBmatrixElement::load( Serializer& rSerializer )
+void SmallDisplacementHpromElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     int IntMethod;
