@@ -30,9 +30,6 @@ protected:
 
   public:
     StressMeasureType StressMeasure;
-    // for axisymmetric use only
-    double Radius;
-    // general variables for large displacement use
     double detF;
     double detF0;
     double detJ;
@@ -50,7 +47,6 @@ protected:
     GeometryType::JacobiansType j;
     Matrix DeltaPosition;
 
-    // sets the value of a specified pointer variable
     void SetShapeFunctionsGradients(
         const GeometryType::ShapeFunctionsGradientsType &rDN_De) {
       pDN_De = &rDN_De;
@@ -74,7 +70,6 @@ protected:
       const size_t number_of_modes = static_cast<size_t>(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
 
       StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-      Radius = 0;
       detF = 1;
       detF0 = 1;
       detJ = 1;
@@ -230,8 +225,8 @@ public:
    * Sets on rElementalDofList the degrees of freedom of the considered element
    * geometry
    */
-  void GetDofList(DofsVectorType &rElementalDofList,
-                  ProcessInfo &rCurrentProcessInfo);
+ // void GetDofList(DofsVectorType &rElementalDofList,
+ //                 ProcessInfo &rCurrentProcessInfo);
 
   /**
    * Sets on rResult the ID's of the element degrees of freedom
@@ -242,17 +237,17 @@ public:
   /**
    * Sets on rValues the nodal displacements
    */
-  void GetValuesVector(Vector &rValues, int Step = 0);
+//  void GetValuesVector(Vector &rValues, int Step = 0);
 
   /**
    * Sets on rValues the nodal velocities
    */
-  void GetFirstDerivativesVector(Vector &rValues, int Step = 0);
+//  void GetFirstDerivativesVector(Vector &rValues, int Step = 0);
 
   /**
    * Sets on rValues the nodal accelerations
    */
-  void GetSecondDerivativesVector(Vector &rValues, int Step = 0);
+//  void GetSecondDerivativesVector(Vector &rValues, int Step = 0);
 
   // on integration points:
   /**
@@ -421,66 +416,6 @@ public:
   void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                              ProcessInfo &rCurrentProcessInfo);
 
-  /**
-   * this is called during the assembling process in order
-   * to calculate the first derivatives contributions for the LHS and RHS
-   * @param rLeftHandSideMatrix: the elemental left hand side matrix
-   * @param rRightHandSideVector: the elemental right hand side
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateFirstDerivativesContributions(MatrixType &rLeftHandSideMatrix,
-                                              VectorType &rRightHandSideVector,
-                                              ProcessInfo &rCurrentProcessInfo);
-
-  /**
-   * this is called during the assembling process in order
-   * to calculate the second derivatives contributions for the LHS and RHS
-   * @param rLeftHandSideMatrix: the elemental left hand side matrix
-   * @param rRightHandSideVector: the elemental right hand side
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void
-  CalculateSecondDerivativesContributions(MatrixType &rLeftHandSideMatrix,
-                                          VectorType &rRightHandSideVector,
-                                          ProcessInfo &rCurrentProcessInfo);
-
-  /**
-   * this is called during the assembling process in order
-   * to calculate the elemental left hand side matrix for the second derivatives
-   * constributions
-   * @param rLeftHandSideMatrix: the elemental left hand side matrix
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateSecondDerivativesLHS(MatrixType &rLeftHandSideMatrix,
-                                     ProcessInfo &rCurrentProcessInfo);
-
-  /**
-   * this is called during the assembling process in order
-   * to calculate the elemental right hand side vector for the second
-   * derivatives constributions
-   * @param rRightHandSideVector: the elemental right hand side vector
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateSecondDerivativesRHS(VectorType &rRightHandSideVector,
-                                     ProcessInfo &rCurrentProcessInfo);
-
-  /**
-    * this is called during the assembling process in order
-    * to calculate the elemental mass matrix
-    * @param rMassMatrix: the elemental mass matrix
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-  void CalculateMassMatrix(MatrixType &rMassMatrix,
-                           ProcessInfo &rCurrentProcessInfo);
-
-  /**
-    * this is called during the assembling process in order
-    * to calculate the elemental damping matrix
-    * @param rDampingMatrix: the elemental damping matrix
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-  void CalculateDampingMatrix(MatrixType &rDampingMatrix,
-                              ProcessInfo &rCurrentProcessInfo);
 
   /**
    * this function is designed to make the element to assemble an rRHS vector
@@ -587,12 +522,6 @@ protected:
                                         ProcessInfo &rCurrentProcessInfo);
 
   /**
-   * Calculates the elemental dynamic contributions
-   */
-  virtual void CalculateDynamicSystem(LocalSystemComponents &rLocalSystem,
-                                      ProcessInfo &rCurrentProcessInfo);
-
-  /**
    * Calculation and addition of the matrices of the LHS
    */
 
@@ -608,28 +537,6 @@ protected:
                                   GeneralVariables &rVariables,
                                   Vector &rVolumeForce,
                                   double &rIntegrationWeight);
-
-  /**
-   * Calculation and addition of the matrices of the LHS
-   */
-
-  virtual void CalculateAndAddDynamicLHS(MatrixType &rLeftHandSideMatrix,
-                                         GeneralVariables &rVariables,
-                                         ProcessInfo &rCurrentProcessInfo,
-                                         double &rIntegrationWeight);
-
-  /**
-   * Calculation and addition of the vectors of the RHS
-   */
-
-  virtual void CalculateAndAddDynamicRHS(VectorType &rRightHandSideVector,
-                                         GeneralVariables &rVariables,
-                                         ProcessInfo &rCurrentProcessInfo,
-                                         double &rIntegrationWeight);
-
-  /**
-   * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
-   */
 
   virtual void CalculateAndAddKuum(MatrixType &rLeftHandSideMatrix,
                                    GeneralVariables &rVariables,
@@ -726,8 +633,6 @@ protected:
 
   virtual void CalculateInfinitesimalStrain(const Matrix &rB,
                                             Vector &rStrainVector);
-
-  void CalculateDisplacementGradient(Matrix &rH, const Matrix &rDN_DX);
 
 private:
   friend class Serializer;
