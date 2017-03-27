@@ -683,7 +683,7 @@ protected:
    * Calculate Element Kinematics
    */
   virtual void CalculateKinematics(GeneralVariables &rVariables,
-                                   const double &rPointNumber);
+                                   const size_t &rPointNumber);
 
   /**
    * Calculation of the Deformation Gradient F
