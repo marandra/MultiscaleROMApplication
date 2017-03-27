@@ -77,9 +77,7 @@ array_1d<double, 3> &SmallDisplacementElastoPlasticJ23DLaw::GetValue(
 
 void SmallDisplacementElastoPlasticJ23DLaw::SetValue(
     const Variable<double> &rVariable, const double &rValue,
-    const ProcessInfo &rCurrentProcessInfo) {
-  mWeight = rValue;
-}
+    const ProcessInfo &rCurrentProcessInfo) {}
 
 void SmallDisplacementElastoPlasticJ23DLaw::SetValue(
     const Variable<Vector> &rVariable, const Vector &rValue,

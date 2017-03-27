@@ -100,7 +100,6 @@ protected:
                                          Matrix &ElasticityTensor);
 
 private:
-  double mWeight;
   friend class Serializer;
   virtual void save(Serializer &rSerializer) const {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
