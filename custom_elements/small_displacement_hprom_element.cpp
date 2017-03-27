@@ -148,9 +148,6 @@ void SmallDisplacementHpromElement::GetDofList(
   }
 }
 
-//************************************************************************************
-//************************************************************************************
-
 void SmallDisplacementHpromElement::EquationIdVector(
     EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
   // TODO mNumberOfModes is not initialized yet
@@ -163,7 +160,6 @@ void SmallDisplacementHpromElement::EquationIdVector(
     rResult[i] = static_cast<unsigned long>(i);
 }
 
-//*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
 void SmallDisplacementHpromElement::GetValuesVector(Vector &rValues, int Step) {
@@ -187,10 +183,7 @@ void SmallDisplacementHpromElement::GetValuesVector(Vector &rValues, int Step) {
   }
 }
 
-//************************************VELOCITY****************************************
-//************************************************************************************
-
-void SmallDisplacementHpromElement::GetFirstDerivativesVector(Vector &rValues,
+    void SmallDisplacementHpromElement::GetFirstDerivativesVector(Vector &rValues,
                                                               int Step) {
   const unsigned int number_of_nodes = GetGeometry().size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -210,9 +203,6 @@ void SmallDisplacementHpromElement::GetFirstDerivativesVector(Vector &rValues,
           GetGeometry()[i].GetSolutionStepValue(VELOCITY_Z, Step);
   }
 }
-
-//*********************************ACCELERATION***************************************
-//************************************************************************************
 
 void SmallDisplacementHpromElement::GetSecondDerivativesVector(Vector &rValues,
                                                                int Step) {
@@ -236,10 +226,6 @@ void SmallDisplacementHpromElement::GetSecondDerivativesVector(Vector &rValues,
   }
 }
 
-//*********************************SET DOUBLE
-//VALUE***********************************
-//************************************************************************************
-
 void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
     const Variable<double> &rVariable, std::vector<double> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {
@@ -249,10 +235,6 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
         rVariable, rValues[PointNumber], rCurrentProcessInfo);
   }
 }
-
-//*********************************SET VECTOR
-//VALUE***********************************
-//************************************************************************************
 
 void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
     const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
@@ -265,10 +247,6 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
   }
 }
 
-//*********************************SET MATRIX
-//VALUE***********************************
-//************************************************************************************
-
 void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
     const Variable<Matrix> &rVariable, std::vector<Matrix> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {
@@ -279,10 +257,6 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
         rVariable, rValues[PointNumber], rCurrentProcessInfo);
   }
 }
-
-//********************************SET CONSTITUTIVE
-//VALUE******************************
-//************************************************************************************
 
 void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer> &rVariable,
@@ -306,13 +280,8 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
 }
 
 //************************************************************************************
-//************************************************************************************
 
-//*********************************GET DOUBLE
-//VALUE***********************************
-//************************************************************************************
-
-void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
+    void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     const Variable<double> &rVariable, std::vector<double> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {
 
@@ -333,10 +302,6 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     }
   }
 }
-
-//**********************************GET VECTOR
-//VALUE**********************************
-//************************************************************************************
 
 void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
@@ -370,10 +335,6 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
   }
 }
 
-//***********************************GET MATRIX
-//VALUE*********************************
-//************************************************************************************
-
 void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     const Variable<Matrix> &rVariable, std::vector<Matrix> &rValues,
     const ProcessInfo &rCurrentProcessInfo) {
@@ -402,10 +363,6 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
   }
 }
 
-//********************************GET CONSTITUTIVE
-//VALUE******************************
-//************************************************************************************
-
 void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer> &rVariable,
     std::vector<ConstitutiveLaw::Pointer> &rValues,
@@ -423,8 +380,6 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
 }
 
 //************* STARTING - ENDING  METHODS
-//************************************************************************************
-//************************************************************************************
 
 void SmallDisplacementHpromElement::Initialize() {
   KRATOS_TRY
@@ -439,9 +394,6 @@ void SmallDisplacementHpromElement::Initialize() {
 
   KRATOS_CATCH("")
 }
-
-//************************************************************************************
-//************************************************************************************
 
 void SmallDisplacementHpromElement::SetGeneralVariables(
     GeneralVariables &rVariables, ConstitutiveLaw::Parameters &rValues,
@@ -462,9 +414,6 @@ void SmallDisplacementHpromElement::SetGeneralVariables(
   rValues.SetDeterminantF(rVariables.detF);
   rValues.SetDeformationGradientF(rVariables.F);
 }
-
-//************************************************************************************
-//************************************************************************************
 
 void SmallDisplacementHpromElement::InitializeGeneralVariables(
     GeneralVariables &rVariables, const ProcessInfo &rCurrentProcessInfo) {
@@ -503,9 +452,6 @@ void SmallDisplacementHpromElement::InitializeGeneralVariables(
                                         rVariables.DeltaPosition);
 }
 
-//************************************************************************************
-//************************************************************************************
-
 void SmallDisplacementHpromElement::InitializeSystemMatrices(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
     Flags &rCalculationFlags) {
@@ -535,9 +481,6 @@ void SmallDisplacementHpromElement::InitializeSystemMatrices(
     noalias(rRightHandSideVector) = ZeroVector(MatSize); // resetting RHS
   }
 }
-
-//*******************************************************
-//*******************************************************
 
 void SmallDisplacementHpromElement::CalculateElementalSystem(
     LocalSystemComponents &rLocalSystem, ProcessInfo &rCurrentProcessInfo) {

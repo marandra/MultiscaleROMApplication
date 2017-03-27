@@ -1,78 +1,26 @@
-//
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
-//
-//
-
 #if !defined(KRATOS_SMALL_DISPLACEMENT_HPROM_ELEMENT_H_INCLUDED)
 #define KRATOS_SMALL_DISPLACEMENT_HPROM_ELEMENT_H_INCLUDED
 
-// System includes
-
-// External includes
-
-// Project includes
 #include "includes/element.h"
-// in solid mechanics application:
 #include "custom_utilities/comparison_utilities.hpp"
 #include "multiscale_rom_application_variables.h"
+
 namespace Kratos {
-///@name Kratos Globals
-///@{
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name  Enum's
-///@{
-///@}
-///@name  Functions
-///@{
-///@}
-///@name Kratos Classes
-///@{
-
-/// Small Displacement Element for 3D and 2D geometries.
-
-/**
- * Implements a Small Displacement Lagrangian definition for structural
- * analysis.
- * This works for arbitrary geometries in 3D and 2D
- */
-
 class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementHpromElement
     : public Element {
-public:
-  ///@name Type Definitions
-  ///@{
-  /// Reference type definition for constitutive laws
-  typedef ConstitutiveLaw ConstitutiveLawType;
-  /// Pointer type for constitutive laws
-  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-  /// StressMeasure from constitutive laws
-  typedef ConstitutiveLawType::StressMeasure StressMeasureType;
-  /// Type definition for integration methods
-  typedef GeometryData::IntegrationMethod IntegrationMethod;
-  /// Counted pointer of SmallDisplacementBmatrixElement
-  KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementHpromElement);
-  ///@}
-protected:
-  /**
-   * Flags related to the element computation
-   */
 
+public:
+  typedef ConstitutiveLaw ConstitutiveLawType;
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+  typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+  typedef GeometryData::IntegrationMethod IntegrationMethod;
+  KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementHpromElement);
+
+protected:
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_RHS_VECTOR);
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_LHS_MATRIX);
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-
-  /**
-   * Parameters to be used in the Element as they are. Direct interface to
-   * Parameters Struct
-   */
 
   struct GeneralVariables {
   private:
@@ -82,10 +30,8 @@ protected:
 
   public:
     StressMeasureType StressMeasure;
-
     // for axisymmetric use only
     double Radius;
-
     // general variables for large displacement use
     double detF;
     double detF0;
@@ -100,14 +46,11 @@ protected:
     Matrix DN_DX;
     Matrix ConstitutiveMatrix;
 
-    // variables including all integration points
     GeometryType::JacobiansType J;
     GeometryType::JacobiansType j;
     Matrix DeltaPosition;
 
-    /**
-     * sets the value of a specified pointer variable
-     */
+    // sets the value of a specified pointer variable
     void SetShapeFunctionsGradients(
         const GeometryType::ShapeFunctionsGradientsType &rDN_De) {
       pDN_De = &rDN_De;
@@ -117,9 +60,7 @@ protected:
       pNcontainer = &rNcontainer;
     };
 
-    /**
-     * returns the value of a specified pointer variable
-     */
+    // returns the value of a specified pointer variable
     const GeometryType::ShapeFunctionsGradientsType &
     GetShapeFunctionsGradients() {
       return *pDN_De;
@@ -133,21 +74,16 @@ protected:
       const size_t number_of_modes = rCurrentProcessInfo[NUMBER_REDUCED_MODES];
 
       StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-      // doubles
-      // radius
       Radius = 0;
-      // jacobians
       detF = 1;
       detF0 = 1;
       detJ = 1;
-      // vectors
       StrainVector.resize(voigt_size, false);
       StressVector.resize(voigt_size, false);
       N.resize(number_of_nodes, false);
       noalias(StrainVector) = ZeroVector(voigt_size);
       noalias(StressVector) = ZeroVector(voigt_size);
       noalias(N) = ZeroVector(number_of_nodes);
-      // matrices
       B.resize(voigt_size, number_of_modes, false);
       H.resize(dimension, dimension, false);
       F.resize(dimension, dimension, false);
@@ -163,14 +99,12 @@ protected:
       noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
       noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
       noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-      // others
       J.resize(1, false);
       j.resize(1, false);
       J[0].resize(dimension, dimension, false);
       j[0].resize(dimension, dimension, false);
       noalias(J[0]) = ZeroMatrix(dimension, dimension);
       noalias(j[0]) = ZeroMatrix(dimension, dimension);
-      // pointers
       pDN_De = NULL;
       pNcontainer = NULL;
     }
@@ -196,9 +130,7 @@ protected:
     // calculation flags
     Flags CalculationFlags;
 
-    /**
-     * sets the value of a specified pointer variable
-     */
+    //sets the value of a specified pointer variable
     void SetLeftHandSideMatrix(MatrixType &rLeftHandSideMatrix) {
       mpLeftHandSideMatrix = &rLeftHandSideMatrix;
     };
@@ -223,9 +155,7 @@ protected:
       mpRightHandSideVariables = &rRightHandSideVariables;
     };
 
-    /**
-     * returns the value of a specified pointer variable
-     */
+    // returns the value of a specified pointer variable
     MatrixType &GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
     std::vector<MatrixType> &GetLeftHandSideMatrices() {
       return *mpLeftHandSideMatrices;
@@ -244,12 +174,8 @@ protected:
   };
 
 public:
-  ///@name Life Cycle
-  ///@{
-
   /// Empty constructor needed for serialization
   SmallDisplacementHpromElement();
-
   /// Default constructors
   SmallDisplacementHpromElement(IndexType NewId,
                                 GeometryType::Pointer pGeometry);
@@ -257,16 +183,9 @@ public:
   SmallDisplacementHpromElement(IndexType NewId,
                                 GeometryType::Pointer pGeometry,
                                 PropertiesType::Pointer pProperties);
-
   /// Copy constructor
   SmallDisplacementHpromElement(SmallDisplacementHpromElement const &rOther);
-
-  /// Destructor.
   virtual ~SmallDisplacementHpromElement();
-
-  ///@}
-  ///@name Operators
-  ///@{
 
   /// Assignment operator.
   SmallDisplacementHpromElement &
@@ -813,64 +732,10 @@ protected:
 
   void CalculateDisplacementGradient(Matrix &rH, const Matrix &rDN_DX);
 
-  ///@}
-  ///@name Protected  Access
-  ///@{
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
-  ///@}
-
 private:
-  ///@name Static Member Variables
-  ///@{
-  ///@}
-  ///@name Member Variables
-  ///@{
-
-  ///@}
-  ///@name Private Operators
-  ///@{
-
-  ///@}
-  ///@name Private Operations
-  ///@{
-
-  ///@}
-  ///@name Private  Access
-  ///@{
-  ///@}
-
-  ///@}
-  ///@name Serialization
-  ///@{
   friend class Serializer;
-
-  // A private default constructor necessary for serialization
-
   virtual void save(Serializer &rSerializer) const;
-
   virtual void load(Serializer &rSerializer);
-
-  ///@name Private Inquiry
-  ///@{
-  ///@}
-  ///@name Un accessible methods
-  ///@{
-  ///@}
-
 }; // Class SmallDisplacementHpromElement
-
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
-///@}
-
 } // namespace Kratos.
 #endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined
