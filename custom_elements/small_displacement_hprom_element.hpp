@@ -71,7 +71,7 @@ protected:
     void Initialize(const size_t &voigt_size, const size_t &dimension,
                     const size_t &number_of_nodes,
                     const ProcessInfo &rCurrentProcessInfo) {
-      const size_t number_of_modes = rCurrentProcessInfo[NUMBER_REDUCED_MODES];
+      const size_t number_of_modes = static_cast<size_t>(rCurrentProcessInfo[NUMBER_REDUCED_MODES]);
 
       StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
       Radius = 0;
@@ -655,7 +655,7 @@ protected:
    */
   virtual void SetGeneralVariables(GeneralVariables &rVariables,
                                    ConstitutiveLaw::Parameters &rValues,
-                                   const int &rPointNumber);
+                                   const size_t &rPointNumber);
 
   /**
    * Initialize System Matrices
@@ -724,10 +724,7 @@ protected:
   virtual Vector &CalculateVolumeForce(Vector &rVolumeForce,
                                        GeneralVariables &rVariables);
 
-  virtual void CalculateInfinitesimalStrainBbar(const Matrix &rB,
-                                                Vector &rStrainVector);
-
-  virtual void CalculateInfinitesimalStrain(const Matrix &rH,
+  virtual void CalculateInfinitesimalStrain(const Matrix &rB,
                                             Vector &rStrainVector);
 
   void CalculateDisplacementGradient(Matrix &rH, const Matrix &rDN_DX);
