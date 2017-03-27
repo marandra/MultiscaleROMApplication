@@ -70,10 +70,9 @@ SmallDisplacementHpromElement::Clone(IndexType NewId,
     NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 
     if (NewElement.mConstitutiveLawVector.size() !=
-        NewElement.GetGeometry().IntegrationPointsNumber())
-      KRATOS_THROW_ERROR(std::logic_error,
-                         "constitutive law not has the correct size ",
-                         NewElement.mConstitutiveLawVector.size());
+        NewElement.GetGeometry().IntegrationPointsNumber()) KRATOS_THROW_ERROR(std::logic_error,
+                                                                               "constitutive law not has the correct size ",
+                                                                               NewElement.mConstitutiveLawVector.size());
   }
 
   for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++) {
@@ -223,10 +222,9 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
       mConstitutiveLawVector.resize(rValues.size());
 
       if (mConstitutiveLawVector.size() !=
-          GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod))
-        KRATOS_THROW_ERROR(std::logic_error,
-                           "constitutive law not has the correct size ",
-                           mConstitutiveLawVector.size());
+          GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod)) KRATOS_THROW_ERROR(std::logic_error,
+                                                                                            "constitutive law not has the correct size ",
+                                                                                            mConstitutiveLawVector.size());
     }
 
     for (unsigned int i = 0; i < rValues.size(); i++) {
@@ -272,12 +270,12 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
   } else if (rVariable == PK2_STRESS_VECTOR ||
-             rVariable == CAUCHY_STRESS_VECTOR) {
+      rVariable == CAUCHY_STRESS_VECTOR) {
 
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
   } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
-             rVariable == ALMANSI_STRAIN_TENSOR) {
+      rVariable == ALMANSI_STRAIN_TENSOR) {
 
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
@@ -305,7 +303,7 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
   } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
-             rVariable == ALMANSI_STRAIN_TENSOR) {
+      rVariable == ALMANSI_STRAIN_TENSOR) {
 
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
@@ -340,12 +338,12 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
 void SmallDisplacementHpromElement::Initialize() {
   KRATOS_TRY
 
-  mVoigtSize = 4;
-  if (GetGeometry().WorkingSpaceDimension() == 3) {
-    mVoigtSize = 6;
-  }
+    mVoigtSize = 4;
+    if (GetGeometry().WorkingSpaceDimension() == 3) {
+      mVoigtSize = 6;
+    }
 
-  InitializeMaterial();
+    InitializeMaterial();
 
   KRATOS_CATCH("")
 }
@@ -413,8 +411,7 @@ void SmallDisplacementHpromElement::InitializeSystemMatrices(
   const size_t MatSize = mNumberOfModes;
 
   if (rCalculationFlags.Is(
-          SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX))
-  {
+      SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX)) {
     if (rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize(MatSize, MatSize, false);
 
@@ -422,8 +419,7 @@ void SmallDisplacementHpromElement::InitializeSystemMatrices(
   }
 
   if (rCalculationFlags.Is(
-          SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR))
-  {
+      SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR)) {
     if (rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);
 
@@ -433,16 +429,12 @@ void SmallDisplacementHpromElement::InitializeSystemMatrices(
 
 void SmallDisplacementHpromElement::CalculateElementalSystem(
     LocalSystemComponents &rLocalSystem, ProcessInfo &rCurrentProcessInfo) {
-  //  KRATOS_TRY
 
-  // create and initialize element variables:
   GeneralVariables Variables;
   this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-  // create constitutive law parameters:
   ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
                                      rCurrentProcessInfo);
-
-  // set constitutive law flags:
+  double geometrical_integration_weight;
   Flags &ConstitutiveLawOptions = Values.GetOptions();
 
   ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -462,37 +454,37 @@ void SmallDisplacementHpromElement::CalculateElementalSystem(
   for (size_t point_number = 0; point_number < integration_points.size();
        point_number++) {
 
-    if (mAssignedIntegrationWeights[point_number] < 0){
-      continue;}
-    // compute element kinematics B, F, DN_DX ...
+    if (mAssignedIntegrationWeights[point_number] < 0) {
+      continue;
+    }
+
     this->CalculateKinematics(Variables, point_number);
 
-    // set general variables to constitutivelaw parameters
     this->SetGeneralVariables(Variables, Values, point_number);
+    mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
 
-    // compute stresses and constitutive parameters
-    mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(
-        Values);
-
-    double geometrical_integration_weight = integration_points[point_number].Weight() * Variables.detJ;
-    geometrical_integration_weight = this->CalculateIntegrationWeight(geometrical_integration_weight);
-    geometrical_integration_weight = mAssignedIntegrationWeights[point_number];
-    // TODO check the use of THICKNESS in weight computation.
-    // if ( dimension == 2 ) geometrical_integration_weight *= GetProperties()[THICKNESS];
+    //TODO find another method for flagging.
+    // If weight is positive, we are in HPROM case, and weight is assigned.
+    // If zero we are in ROM case, and weight is as usual.
+    // Negatives were filtered out before
+    if (mAssignedIntegrationWeights[point_number] > 0.) {
+      geometrical_integration_weight = mAssignedIntegrationWeights[point_number];
+    } else {
+      geometrical_integration_weight = integration_points[point_number].Weight() * Variables.detJ;
+      geometrical_integration_weight = this->CalculateIntegrationWeight(geometrical_integration_weight);
+      // TODO check the use of THICKNESS in weight computation. Check 3D case.
+    }
 
     if (rLocalSystem.CalculationFlags.Is(
-            SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX))
-    {
+        SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX)) {
       // contributions to stiffness matrix calculated on the reference config
       this->CalculateAndAddLHS(rLocalSystem, Variables, geometrical_integration_weight);
     }
 
     if (rLocalSystem.CalculationFlags.Is(
-            SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR))
-    {
+        SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR)) {
       // contribution to external forces
       VolumeForce = this->CalculateVolumeForce(VolumeForce, Variables);
-
       this->CalculateAndAddRHS(rLocalSystem, Variables, VolumeForce,
                                geometrical_integration_weight);
     }
@@ -505,60 +497,60 @@ void SmallDisplacementHpromElement::CalculateDynamicSystem(
     LocalSystemComponents &rLocalSystem, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  // create and initialize element variables:
-  GeneralVariables Variables;
-  this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    // create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
-  // reading integration points
-  const GeometryType::IntegrationPointsArrayType &integration_points =
-      GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    // reading integration points
+    const GeometryType::IntegrationPointsArrayType &integration_points =
+        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
-  MatrixType LocalLeftHandSideMatrix;
-  VectorType LocalRightHandSideVector;
-  // Initialize sizes for the system components:
-  this->InitializeSystemMatrices(LocalLeftHandSideMatrix,
-                                 LocalRightHandSideVector,
-                                 rLocalSystem.CalculationFlags);
+    MatrixType LocalLeftHandSideMatrix;
+    VectorType LocalRightHandSideVector;
+    // Initialize sizes for the system components:
+    this->InitializeSystemMatrices(LocalLeftHandSideMatrix,
+                                   LocalRightHandSideVector,
+                                   rLocalSystem.CalculationFlags);
 
-  for (unsigned int PointNumber = 0; PointNumber < integration_points.size();
-       PointNumber++) {
-    // compute element kinematics B, F, DN_DX ...
-    this->CalculateKinematics(Variables, PointNumber);
+    for (unsigned int PointNumber = 0; PointNumber < integration_points.size();
+         PointNumber++) {
+      // compute element kinematics B, F, DN_DX ...
+      this->CalculateKinematics(Variables, PointNumber);
 
-    // calculating weights for integration on the "reference configuration"
-    double IntegrationWeight =
-        integration_points[PointNumber].Weight() * Variables.detJ;
-    IntegrationWeight = this->CalculateIntegrationWeight(IntegrationWeight);
+      // calculating weights for integration on the "reference configuration"
+      double IntegrationWeight =
+          integration_points[PointNumber].Weight() * Variables.detJ;
+      IntegrationWeight = this->CalculateIntegrationWeight(IntegrationWeight);
 
-    if (rLocalSystem.CalculationFlags.Is(
-            SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX)) // calculation
-    // of the matrix
-    // is required
-    {
+      if (rLocalSystem.CalculationFlags.Is(
+          SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX)) // calculation
+        // of the matrix
+        // is required
+      {
 
-      LocalLeftHandSideMatrix.clear();
+        LocalLeftHandSideMatrix.clear();
 
-      this->CalculateAndAddDynamicLHS(LocalLeftHandSideMatrix, Variables,
-                                      rCurrentProcessInfo, IntegrationWeight);
+        this->CalculateAndAddDynamicLHS(LocalLeftHandSideMatrix, Variables,
+                                        rCurrentProcessInfo, IntegrationWeight);
 
-      MatrixType &rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-      rLeftHandSideMatrix += LocalLeftHandSideMatrix;
+        MatrixType &rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+        rLeftHandSideMatrix += LocalLeftHandSideMatrix;
+      }
+
+      if (rLocalSystem.CalculationFlags.Is(
+          SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR)) // calculation
+        // of the vector
+        // is required
+      {
+        LocalRightHandSideVector.clear();
+
+        this->CalculateAndAddDynamicRHS(LocalRightHandSideVector, Variables,
+                                        rCurrentProcessInfo, IntegrationWeight);
+
+        VectorType &rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+        rRightHandSideVector += LocalRightHandSideVector;
+      }
     }
-
-    if (rLocalSystem.CalculationFlags.Is(
-            SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR)) // calculation
-    // of the vector
-    // is required
-    {
-      LocalRightHandSideVector.clear();
-
-      this->CalculateAndAddDynamicRHS(LocalRightHandSideVector, Variables,
-                                      rCurrentProcessInfo, IntegrationWeight);
-
-      VectorType &rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-      rRightHandSideVector += LocalRightHandSideVector;
-    }
-  }
 
   KRATOS_CATCH("")
 }
@@ -573,7 +565,7 @@ void SmallDisplacementHpromElement::CalculateAndAddLHS(
   // contributions of the stiffness matrix calculated on the reference
   // configuration
   if (rLocalSystem.CalculationFlags.Is(
-          SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS)) {
+      SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS)) {
     std::vector<MatrixType> &rLeftHandSideMatrices =
         rLocalSystem.GetLeftHandSideMatrices();
     const std::vector<Variable<MatrixType>> &rLeftHandSideVariables =
@@ -613,7 +605,7 @@ void SmallDisplacementHpromElement::CalculateAndAddRHS(
     Vector &rVolumeForce, double &rIntegrationWeight) {
   // contribution of the internal and external forces
   if (rLocalSystem.CalculationFlags.Is(
-          SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS)) {
+      SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS)) {
 
     std::vector<VectorType> &rRightHandSideVectors =
         rLocalSystem.GetRightHandSideVectors();
@@ -689,7 +681,7 @@ void SmallDisplacementHpromElement::CalculateAndAddDynamicLHS(
 
         rLeftHandSideMatrix(indexi + k, indexj + k) +=
             rVariables.N[i] * rVariables.N[j] * CurrentDensity *
-            rIntegrationWeight;
+                rIntegrationWeight;
         indexj += dimension;
       }
     }
@@ -706,50 +698,50 @@ void SmallDisplacementHpromElement::CalculateAndAddDynamicRHS(
     ProcessInfo &rCurrentProcessInfo, double &rIntegrationWeight) {
   KRATOS_TRY
 
-  // mass matrix
-  const size_t number_of_nodes = GetGeometry().PointsNumber();
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
-  const size_t MatSize = dimension * number_of_nodes;
+    // mass matrix
+    const size_t number_of_nodes = GetGeometry().PointsNumber();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t MatSize = dimension * number_of_nodes;
 
-  MatrixType MassMatrix(MatSize, MatSize);
-  noalias(MassMatrix) = ZeroMatrix(MatSize, MatSize);
+    MatrixType MassMatrix(MatSize, MatSize);
+    noalias(MassMatrix) = ZeroMatrix(MatSize, MatSize);
 
-  double CurrentDensity = GetProperties()[DENSITY];
+    double CurrentDensity = GetProperties()[DENSITY];
 
-  // acceleration vector
-  Vector CurrentAccelerationVector(MatSize);
-  noalias(CurrentAccelerationVector) = ZeroVector(MatSize);
-  this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+    // acceleration vector
+    Vector CurrentAccelerationVector(MatSize);
+    noalias(CurrentAccelerationVector) = ZeroVector(MatSize);
+    this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
 
-  double AlphaM = 0.0;
-  if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
-    AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    Vector PreviousAccelerationVector(MatSize);
-    noalias(PreviousAccelerationVector) = ZeroVector(MatSize);
-    this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
-    CurrentAccelerationVector *= (1.0 - AlphaM);
-    CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
-  }
-
-  unsigned int indexi = 0;
-  unsigned int indexj = 0;
-
-  for (unsigned int i = 0; i < number_of_nodes; i++) {
-    for (unsigned int k = 0; k < dimension; k++) {
-      indexj = 0;
-      for (unsigned int j = 0; j < number_of_nodes; j++) {
-
-        MassMatrix(indexi + k, indexj + k) += rVariables.N[i] *
-                                              rVariables.N[j] * CurrentDensity *
-                                              rIntegrationWeight;
-        indexj += dimension;
-      }
+    double AlphaM = 0.0;
+    if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
+      AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+      Vector PreviousAccelerationVector(MatSize);
+      noalias(PreviousAccelerationVector) = ZeroVector(MatSize);
+      this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+      CurrentAccelerationVector *= (1.0 - AlphaM);
+      CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
     }
 
-    indexi += dimension;
-  }
+    unsigned int indexi = 0;
+    unsigned int indexj = 0;
 
-  noalias(rRightHandSideVector) = prod(MassMatrix, CurrentAccelerationVector);
+    for (unsigned int i = 0; i < number_of_nodes; i++) {
+      for (unsigned int k = 0; k < dimension; k++) {
+        indexj = 0;
+        for (unsigned int j = 0; j < number_of_nodes; j++) {
+
+          MassMatrix(indexi + k, indexj + k) += rVariables.N[i] *
+              rVariables.N[j] * CurrentDensity *
+              rIntegrationWeight;
+          indexj += dimension;
+        }
+      }
+
+      indexi += dimension;
+    }
+
+    noalias(rRightHandSideVector) = prod(MassMatrix, CurrentAccelerationVector);
 
   KRATOS_CATCH("")
 }
@@ -1044,54 +1036,54 @@ void SmallDisplacementHpromElement::FinalizeSolutionStep(
 void SmallDisplacementHpromElement::InitializeMaterial() {
   KRATOS_TRY
 
-  // NOTE:
-  // This is the standard (previous) implementation:
-  // If we are here, it means that no one already set up the constitutive law
-  // vector
-  // through the method SetValue<CONSTITUTIVE_LAW>
+    // NOTE:
+    // This is the standard (previous) implementation:
+    // If we are here, it means that no one already set up the constitutive law
+    // vector
+    // through the method SetValue<CONSTITUTIVE_LAW>
 
-  const GeometryType::IntegrationPointsArrayType &integration_points =
-      GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType &integration_points =
+        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
-  // Constitutive Law initialization
-  if (mConstitutiveLawVector.size() != integration_points.size()) {
-    mConstitutiveLawVector.resize(integration_points.size());
-  } else {
-    // check whether the constitutive law pointers have been already set up
-    bool already_set_up = true;
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++) {
-      if (mConstitutiveLawVector[i] == NULL)
-        already_set_up = false;
-    }
-    if (already_set_up) {
+    // Constitutive Law initialization
+    if (mConstitutiveLawVector.size() != integration_points.size()) {
+      mConstitutiveLawVector.resize(integration_points.size());
+    } else {
+      // check whether the constitutive law pointers have been already set up
+      bool already_set_up = true;
       for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++) {
+        if (mConstitutiveLawVector[i] == NULL)
+          already_set_up = false;
+      }
+      if (already_set_up) {
+        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++) {
+          mConstitutiveLawVector[i]->InitializeMaterial(
+              GetProperties(), GetGeometry(),
+              row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i));
+        }
+        return; // if so, we are done here!
+      }
+    }
+
+    // NOTE:
+    // This is the standard (previous) implementation:
+    // If we are here, it means that no one already set up the constitutive law
+    // vector
+    // through the method SetValue<CONSTITUTIVE_LAW>
+
+    if (GetProperties()[CONSTITUTIVE_LAW] != NULL) {
+      for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++) {
+        mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[i]->InitializeMaterial(
             GetProperties(), GetGeometry(),
             row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i));
       }
-      return; // if so, we are done here!
+    } else {
+      KRATOS_THROW_ERROR(
+          std::logic_error,
+          "a constitutive law needs to be specified for the element with ID ",
+          this->Id())
     }
-  }
-
-  // NOTE:
-  // This is the standard (previous) implementation:
-  // If we are here, it means that no one already set up the constitutive law
-  // vector
-  // through the method SetValue<CONSTITUTIVE_LAW>
-
-  if (GetProperties()[CONSTITUTIVE_LAW] != NULL) {
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++) {
-      mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-      mConstitutiveLawVector[i]->InitializeMaterial(
-          GetProperties(), GetGeometry(),
-          row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i));
-    }
-  } else {
-    KRATOS_THROW_ERROR(
-        std::logic_error,
-        "a constitutive law needs to be specified for the element with ID ",
-        this->Id())
-  }
   KRATOS_CATCH("")
 }
 
@@ -1101,12 +1093,12 @@ void SmallDisplacementHpromElement::InitializeMaterial() {
 void SmallDisplacementHpromElement::ResetConstitutiveLaw() {
   KRATOS_TRY
 
-  if (GetProperties()[CONSTITUTIVE_LAW] != NULL) {
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
-      mConstitutiveLawVector[i]->ResetMaterial(
-          GetProperties(), GetGeometry(),
-          row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i));
-  }
+    if (GetProperties()[CONSTITUTIVE_LAW] != NULL) {
+      for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
+        mConstitutiveLawVector[i]->ResetMaterial(
+            GetProperties(), GetGeometry(),
+            row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i));
+    }
 
   KRATOS_CATCH("")
 }
@@ -1118,16 +1110,16 @@ void SmallDisplacementHpromElement::CalculateAndAddExternalForces(
     VectorType &rRightHandSideVector, GeneralVariables &rVariables,
     Vector &rVolumeForce, double &rIntegrationWeight) {
   KRATOS_TRY
-  const size_t number_of_nodes = GetGeometry().PointsNumber();
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t number_of_nodes = GetGeometry().PointsNumber();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
-  for (unsigned int i = 0; i < number_of_nodes; i++) {
-    size_t index = dimension * i;
-    for (unsigned int j = 0; j < dimension; j++) {
-      rRightHandSideVector[index + j] +=
-          rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
+    for (unsigned int i = 0; i < number_of_nodes; i++) {
+      size_t index = dimension * i;
+      for (unsigned int j = 0; j < dimension; j++) {
+        rRightHandSideVector[index + j] +=
+            rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
+      }
     }
-  }
 
   KRATOS_CATCH("")
 }
@@ -1140,9 +1132,9 @@ void SmallDisplacementHpromElement::CalculateAndAddInternalForces(
     double &rIntegrationWeight) {
   KRATOS_TRY
 
-  VectorType InternalForces =
-      rIntegrationWeight * prod(trans(rVariables.B), rVariables.StressVector);
-  noalias(rRightHandSideVector) -= InternalForces;
+    VectorType InternalForces =
+        rIntegrationWeight * prod(trans(rVariables.B), rVariables.StressVector);
+    noalias(rRightHandSideVector) -= InternalForces;
 
   KRATOS_CATCH("")
 }
@@ -1157,13 +1149,13 @@ void SmallDisplacementHpromElement::CalculateAndAddKuum(
     double &rIntegrationWeight) {
   KRATOS_TRY
 
-  // contributions to stiffness matrix calculated on the reference config
-  noalias(rLeftHandSideMatrix) +=
-      prod(trans(rVariables.B),
-           rIntegrationWeight *
-               Matrix(prod(
-                   rVariables.ConstitutiveMatrix,
-                   rVariables.B))); // to be optimized to remove the temporary
+    // contributions to stiffness matrix calculated on the reference config
+    noalias(rLeftHandSideMatrix) +=
+        prod(trans(rVariables.B),
+             rIntegrationWeight *
+                 Matrix(prod(
+                     rVariables.ConstitutiveMatrix,
+                     rVariables.B))); // to be optimized to remove the temporary
 
   KRATOS_CATCH("")
 }
@@ -1174,22 +1166,22 @@ void SmallDisplacementHpromElement::CalculateAndAddKuum(
 void SmallDisplacementHpromElement::ClearNodalForces() {
   KRATOS_TRY
 
-  const size_t number_of_nodes = GetGeometry().PointsNumber();
-  for (size_t i = 0; i < number_of_nodes; i++) {
-    if (GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) &&
-        GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE)) {
+    const size_t number_of_nodes = GetGeometry().PointsNumber();
+    for (size_t i = 0; i < number_of_nodes; i++) {
+      if (GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) &&
+          GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE)) {
 
-      array_1d<double, 3> &ExternalForce =
-          GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-      array_1d<double, 3> &InternalForce =
-          GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+        array_1d<double, 3> &ExternalForce =
+            GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+        array_1d<double, 3> &InternalForce =
+            GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
 
-      GetGeometry()[i].SetLock();
-      ExternalForce.clear();
-      InternalForce.clear();
-      GetGeometry()[i].UnSetLock();
+        GetGeometry()[i].SetLock();
+        ExternalForce.clear();
+        InternalForce.clear();
+        GetGeometry()[i].UnSetLock();
+      }
     }
-  }
 
   KRATOS_CATCH("")
 }
@@ -1203,62 +1195,62 @@ void SmallDisplacementHpromElement::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  const size_t number_of_nodes = GetGeometry().PointsNumber();
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t number_of_nodes = GetGeometry().PointsNumber();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
-  if (rRHSVariable == EXTERNAL_FORCES_VECTOR &&
-      rDestinationVariable == EXTERNAL_FORCE) {
+    if (rRHSVariable == EXTERNAL_FORCES_VECTOR &&
+        rDestinationVariable == EXTERNAL_FORCE) {
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-      size_t index = dimension * i;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+        size_t index = dimension * i;
 
-      GetGeometry()[i].SetLock();
+        GetGeometry()[i].SetLock();
 
-      array_1d<double, 3> &ExternalForce =
-          GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-      for (unsigned int j = 0; j < dimension; j++) {
-        ExternalForce[j] += rRHSVector[index + j];
+        array_1d<double, 3> &ExternalForce =
+            GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+        for (unsigned int j = 0; j < dimension; j++) {
+          ExternalForce[j] += rRHSVector[index + j];
+        }
+
+        GetGeometry()[i].UnSetLock();
       }
-
-      GetGeometry()[i].UnSetLock();
     }
-  }
 
-  if (rRHSVariable == INTERNAL_FORCES_VECTOR &&
-      rDestinationVariable == INTERNAL_FORCE) {
+    if (rRHSVariable == INTERNAL_FORCES_VECTOR &&
+        rDestinationVariable == INTERNAL_FORCE) {
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-      size_t index = dimension * i;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+        size_t index = dimension * i;
 
-      GetGeometry()[i].SetLock();
+        GetGeometry()[i].SetLock();
 
-      array_1d<double, 3> &InternalForce =
-          GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
-      for (unsigned int j = 0; j < dimension; j++) {
-        InternalForce[j] += rRHSVector[index + j];
+        array_1d<double, 3> &InternalForce =
+            GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+        for (unsigned int j = 0; j < dimension; j++) {
+          InternalForce[j] += rRHSVector[index + j];
+        }
+
+        GetGeometry()[i].UnSetLock();
       }
-
-      GetGeometry()[i].UnSetLock();
     }
-  }
 
-  if (rRHSVariable == RESIDUAL_VECTOR &&
-      rDestinationVariable == FORCE_RESIDUAL) {
+    if (rRHSVariable == RESIDUAL_VECTOR &&
+        rDestinationVariable == FORCE_RESIDUAL) {
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-      size_t index = dimension * i;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+        size_t index = dimension * i;
 
-      GetGeometry()[i].SetLock();
+        GetGeometry()[i].SetLock();
 
-      array_1d<double, 3> &ForceResidual =
-          GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-      for (unsigned int j = 0; j < dimension; j++) {
-        ForceResidual[j] += rRHSVector[index + j];
+        array_1d<double, 3> &ForceResidual =
+            GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+        for (unsigned int j = 0; j < dimension; j++) {
+          ForceResidual[j] += rRHSVector[index + j];
+        }
+
+        GetGeometry()[i].UnSetLock();
       }
-
-      GetGeometry()[i].UnSetLock();
     }
-  }
 
   KRATOS_CATCH("")
 }
@@ -1269,32 +1261,32 @@ void SmallDisplacementHpromElement::CalculateKinematics(
     GeneralVariables &rVariables, const size_t &rPointNumber) {
   KRATOS_TRY
 
-  // Get the parent coodinates derivative [dN/d£]
-  const GeometryType::ShapeFunctionsGradientsType &DN_De =
-      rVariables.GetShapeFunctionsGradients();
-  // Get the shape functions for the order of the integration method [N]
-  const Matrix &Ncontainer = rVariables.GetShapeFunctions();
+    // Get the parent coodinates derivative [dN/d£]
+    const GeometryType::ShapeFunctionsGradientsType &DN_De =
+        rVariables.GetShapeFunctionsGradients();
+    // Get the shape functions for the order of the integration method [N]
+    const Matrix &Ncontainer = rVariables.GetShapeFunctions();
 
-  // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-  Matrix InvJ;
-  MathUtils<double>::InvertMatrix(rVariables.J[rPointNumber], InvJ,
-                                  rVariables.detJ);
+    // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    Matrix InvJ;
+    MathUtils<double>::InvertMatrix(rVariables.J[rPointNumber], InvJ,
+                                    rVariables.detJ);
 
-  // Compute cartesian derivatives  [dN/dx_n]
-  noalias(rVariables.DN_DX) = prod(DN_De[rPointNumber], InvJ);
+    // Compute cartesian derivatives  [dN/dx_n]
+    noalias(rVariables.DN_DX) = prod(DN_De[rPointNumber], InvJ);
 
-  // Displacement Gradient H  [dU/dx_n]
-  // this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
+    // Displacement Gradient H  [dU/dx_n]
+    // this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
 
-  // Set Shape Functions Values for this integration point
-  rVariables.N = row(Ncontainer, rPointNumber);
+    // Set Shape Functions Values for this integration point
+    rVariables.N = row(Ncontainer, rPointNumber);
 
-  // Compute the deformation matrix B
-  // this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.Bh,
-  // rVariables.DN_DX );
-  rVariables.B = mBMatrixVector[rPointNumber];
+    // Compute the deformation matrix B
+    // this->CalculateDeformationMatrixBbar(rVariables.B, rVariables.Bh,
+    // rVariables.DN_DX );
+    rVariables.B = mBMatrixVector[rPointNumber];
 
-  // Compute infinitessimal strain
+    // Compute infinitessimal strain
     this->CalculateInfinitesimalStrain(rVariables.B, rVariables.StrainVector);
 
   KRATOS_CATCH("")
@@ -1308,41 +1300,41 @@ Matrix &
 SmallDisplacementHpromElement::CalculateDeltaPosition(Matrix &rDeltaPosition) {
   KRATOS_TRY
 
-  /*const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    /*const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-  rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-  for ( unsigned int i = 0; i < number_of_nodes; i++ )
-  {
-      array_1d<double, 3 > & CurrentDisplacement  =
-  GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-      array_1d<double, 3 > & PreviousDisplacement =
-  GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  =
+    GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement =
+    GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-      for ( unsigned int j = 0; j < dimension; j++ )
-      {
-          rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-      }
-  }
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
 
-  return rDeltaPosition;*/
+    return rDeltaPosition;*/
 
-  GeometryType &geom = GetGeometry();
-  const size_t number_of_nodes = geom.PointsNumber();
-  const size_t dimension = geom.WorkingSpaceDimension();
+    GeometryType &geom = GetGeometry();
+    const size_t number_of_nodes = geom.PointsNumber();
+    const size_t dimension = geom.WorkingSpaceDimension();
 
-  rDeltaPosition = zero_matrix<double>(number_of_nodes, dimension);
+    rDeltaPosition = zero_matrix<double>(number_of_nodes, dimension);
 
-  for (unsigned int i = 0; i < number_of_nodes; i++) {
-    const NodeType &iNode = geom[i];
-    rDeltaPosition(i, 0) = iNode.X() - iNode.X0();
-    rDeltaPosition(i, 1) = iNode.Y() - iNode.Y0();
-    if (dimension == 3)
-      rDeltaPosition(i, 2) = iNode.Z() - iNode.Z0();
-  }
+    for (unsigned int i = 0; i < number_of_nodes; i++) {
+      const NodeType &iNode = geom[i];
+      rDeltaPosition(i, 0) = iNode.X() - iNode.X0();
+      rDeltaPosition(i, 1) = iNode.Y() - iNode.Y0();
+      if (dimension == 3)
+        rDeltaPosition(i, 2) = iNode.Z() - iNode.Z0();
+    }
 
-  return rDeltaPosition;
+    return rDeltaPosition;
 
   KRATOS_CATCH("")
 }
@@ -1354,45 +1346,45 @@ void SmallDisplacementHpromElement::CalculateDisplacementGradient(
     Matrix &rH, const Matrix &rDN_DX) {
   KRATOS_TRY
 
-  const size_t number_of_nodes = GetGeometry().PointsNumber();
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t number_of_nodes = GetGeometry().PointsNumber();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
-  rH = zero_matrix<double>(dimension);
+    rH = zero_matrix<double>(dimension);
 
-  if (dimension == 2) {
+    if (dimension == 2) {
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
 
-      array_1d<double, 3> &Displacement =
-          GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3> &Displacement =
+            GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-      rH(0, 0) += Displacement[0] * rDN_DX(i, 0);
-      rH(0, 1) += Displacement[0] * rDN_DX(i, 1);
-      rH(1, 0) += Displacement[1] * rDN_DX(i, 0);
-      rH(1, 1) += Displacement[1] * rDN_DX(i, 1);
+        rH(0, 0) += Displacement[0] * rDN_DX(i, 0);
+        rH(0, 1) += Displacement[0] * rDN_DX(i, 1);
+        rH(1, 0) += Displacement[1] * rDN_DX(i, 0);
+        rH(1, 1) += Displacement[1] * rDN_DX(i, 1);
+      }
+    } else if (dimension == 3) {
+
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+
+        array_1d<double, 3> &Displacement =
+            GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+        rH(0, 0) += Displacement[0] * rDN_DX(i, 0);
+        rH(0, 1) += Displacement[0] * rDN_DX(i, 1);
+        rH(0, 2) += Displacement[0] * rDN_DX(i, 2);
+        rH(1, 0) += Displacement[1] * rDN_DX(i, 0);
+        rH(1, 1) += Displacement[1] * rDN_DX(i, 1);
+        rH(1, 2) += Displacement[1] * rDN_DX(i, 2);
+        rH(2, 0) += Displacement[2] * rDN_DX(i, 0);
+        rH(2, 1) += Displacement[2] * rDN_DX(i, 1);
+        rH(2, 2) += Displacement[2] * rDN_DX(i, 2);
+      }
+    } else {
+
+      KRATOS_THROW_ERROR(std::invalid_argument,
+                         "something is wrong with the dimension", "")
     }
-  } else if (dimension == 3) {
-
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-
-      array_1d<double, 3> &Displacement =
-          GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-      rH(0, 0) += Displacement[0] * rDN_DX(i, 0);
-      rH(0, 1) += Displacement[0] * rDN_DX(i, 1);
-      rH(0, 2) += Displacement[0] * rDN_DX(i, 2);
-      rH(1, 0) += Displacement[1] * rDN_DX(i, 0);
-      rH(1, 1) += Displacement[1] * rDN_DX(i, 1);
-      rH(1, 2) += Displacement[1] * rDN_DX(i, 2);
-      rH(2, 0) += Displacement[2] * rDN_DX(i, 0);
-      rH(2, 1) += Displacement[2] * rDN_DX(i, 1);
-      rH(2, 2) += Displacement[2] * rDN_DX(i, 2);
-    }
-  } else {
-
-    KRATOS_THROW_ERROR(std::invalid_argument,
-                       "something is wrong with the dimension", "")
-  }
 
   KRATOS_CATCH("")
 }
@@ -1401,22 +1393,22 @@ void SmallDisplacementHpromElement::CalculateInfinitesimalStrain(
     const Matrix &rB, Vector &rStrainVector) {
   KRATOS_TRY
 
-  const std::size_t dimension =
-      static_cast<std::size_t>(GetGeometry().WorkingSpaceDimension());
+    const std::size_t dimension =
+        static_cast<std::size_t>(GetGeometry().WorkingSpaceDimension());
 
-  rStrainVector.clear();
-  noalias(rStrainVector) = ZeroVector(mVoigtSize);
+    rStrainVector.clear();
+    noalias(rStrainVector) = ZeroVector(mVoigtSize);
 
-  for (unsigned int i = 0; i < mNumberOfModes; i++) {
-    rStrainVector[0] += mModesWeights[i] * rB(0, i); // xx
-    rStrainVector[1] += mModesWeights[i] * rB(1, i); // yy
-    rStrainVector[2] += mModesWeights[i] * rB(2, i); // zz
-    rStrainVector[3] += mModesWeights[i] * rB(3, i); // xy
-    if (dimension == 3) {
-      rStrainVector[4] += mModesWeights[i] * rB(4, i); // yz
-      rStrainVector[5] += mModesWeights[i] * rB(5, i); // xz
+    for (unsigned int i = 0; i < mNumberOfModes; i++) {
+      rStrainVector[0] += mModesWeights[i] * rB(0, i); // xx
+      rStrainVector[1] += mModesWeights[i] * rB(1, i); // yy
+      rStrainVector[2] += mModesWeights[i] * rB(2, i); // zz
+      rStrainVector[3] += mModesWeights[i] * rB(3, i); // xy
+      if (dimension == 3) {
+        rStrainVector[4] += mModesWeights[i] * rB(4, i); // yz
+        rStrainVector[5] += mModesWeights[i] * rB(5, i); // xz
+      }
     }
-  }
 
   KRATOS_CATCH("")
 }
@@ -1426,46 +1418,46 @@ void SmallDisplacementHpromElement::CalculateInfinitesimalStrain(
 void SmallDisplacementHpromElement::CalculateDeformationMatrix(
     Matrix &rB, const Matrix &rDN_DX) {
   KRATOS_TRY
-  const size_t number_of_nodes = GetGeometry().PointsNumber();
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t number_of_nodes = GetGeometry().PointsNumber();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
-  rB.clear();
+    rB.clear();
 
-  if (dimension == 2) {
+    if (dimension == 2) {
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-      unsigned int index = 2 * i;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+        unsigned int index = 2 * i;
 
-      rB(0, index + 0) = rDN_DX(i, 0);
-      rB(0, index + 1) = 0.0;
-      rB(1, index + 0) = 0.0;
-      rB(1, index + 1) = rDN_DX(i, 1);
-      rB(2, index + 0) = 0.0;
-      rB(2, index + 1) = 0.0;
-      rB(3, index + 0) = rDN_DX(i, 1);
-      rB(3, index + 1) = rDN_DX(i, 0);
+        rB(0, index + 0) = rDN_DX(i, 0);
+        rB(0, index + 1) = 0.0;
+        rB(1, index + 0) = 0.0;
+        rB(1, index + 1) = rDN_DX(i, 1);
+        rB(2, index + 0) = 0.0;
+        rB(2, index + 1) = 0.0;
+        rB(3, index + 0) = rDN_DX(i, 1);
+        rB(3, index + 1) = rDN_DX(i, 0);
+      }
+
+    } else if (dimension == 3) {
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+        unsigned int index = 3 * i;
+
+        rB(0, index + 0) = rDN_DX(i, 0);
+        rB(1, index + 1) = rDN_DX(i, 1);
+        rB(2, index + 2) = rDN_DX(i, 2);
+        rB(3, index + 0) = rDN_DX(i, 1);
+        rB(3, index + 1) = rDN_DX(i, 0);
+        rB(4, index + 1) = rDN_DX(i, 2);
+        rB(4, index + 2) = rDN_DX(i, 1);
+        rB(5, index + 0) = rDN_DX(i, 2);
+        rB(5, index + 2) = rDN_DX(i, 0);
+      }
+
+    } else {
+
+      KRATOS_THROW_ERROR(std::invalid_argument,
+                         "something is wrong with the dimension", "")
     }
-
-  } else if (dimension == 3) {
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-      unsigned int index = 3 * i;
-
-      rB(0, index + 0) = rDN_DX(i, 0);
-      rB(1, index + 1) = rDN_DX(i, 1);
-      rB(2, index + 2) = rDN_DX(i, 2);
-      rB(3, index + 0) = rDN_DX(i, 1);
-      rB(3, index + 1) = rDN_DX(i, 0);
-      rB(4, index + 1) = rDN_DX(i, 2);
-      rB(4, index + 2) = rDN_DX(i, 1);
-      rB(5, index + 0) = rDN_DX(i, 2);
-      rB(5, index + 2) = rDN_DX(i, 0);
-    }
-
-  } else {
-
-    KRATOS_THROW_ERROR(std::invalid_argument,
-                       "something is wrong with the dimension", "")
-  }
   KRATOS_CATCH("")
 }
 
@@ -1477,36 +1469,36 @@ double &SmallDisplacementHpromElement::CalculateTotalMass(
     double &rTotalMass, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
-  // rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY]; //not
-  // accurate
+    // rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY]; //not
+    // accurate
 
-  // Compute the Volume Change acumulated:
-  GeneralVariables Variables;
-  this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    // Compute the Volume Change acumulated:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
-  const GeometryType::IntegrationPointsArrayType &integration_points =
-      GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType &integration_points =
+        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
-  // reading integration points
-  for (unsigned int PointNumber = 0; PointNumber < integration_points.size();
-       PointNumber++) {
-    // compute element kinematics
-    this->CalculateKinematics(Variables, PointNumber);
+    // reading integration points
+    for (unsigned int PointNumber = 0; PointNumber < integration_points.size();
+         PointNumber++) {
+      // compute element kinematics
+      this->CalculateKinematics(Variables, PointNumber);
 
-    // getting informations for integration
-    double IntegrationWeight =
-        Variables.detJ * integration_points[PointNumber].Weight();
+      // getting informations for integration
+      double IntegrationWeight =
+          Variables.detJ * integration_points[PointNumber].Weight();
 
-    // compute point volume changes
-    rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
-  }
+      // compute point volume changes
+      rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
+    }
 
-  if (dimension == 2)
-    rTotalMass *= GetProperties()[THICKNESS];
+    if (dimension == 2)
+      rTotalMass *= GetProperties()[THICKNESS];
 
-  return rTotalMass;
+    return rTotalMass;
 
   KRATOS_CATCH("")
 }
@@ -1519,28 +1511,28 @@ Vector &SmallDisplacementHpromElement::CalculateVolumeForce(
     Vector &rVolumeForce, GeneralVariables &rVariables) {
   KRATOS_TRY
 
-  const size_t number_of_nodes = GetGeometry().PointsNumber();
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t number_of_nodes = GetGeometry().PointsNumber();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
-  if (rVolumeForce.size() != dimension)
-    rVolumeForce.resize(dimension, false);
+    if (rVolumeForce.size() != dimension)
+      rVolumeForce.resize(dimension, false);
 
-  noalias(rVolumeForce) = ZeroVector(dimension);
+    noalias(rVolumeForce) = ZeroVector(dimension);
 
-  for (unsigned int j = 0; j < number_of_nodes; j++) {
-    if (GetGeometry()[j].SolutionStepsDataHas(
-            VOLUME_ACCELERATION)) { // it must be checked once at the begining
-      // only
-      array_1d<double, 3> &VolumeAcceleration =
-          GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-      for (unsigned int i = 0; i < dimension; i++)
-        rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i];
+    for (unsigned int j = 0; j < number_of_nodes; j++) {
+      if (GetGeometry()[j].SolutionStepsDataHas(
+          VOLUME_ACCELERATION)) { // it must be checked once at the begining
+        // only
+        array_1d<double, 3> &VolumeAcceleration =
+            GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        for (unsigned int i = 0; i < dimension; i++)
+          rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i];
+      }
     }
-  }
 
-  rVolumeForce *= GetProperties()[DENSITY];
+    rVolumeForce *= GetProperties()[DENSITY];
 
-  return rVolumeForce;
+    return rVolumeForce;
 
   KRATOS_CATCH("")
 }
@@ -1553,24 +1545,24 @@ void SmallDisplacementHpromElement::CalculateFirstDerivativesContributions(
     ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  // 1.-Calculate Tangent Inertia Matrix:
-  this->CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+    // 1.-Calculate Tangent Inertia Matrix:
+    this->CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-  double MatSize = rLeftHandSideMatrix.size1();
+    double MatSize = rLeftHandSideMatrix.size1();
 
-  // 2.-Calculate Inertial Forces:
-  if (rRightHandSideVector.size() != MatSize)
-    rRightHandSideVector.resize(MatSize, false);
+    // 2.-Calculate Inertial Forces:
+    if (rRightHandSideVector.size() != MatSize)
+      rRightHandSideVector.resize(MatSize, false);
 
-  noalias(rRightHandSideVector) = ZeroVector(MatSize); // resetting RHS
+    noalias(rRightHandSideVector) = ZeroVector(MatSize); // resetting RHS
 
-  // acceleration vector
-  Vector CurrentVelocityVector(MatSize);
-  noalias(CurrentVelocityVector) = ZeroVector(MatSize);
-  this->GetFirstDerivativesVector(CurrentVelocityVector, 0);
+    // acceleration vector
+    Vector CurrentVelocityVector(MatSize);
+    noalias(CurrentVelocityVector) = ZeroVector(MatSize);
+    this->GetFirstDerivativesVector(CurrentVelocityVector, 0);
 
-  noalias(rRightHandSideVector) =
-      prod(rLeftHandSideMatrix, CurrentVelocityVector);
+    noalias(rRightHandSideVector) =
+        prod(rLeftHandSideMatrix, CurrentVelocityVector);
 
   KRATOS_CATCH("")
 }
@@ -1583,67 +1575,67 @@ void SmallDisplacementHpromElement::CalculateSecondDerivativesContributions(
     ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  bool ComputeDynamicTangent = false;
-  if (rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT)) {
+    bool ComputeDynamicTangent = false;
+    if (rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT)) {
 
-    if (rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true) {
-      ComputeDynamicTangent = true;
-    }
-  }
-
-  if (ComputeDynamicTangent) {
-
-    // create local system components
-    LocalSystemComponents LocalSystem;
-
-    // calculation flags
-    LocalSystem.CalculationFlags.Set(
-        SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(
-        SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
-
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector,
-                                   LocalSystem.CalculationFlags);
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    // Calculate elemental system
-    CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
-
-  } else {
-
-    // 1.-Calculate Tangent Inertia Matrix:
-    this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-    size_t MatSize = rLeftHandSideMatrix.size1();
-
-    // 2.-Calculate Inertial Forces:
-    if (rRightHandSideVector.size() != MatSize)
-      rRightHandSideVector.resize(MatSize, false);
-
-    noalias(rRightHandSideVector) = ZeroVector(MatSize); // resetting RHS
-
-    // acceleration vector
-    Vector CurrentAccelerationVector(MatSize);
-    noalias(CurrentAccelerationVector) = ZeroVector(MatSize);
-    this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
-
-    double AlphaM = 0.0;
-    if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
-      AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-      Vector PreviousAccelerationVector(MatSize);
-      noalias(PreviousAccelerationVector) = ZeroVector(MatSize);
-      this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
-      CurrentAccelerationVector *= (1.0 - AlphaM);
-      CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
+      if (rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true) {
+        ComputeDynamicTangent = true;
+      }
     }
 
-    noalias(rRightHandSideVector) =
-        prod(rLeftHandSideMatrix, CurrentAccelerationVector);
-  }
+    if (ComputeDynamicTangent) {
+
+      // create local system components
+      LocalSystemComponents LocalSystem;
+
+      // calculation flags
+      LocalSystem.CalculationFlags.Set(
+          SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
+      LocalSystem.CalculationFlags.Set(
+          SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
+
+      // Initialize sizes for the system components:
+      this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector,
+                                     LocalSystem.CalculationFlags);
+
+      // Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+
+      // Calculate elemental system
+      CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
+
+    } else {
+
+      // 1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+      size_t MatSize = rLeftHandSideMatrix.size1();
+
+      // 2.-Calculate Inertial Forces:
+      if (rRightHandSideVector.size() != MatSize)
+        rRightHandSideVector.resize(MatSize, false);
+
+      noalias(rRightHandSideVector) = ZeroVector(MatSize); // resetting RHS
+
+      // acceleration vector
+      Vector CurrentAccelerationVector(MatSize);
+      noalias(CurrentAccelerationVector) = ZeroVector(MatSize);
+      this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+
+      double AlphaM = 0.0;
+      if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
+        AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+        Vector PreviousAccelerationVector(MatSize);
+        noalias(PreviousAccelerationVector) = ZeroVector(MatSize);
+        this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+        CurrentAccelerationVector *= (1.0 - AlphaM);
+        CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
+      }
+
+      noalias(rRightHandSideVector) =
+          prod(rLeftHandSideMatrix, CurrentAccelerationVector);
+    }
 
   KRATOS_CATCH("")
 }
@@ -1655,38 +1647,38 @@ void SmallDisplacementHpromElement::CalculateSecondDerivativesLHS(
     MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  bool ComputeDynamicTangent = false;
-  if (rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT))
-    if (rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
-      ComputeDynamicTangent = true;
+    bool ComputeDynamicTangent = false;
+    if (rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT))
+      if (rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
+        ComputeDynamicTangent = true;
 
-  if (ComputeDynamicTangent) {
+    if (ComputeDynamicTangent) {
 
-    // create local system components
-    LocalSystemComponents LocalSystem;
+      // create local system components
+      LocalSystemComponents LocalSystem;
 
-    // calculation flags
-    LocalSystem.CalculationFlags.Set(
-        SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
+      // calculation flags
+      LocalSystem.CalculationFlags.Set(
+          SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
 
-    VectorType RightHandSideVector = Vector();
+      VectorType RightHandSideVector = Vector();
 
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices(rLeftHandSideMatrix, RightHandSideVector,
-                                   LocalSystem.CalculationFlags);
+      // Initialize sizes for the system components:
+      this->InitializeSystemMatrices(rLeftHandSideMatrix, RightHandSideVector,
+                                     LocalSystem.CalculationFlags);
 
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(RightHandSideVector);
+      // Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
-    // Calculate elemental system
-    CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
+      // Calculate elemental system
+      CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
 
-  } else {
+    } else {
 
-    // 1.-Calculate Tangent Inertia Matrix:
-    this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-  }
+      // 1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+    }
 
   KRATOS_CATCH("")
 }
@@ -1698,66 +1690,66 @@ void SmallDisplacementHpromElement::CalculateSecondDerivativesRHS(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  bool ComputeDynamicTangent = false;
-  if (rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT))
-    if (rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
-      ComputeDynamicTangent = true;
+    bool ComputeDynamicTangent = false;
+    if (rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT))
+      if (rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
+        ComputeDynamicTangent = true;
 
-  if (ComputeDynamicTangent) {
+    if (ComputeDynamicTangent) {
 
-    // create local system components
-    LocalSystemComponents LocalSystem;
+      // create local system components
+      LocalSystemComponents LocalSystem;
 
-    // calculation flags
-    LocalSystem.CalculationFlags.Set(
-        SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
+      // calculation flags
+      LocalSystem.CalculationFlags.Set(
+          SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
 
-    MatrixType LeftHandSideMatrix = Matrix();
+      MatrixType LeftHandSideMatrix = Matrix();
 
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices(LeftHandSideMatrix, rRightHandSideVector,
-                                   LocalSystem.CalculationFlags);
+      // Initialize sizes for the system components:
+      this->InitializeSystemMatrices(LeftHandSideMatrix, rRightHandSideVector,
+                                     LocalSystem.CalculationFlags);
 
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+      // Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
-    // Calculate elemental system
-    CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
+      // Calculate elemental system
+      CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
 
-  } else {
+    } else {
 
-    MatrixType LeftHandSideMatrix = Matrix();
+      MatrixType LeftHandSideMatrix = Matrix();
 
-    // 1.-Calculate Tangent Inertia Matrix:
-    this->CalculateMassMatrix(LeftHandSideMatrix, rCurrentProcessInfo);
+      // 1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix(LeftHandSideMatrix, rCurrentProcessInfo);
 
-    size_t MatSize = LeftHandSideMatrix.size1();
+      size_t MatSize = LeftHandSideMatrix.size1();
 
-    // 2.-Calculate Inertial Forces:
-    if (rRightHandSideVector.size() != MatSize)
-      rRightHandSideVector.resize(MatSize, false);
+      // 2.-Calculate Inertial Forces:
+      if (rRightHandSideVector.size() != MatSize)
+        rRightHandSideVector.resize(MatSize, false);
 
-    noalias(rRightHandSideVector) = ZeroVector(MatSize); // resetting RHS
+      noalias(rRightHandSideVector) = ZeroVector(MatSize); // resetting RHS
 
-    // acceleration vector
-    Vector CurrentAccelerationVector(MatSize);
-    noalias(CurrentAccelerationVector) = ZeroVector(MatSize);
-    this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+      // acceleration vector
+      Vector CurrentAccelerationVector(MatSize);
+      noalias(CurrentAccelerationVector) = ZeroVector(MatSize);
+      this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
 
-    double AlphaM = 0.0;
-    if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
-      AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-      Vector PreviousAccelerationVector(MatSize);
-      noalias(PreviousAccelerationVector) = ZeroVector(MatSize);
-      this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
-      CurrentAccelerationVector *= (1.0 - AlphaM);
-      CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
+      double AlphaM = 0.0;
+      if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
+        AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+        Vector PreviousAccelerationVector(MatSize);
+        noalias(PreviousAccelerationVector) = ZeroVector(MatSize);
+        this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+        CurrentAccelerationVector *= (1.0 - AlphaM);
+        CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
+      }
+
+      noalias(rRightHandSideVector) =
+          prod(LeftHandSideMatrix, CurrentAccelerationVector);
     }
-
-    noalias(rRightHandSideVector) =
-        prod(LeftHandSideMatrix, CurrentAccelerationVector);
-  }
 
   KRATOS_CATCH("")
 }
@@ -1769,62 +1761,62 @@ void SmallDisplacementHpromElement::CalculateMassMatrix(
     MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  bool ComputeLumpedMassMatrix = false;
-  if (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
-    if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == true)
-      ComputeLumpedMassMatrix = true;
+    bool ComputeLumpedMassMatrix = false;
+    if (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
+      if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == true)
+        ComputeLumpedMassMatrix = true;
 
-  if (ComputeLumpedMassMatrix) {
+    if (ComputeLumpedMassMatrix) {
 
-    // create local system components
-    LocalSystemComponents LocalSystem;
+      // create local system components
+      LocalSystemComponents LocalSystem;
 
-    // calculation flags
-    LocalSystem.CalculationFlags.Set(
-        SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
+      // calculation flags
+      LocalSystem.CalculationFlags.Set(
+          SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
 
-    VectorType RightHandSideVector = Vector();
+      VectorType RightHandSideVector = Vector();
 
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices(rMassMatrix, RightHandSideVector,
-                                   LocalSystem.CalculationFlags);
+      // Initialize sizes for the system components:
+      this->InitializeSystemMatrices(rMassMatrix, RightHandSideVector,
+                                     LocalSystem.CalculationFlags);
 
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rMassMatrix);
-    LocalSystem.SetRightHandSideVector(RightHandSideVector);
+      // Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rMassMatrix);
+      LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
-    // Calculate elemental system
-    CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
+      // Calculate elemental system
+      CalculateDynamicSystem(LocalSystem, rCurrentProcessInfo);
 
-  } else {
+    } else {
 
-    // lumped
-    const size_t dimension = GetGeometry().WorkingSpaceDimension();
-    const size_t number_of_nodes = GetGeometry().PointsNumber();
-    const size_t MatSize = dimension * number_of_nodes;
+      // lumped
+      const size_t dimension = GetGeometry().WorkingSpaceDimension();
+      const size_t number_of_nodes = GetGeometry().PointsNumber();
+      const size_t MatSize = dimension * number_of_nodes;
 
-    if (rMassMatrix.size1() != MatSize)
-      rMassMatrix.resize(MatSize, MatSize, false);
+      if (rMassMatrix.size1() != MatSize)
+        rMassMatrix.resize(MatSize, MatSize, false);
 
-    noalias(rMassMatrix) = ZeroMatrix(MatSize, MatSize);
+      noalias(rMassMatrix) = ZeroMatrix(MatSize, MatSize);
 
-    double TotalMass = 0;
-    TotalMass = this->CalculateTotalMass(TotalMass, rCurrentProcessInfo);
+      double TotalMass = 0;
+      TotalMass = this->CalculateTotalMass(TotalMass, rCurrentProcessInfo);
 
-    Vector LumpFact(number_of_nodes);
-    noalias(LumpFact) = ZeroVector(number_of_nodes);
+      Vector LumpFact(number_of_nodes);
+      noalias(LumpFact) = ZeroVector(number_of_nodes);
 
-    LumpFact = GetGeometry().LumpingFactors(LumpFact);
+      LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-      double temp = LumpFact[i] * TotalMass;
+      for (unsigned int i = 0; i < number_of_nodes; i++) {
+        double temp = LumpFact[i] * TotalMass;
 
-      for (unsigned int j = 0; j < dimension; j++) {
-        unsigned int index = i * dimension + j;
-        rMassMatrix(index, index) = temp;
+        for (unsigned int j = 0; j < dimension; j++) {
+          unsigned int index = i * dimension + j;
+          rMassMatrix(index, index) = temp;
+        }
       }
     }
-  }
 
   KRATOS_CATCH("")
 }
@@ -1836,48 +1828,48 @@ void SmallDisplacementHpromElement::CalculateDampingMatrix(
     MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  // 0.-Initialize the DampingMatrix:
-  const size_t number_of_nodes = GetGeometry().size();
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
-  const size_t MatSize = number_of_nodes * dimension;
+    // 0.-Initialize the DampingMatrix:
+    const size_t number_of_nodes = GetGeometry().size();
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t MatSize = number_of_nodes * dimension;
 
-  if (rDampingMatrix.size1() != MatSize)
-    rDampingMatrix.resize(MatSize, MatSize, false);
+    if (rDampingMatrix.size1() != MatSize)
+      rDampingMatrix.resize(MatSize, MatSize, false);
 
-  noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
+    noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
 
-  // 1.-Calculate StiffnessMatrix:
+    // 1.-Calculate StiffnessMatrix:
 
-  MatrixType StiffnessMatrix = Matrix();
+    MatrixType StiffnessMatrix = Matrix();
 
-  this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
+    this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
 
-  // 2.-Calculate MassMatrix:
+    // 2.-Calculate MassMatrix:
 
-  MatrixType MassMatrix = Matrix();
+    MatrixType MassMatrix = Matrix();
 
-  this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+    this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
 
-  // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-  double alpha = 0;
-  if (GetProperties().Has(RAYLEIGH_ALPHA)) {
-    alpha = GetProperties()[RAYLEIGH_ALPHA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
-    alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-  }
+    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    double alpha = 0;
+    if (GetProperties().Has(RAYLEIGH_ALPHA)) {
+      alpha = GetProperties()[RAYLEIGH_ALPHA];
+    } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
+      alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+    }
 
-  double beta = 0;
-  if (GetProperties().Has(RAYLEIGH_BETA)) {
-    beta = GetProperties()[RAYLEIGH_BETA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
-    beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-  }
+    double beta = 0;
+    if (GetProperties().Has(RAYLEIGH_BETA)) {
+      beta = GetProperties()[RAYLEIGH_BETA];
+    } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
+      beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+    }
 
-  // 4.-Compose the Damping Matrix:
+    // 4.-Compose the Damping Matrix:
 
-  // Rayleigh Damping Matrix: alpha*M + beta*K
-  rDampingMatrix = alpha * MassMatrix;
-  rDampingMatrix += beta * StiffnessMatrix;
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+    rDampingMatrix = alpha * MassMatrix;
+    rDampingMatrix += beta * StiffnessMatrix;
 
   KRATOS_CATCH("")
 }
@@ -1891,104 +1883,104 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 
   KRATOS_TRY
 
-  const size_t &integration_points_number =
-      GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
+    const size_t &integration_points_number =
+        GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
 
-  if (rOutput.size() != integration_points_number)
-    rOutput.resize(integration_points_number, false);
+    if (rOutput.size() != integration_points_number)
+      rOutput.resize(integration_points_number, false);
 
-  if (rVariable == VON_MISES_STRESS) {
-    // create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    if (rVariable == VON_MISES_STRESS) {
+      // create and initialize element variables:
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
-    // create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
-                                       rCurrentProcessInfo);
+      // create constitutive law parameters:
+      ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
+                                         rCurrentProcessInfo);
 
-    // set constitutive law flags:
-    Flags &ConstitutiveLawOptions = Values.GetOptions();
+      // set constitutive law flags:
+      Flags &ConstitutiveLawOptions = Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-      // compute element kinematics B, F, DN_DX ...
-      this->CalculateKinematics(Variables, PointNumber);
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+        // compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, PointNumber);
 
-      // set general variables to constitutivelaw parameters
-      this->SetGeneralVariables(Variables, Values, PointNumber);
+        // set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables, Values, PointNumber);
 
-      // call the constitutive law to update material variables
-      mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
-          Values);
+        // call the constitutive law to update material variables
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
+            Values);
 
-      ComparisonUtilities EquivalentStress;
-      rOutput[PointNumber] =
-          EquivalentStress.CalculateVonMises(Variables.StressVector);
+        ComparisonUtilities EquivalentStress;
+        rOutput[PointNumber] =
+            EquivalentStress.CalculateVonMises(Variables.StressVector);
+      }
+    } else if (rVariable == STRAIN_ENERGY) {
+
+      double Thickness = 1.0;
+      const size_t dimension = GetGeometry().WorkingSpaceDimension();
+
+      if (dimension == 2) {
+        Thickness = GetProperties()[THICKNESS];
+      }
+
+      const GeometryType::IntegrationPointsArrayType &integration_points =
+          GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+      ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
+                                         rCurrentProcessInfo);
+
+      // set constitutive law flags:
+      Flags &ConstitutiveLawOptions = Values.GetOptions();
+
+      // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN); it would
+      // return 0.0 strain since in small def. F = Identity
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
+
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+
+        // compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, PointNumber);
+
+        // to take in account previous step writing
+        // if( mFinalizedStep ){
+        // this->GetHistoricalVariables(Variables,PointNumber);
+        //}
+        // set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables, Values, PointNumber);
+
+        double StrainEnergy = 0.0;
+
+        // compute stresses and constitutive parameters
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
+            Values);
+        mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY,
+                                                      StrainEnergy);
+
+        rOutput[PointNumber] = Variables.detJ *
+            integration_points[PointNumber].Weight() *
+            Thickness * StrainEnergy; // 1/2 * sigma * epsilon
+        // rOutput[PointNumber] = Variables.detJ *
+        // integration_points[PointNumber].Weight() * Thickness * StrainEnergy;
+        // // 1/2 * sigma * epsilon
+
+      } // for each gauss_point
+
+    } else {
+
+      for (unsigned int ii = 0; ii < integration_points_number; ii++)
+        rOutput[ii] =
+            mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
     }
-  } else if (rVariable == STRAIN_ENERGY) {
-
-    double Thickness = 1.0;
-    const size_t dimension = GetGeometry().WorkingSpaceDimension();
-
-    if (dimension == 2) {
-      Thickness = GetProperties()[THICKNESS];
-    }
-
-    const GeometryType::IntegrationPointsArrayType &integration_points =
-        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
-                                       rCurrentProcessInfo);
-
-    // set constitutive law flags:
-    Flags &ConstitutiveLawOptions = Values.GetOptions();
-
-    // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN); it would
-    // return 0.0 strain since in small def. F = Identity
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
-
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-
-      // compute element kinematics B, F, DN_DX ...
-      this->CalculateKinematics(Variables, PointNumber);
-
-      // to take in account previous step writing
-      // if( mFinalizedStep ){
-      // this->GetHistoricalVariables(Variables,PointNumber);
-      //}
-      // set general variables to constitutivelaw parameters
-      this->SetGeneralVariables(Variables, Values, PointNumber);
-
-      double StrainEnergy = 0.0;
-
-      // compute stresses and constitutive parameters
-      mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
-          Values);
-      mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY,
-                                                    StrainEnergy);
-
-      rOutput[PointNumber] = Variables.detJ *
-                             integration_points[PointNumber].Weight() *
-                             Thickness * StrainEnergy; // 1/2 * sigma * epsilon
-      // rOutput[PointNumber] = Variables.detJ *
-      // integration_points[PointNumber].Weight() * Thickness * StrainEnergy;
-      // // 1/2 * sigma * epsilon
-
-    } // for each gauss_point
-
-  } else {
-
-    for (unsigned int ii = 0; ii < integration_points_number; ii++)
-      rOutput[ii] =
-          mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
-  }
 
   KRATOS_CATCH("")
 }
@@ -2002,73 +1994,73 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 
   KRATOS_TRY
 
-  const size_t &integration_points_number =
-      GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
+    const size_t &integration_points_number =
+        GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
 
-  if (rOutput.size() != integration_points_number)
-    rOutput.resize(integration_points_number);
+    if (rOutput.size() != integration_points_number)
+      rOutput.resize(integration_points_number);
 
-  if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
-    // create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
+      // create and initialize element variables:
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
-    // create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
-                                       rCurrentProcessInfo);
+      // create constitutive law parameters:
+      ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
+                                         rCurrentProcessInfo);
 
-    // set constitutive law flags:
-    Flags &ConstitutiveLawOptions = Values.GetOptions();
+      // set constitutive law flags:
+      Flags &ConstitutiveLawOptions = Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // reading integration points
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-      // compute element kinematics B, F, DN_DX ...
-      this->CalculateKinematics(Variables, PointNumber);
+      // reading integration points
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+        // compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, PointNumber);
 
-      // set general variables to constitutivelaw parameters
-      this->SetGeneralVariables(Variables, Values, PointNumber);
+        // set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables, Values, PointNumber);
 
-      // call the constitutive law to update material variables
-      if (rVariable == CAUCHY_STRESS_VECTOR)
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
-            Values);
-      else
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(
-            Values);
+        // call the constitutive law to update material variables
+        if (rVariable == CAUCHY_STRESS_VECTOR)
+          mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
+              Values);
+        else
+          mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(
+              Values);
 
-      if (rOutput[PointNumber].size() != Variables.StressVector.size())
-        rOutput[PointNumber].resize(Variables.StressVector.size(), false);
+        if (rOutput[PointNumber].size() != Variables.StressVector.size())
+          rOutput[PointNumber].resize(Variables.StressVector.size(), false);
 
-      rOutput[PointNumber] = Variables.StressVector;
+        rOutput[PointNumber] = Variables.StressVector;
+      }
+
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rVariable == ALMANSI_STRAIN_VECTOR) {
+      // create and initialize element variables:
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+      // reading integration points
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+        // compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, PointNumber);
+
+        if (rOutput[PointNumber].size() != Variables.StrainVector.size())
+          rOutput[PointNumber].resize(Variables.StrainVector.size(), false);
+
+        rOutput[PointNumber] = Variables.StrainVector;
+      }
+
+    } else {
+      for (unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++) {
+        rOutput[ii] =
+            mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
+      }
     }
-
-  } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-             rVariable == ALMANSI_STRAIN_VECTOR) {
-    // create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-    // reading integration points
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-      // compute element kinematics B, F, DN_DX ...
-      this->CalculateKinematics(Variables, PointNumber);
-
-      if (rOutput[PointNumber].size() != Variables.StrainVector.size())
-        rOutput[PointNumber].resize(Variables.StrainVector.size(), false);
-
-      rOutput[PointNumber] = Variables.StrainVector;
-    }
-
-  } else {
-    for (unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++) {
-      rOutput[ii] =
-          mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
-    }
-  }
 
   KRATOS_CATCH("")
 }
@@ -2081,131 +2073,131 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
     const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  const size_t &integration_points_number =
-      GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
-  const size_t dimension = GetGeometry().WorkingSpaceDimension();
+    const size_t &integration_points_number =
+        GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
+    const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
-  if (rOutput.size() != integration_points_number)
-    rOutput.resize(integration_points_number);
+    if (rOutput.size() != integration_points_number)
+      rOutput.resize(integration_points_number);
 
-  if (rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR) {
-    std::vector<Vector> StressVector;
+    if (rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR) {
+      std::vector<Vector> StressVector;
 
-    if (rVariable == CAUCHY_STRESS_TENSOR)
-      this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector,
+      if (rVariable == CAUCHY_STRESS_TENSOR)
+        this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector,
+                                           rCurrentProcessInfo);
+      else
+        this->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, StressVector,
+                                           rCurrentProcessInfo);
+
+      // loop integration points
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+
+        if (rOutput[PointNumber].size2() != dimension)
+          rOutput[PointNumber].resize(dimension, dimension, false);
+
+        rOutput[PointNumber] =
+            MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+      }
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
+        rVariable == ALMANSI_STRAIN_TENSOR) {
+
+      std::vector<Vector> StrainVector;
+      if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
+        CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector,
+                                     rCurrentProcessInfo);
+      else
+        CalculateOnIntegrationPoints(ALMANSI_STRAIN_VECTOR, StrainVector,
+                                     rCurrentProcessInfo);
+
+      // loop integration points
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+        if (rOutput[PointNumber].size2() != dimension)
+          rOutput[PointNumber].resize(dimension, dimension, false);
+
+        rOutput[PointNumber] =
+            MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
+      }
+    } else if (rVariable == CONSTITUTIVE_MATRIX) {
+      // create and initialize element variables:
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+      // create constitutive law parameters:
+      ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
                                          rCurrentProcessInfo);
-    else
-      this->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, StressVector,
-                                         rCurrentProcessInfo);
 
-    // loop integration points
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+      // set constitutive law flags:
+      Flags &ConstitutiveLawOptions = Values.GetOptions();
 
-      if (rOutput[PointNumber].size2() != dimension)
-        rOutput[PointNumber].resize(dimension, dimension, false);
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-      rOutput[PointNumber] =
-          MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+      // reading integration points
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+        // compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, PointNumber);
+
+        // set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables, Values, PointNumber);
+
+        // call the constitutive law to update material variables
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
+            Values);
+        // mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
+
+        if (rOutput[PointNumber].size2() != Variables.ConstitutiveMatrix.size2())
+          rOutput[PointNumber].resize(Variables.ConstitutiveMatrix.size1(),
+                                      Variables.ConstitutiveMatrix.size2(),
+                                      false);
+
+        rOutput[PointNumber] = Variables.ConstitutiveMatrix;
+      }
+
+    } else if (rVariable ==
+        DEFORMATION_GRADIENT) // VARIABLE SET FOR TRANSFER PURPOUSES
+    {
+      // create and initialize element variables:
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+      // reading integration points
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+        // compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, PointNumber);
+
+        if (rOutput[PointNumber].size2() != Variables.F.size2())
+          rOutput[PointNumber].resize(Variables.F.size1(), Variables.F.size2(),
+                                      false);
+
+        rOutput[PointNumber] = Variables.F;
+      }
+    } else if (rVariable == REDUCED_MODES_MATRIX) {
+      // create and initialize element variables:
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+      // reading integration points
+      for (unsigned int PointNumber = 0;
+           PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+        // compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, PointNumber);
+
+        if (rOutput[PointNumber].size2() != Variables.B.size2())
+          rOutput[PointNumber].resize(Variables.B.size1(), Variables.B.size2(),
+                                      false);
+
+        rOutput[PointNumber] = Variables.B;
+      }
+    } else {
+      for (unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++) {
+        rOutput[ii] =
+            mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
+      }
     }
-  } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
-             rVariable == ALMANSI_STRAIN_TENSOR) {
-
-    std::vector<Vector> StrainVector;
-    if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
-      CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector,
-                                   rCurrentProcessInfo);
-    else
-      CalculateOnIntegrationPoints(ALMANSI_STRAIN_VECTOR, StrainVector,
-                                   rCurrentProcessInfo);
-
-    // loop integration points
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-      if (rOutput[PointNumber].size2() != dimension)
-        rOutput[PointNumber].resize(dimension, dimension, false);
-
-      rOutput[PointNumber] =
-          MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
-    }
-  } else if (rVariable == CONSTITUTIVE_MATRIX) {
-    // create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-    // create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(),
-                                       rCurrentProcessInfo);
-
-    // set constitutive law flags:
-    Flags &ConstitutiveLawOptions = Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-    // reading integration points
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-      // compute element kinematics B, F, DN_DX ...
-      this->CalculateKinematics(Variables, PointNumber);
-
-      // set general variables to constitutivelaw parameters
-      this->SetGeneralVariables(Variables, Values, PointNumber);
-
-      // call the constitutive law to update material variables
-      mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(
-          Values);
-      // mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
-
-      if (rOutput[PointNumber].size2() != Variables.ConstitutiveMatrix.size2())
-        rOutput[PointNumber].resize(Variables.ConstitutiveMatrix.size1(),
-                                    Variables.ConstitutiveMatrix.size2(),
-                                    false);
-
-      rOutput[PointNumber] = Variables.ConstitutiveMatrix;
-    }
-
-  } else if (rVariable ==
-             DEFORMATION_GRADIENT) // VARIABLE SET FOR TRANSFER PURPOUSES
-  {
-    // create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-    // reading integration points
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-      // compute element kinematics B, F, DN_DX ...
-      this->CalculateKinematics(Variables, PointNumber);
-
-      if (rOutput[PointNumber].size2() != Variables.F.size2())
-        rOutput[PointNumber].resize(Variables.F.size1(), Variables.F.size2(),
-                                    false);
-
-      rOutput[PointNumber] = Variables.F;
-    }
-  } else if (rVariable == REDUCED_MODES_MATRIX) {
-    // create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-    // reading integration points
-    for (unsigned int PointNumber = 0;
-         PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-      // compute element kinematics B, F, DN_DX ...
-      this->CalculateKinematics(Variables, PointNumber);
-
-      if (rOutput[PointNumber].size2() != Variables.B.size2())
-        rOutput[PointNumber].resize(Variables.B.size1(), Variables.B.size2(),
-                                    false);
-
-      rOutput[PointNumber] = Variables.B;
-    }
-  } else {
-    for (unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++) {
-      rOutput[ii] =
-          mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
-    }
-  }
 
   KRATOS_CATCH("")
 }
@@ -2213,11 +2205,11 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 // DECIMAL CORRECTION OF STRAINS
 void SmallDisplacementHpromElement::DecimalCorrection(Vector &rVector) {
   KRATOS_TRY
-  for (unsigned int i = 0; i < rVector.size(); i++) {
-    if (rVector[i] * rVector[i] < 1e-24) {
-      rVector[i] = 0;
+    for (unsigned int i = 0; i < rVector.size(); i++) {
+      if (rVector[i] * rVector[i] < 1e-24) {
+        rVector[i] = 0;
+      }
     }
-  }
   KRATOS_CATCH("")
 }
 
@@ -2234,115 +2226,108 @@ int SmallDisplacementHpromElement::Check(
     const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
 
-  const size_t dimension = this->GetGeometry().WorkingSpaceDimension();
+    const size_t dimension = this->GetGeometry().WorkingSpaceDimension();
 
-  if (VELOCITY.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument,
-                       "VELOCITY has Key zero! (check "
-                       "if the application is correctly registered",
-                       "")
-  if (DISPLACEMENT.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument,
-                       "DISPLACEMENT has Key zero! "
-                       "(check if the application is correctly registered",
-                       "")
-  if (ACCELERATION.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument,
-                       "ACCELERATION has Key zero! "
-                       "(check if the application is correctly registered",
-                       "")
-  if (DENSITY.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY has Key zero! (check if "
-                                              "the application is correctly "
-                                              "registered",
-                       "")
-  for (unsigned int i = 0; i < this->GetGeometry().size(); i++) {
-    if (!this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT))
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "missing variable DISPLACEMENT on node ",
-                         this->GetGeometry()[i].Id())
-    if (!this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) ||
-        !this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) ||
-        !this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z))
-      KRATOS_THROW_ERROR(
+    if (VELOCITY.Key() == 0) KRATOS_THROW_ERROR(std::invalid_argument,
+                                                "VELOCITY has Key zero! (check "
+                                                    "if the application is correctly registered",
+                                                "")
+    if (DISPLACEMENT.Key() == 0) KRATOS_THROW_ERROR(std::invalid_argument,
+                                                    "DISPLACEMENT has Key zero! "
+                                                        "(check if the application is correctly registered",
+                                                    "")
+    if (ACCELERATION.Key() == 0) KRATOS_THROW_ERROR(std::invalid_argument,
+                                                    "ACCELERATION has Key zero! "
+                                                        "(check if the application is correctly registered",
+                                                    "")
+    if (DENSITY.Key() == 0) KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY has Key zero! (check if "
+        "the application is correctly "
+        "registered",
+                                               "")
+    for (unsigned int i = 0; i < this->GetGeometry().size(); i++) {
+      if (!this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT)) KRATOS_THROW_ERROR(std::invalid_argument,
+                                                                                         "missing variable DISPLACEMENT on node ",
+                                                                                         this->GetGeometry()[i].Id())
+      if (!this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) ||
+          !this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) ||
+          !this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z)) KRATOS_THROW_ERROR(
           std::invalid_argument,
           "missing one of the dofs for the variable DISPLACEMENT on node ",
           GetGeometry()[i].Id())
-  }
-  if (!this->GetProperties().Has(CONSTITUTIVE_LAW)) {
-    KRATOS_THROW_ERROR(std::logic_error,
-                       "constitutive law not provided for property ",
-                       this->GetProperties().Id())
-  }
-  // verify compatibility with the constitutive law
-  ConstitutiveLaw::Features LawFeatures;
-  this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
-  bool correct_strain_measure = false;
-  for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); i++) {
-    if (LawFeatures.mStrainMeasures[i] ==
-        ConstitutiveLaw::StrainMeasure_Infinitesimal)
-      correct_strain_measure = true;
-  }
-  if (!correct_strain_measure)
-    KRATOS_THROW_ERROR(
+    }
+    if (!this->GetProperties().Has(CONSTITUTIVE_LAW)) {
+      KRATOS_THROW_ERROR(std::logic_error,
+                         "constitutive law not provided for property ",
+                         this->GetProperties().Id())
+    }
+    // verify compatibility with the constitutive law
+    ConstitutiveLaw::Features LawFeatures;
+    this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
+    bool correct_strain_measure = false;
+    for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); i++) {
+      if (LawFeatures.mStrainMeasures[i] ==
+          ConstitutiveLaw::StrainMeasure_Infinitesimal)
+        correct_strain_measure = true;
+    }
+    if (!correct_strain_measure) KRATOS_THROW_ERROR(
         std::logic_error,
         "constitutive law is not compatible with the element type ",
         " Small Displacements ");
 
-  // Verify that the body force is defined
-  // if ( this->GetProperties().Has( BODY_FORCE ) == false )
-  // {
-  //     KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for
-  //     property ", this->GetProperties().Id() )
-  // }
+    // Verify that the body force is defined
+    // if ( this->GetProperties().Has( BODY_FORCE ) == false )
+    // {
+    //     KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for
+    //     property ", this->GetProperties().Id() )
+    // }
 
-  // verify that the constitutive law has the correct dimension
-  if (dimension == 2) {
-    // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize()
-    // != 3 )
-    //     KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used.
-    //     This is a 2D element! expected strain size is 3 (el id = ) ",
-    //     this->Id() ) //fails in some 2D cases, i.e. axisymmetric
+    // verify that the constitutive law has the correct dimension
+    if (dimension == 2) {
+      // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize()
+      // != 3 )
+      //     KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used.
+      //     This is a 2D element! expected strain size is 3 (el id = ) ",
+      //     this->Id() ) //fails in some 2D cases, i.e. axisymmetric
 
-    // if ( THICKNESS.Key() == 0 )
-    //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero!
-    //     (check if the application is correctly registered", "" ) //if is not
-    //     read from model part it will not exist
+      // if ( THICKNESS.Key() == 0 )
+      //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero!
+      //     (check if the application is correctly registered", "" ) //if is not
+      //     read from model part it will not exist
 
-    if (!this->GetProperties().Has(THICKNESS)) {
+      if (!this->GetProperties().Has(THICKNESS)) {
 
-      if (LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) ||
-          LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW)) {
+        if (LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) ||
+            LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW)) {
 
-        this->GetProperties().SetValue(THICKNESS, 1.0);
-      } else {
-        KRATOS_THROW_ERROR(std::logic_error,
-                           "THICKNESS not provided for element ", this->Id())
+          this->GetProperties().SetValue(THICKNESS, 1.0);
+        } else {
+          KRATOS_THROW_ERROR(std::logic_error,
+                             "THICKNESS not provided for element ", this->Id())
+        }
       }
+
+    } else {
+      if (this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() != 6) KRATOS_THROW_ERROR(std::logic_error,
+                                                                                                     "wrong constitutive law used. This "
+                                                                                                         "is a 3D element! expected strain "
+                                                                                                         "size is 6 (el id = ) ",
+                                                                                                     this->Id())
     }
 
-  } else {
-    if (this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() != 6)
-      KRATOS_THROW_ERROR(std::logic_error, "wrong constitutive law used. This "
-                                           "is a 3D element! expected strain "
-                                           "size is 6 (el id = ) ",
-                         this->Id())
-  }
+    // check constitutive law
+    /*for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    {
+        return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(),
+    rCurrentProcessInfo );
+    }*/
+    // FIXED: At this point the constitutive law vector is not set yet.
+    this->GetProperties()
+        .GetValue(CONSTITUTIVE_LAW)
+        ->Check(this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo);
 
-  // check constitutive law
-  /*for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-  {
-      return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(),
-  rCurrentProcessInfo );
-  }*/
-  // FIXED: At this point the constitutive law vector is not set yet.
-  this->GetProperties()
-      .GetValue(CONSTITUTIVE_LAW)
-      ->Check(this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo);
+    // check if it is in the XY plane for 2D case
 
-  // check if it is in the XY plane for 2D case
-
-  return 0;
+    return 0;
 
   KRATOS_CATCH("");
 }
