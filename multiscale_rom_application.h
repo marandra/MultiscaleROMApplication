@@ -15,10 +15,12 @@
 
 #include "multiscale_rom_application_variables.h"
 #include "custom_conditions/minimal_kinetic_2D.hpp"
+#include "custom_conditions/minimal_kinetic_3D.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/updated_lagrangian_fbar_element.hpp"
 #include "custom_elements/total_lagrangian_fbar_element.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/small_displacement_isotropic_damage_3D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/small_displacement_elasto_plastic_J2_3D_law.hpp"
@@ -105,9 +107,10 @@ namespace Kratos {
            const TotalLagrangianFbarElement mTotalLagrangianFbarElement2D4N;
            //conditions
            const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
-           const MinimalKineticCondition2D mMinimalKineticCondition3D3N;
+           const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
            //constitutive laws
            const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
+           const SmallDisplacementIsotropicDamage3DLaw mSmallDisplacementIsotropicDamage3DLaw;
            const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
            const LinearElasticPlasticJ2PlaneStrain2DLaw mLinearElasticPlasticJ2PlaneStrain2DLaw;
            const SmallDisplacementElastoPlasticJ23DLaw mSmallDisplacementElastoPlasticJ23DLaw;
