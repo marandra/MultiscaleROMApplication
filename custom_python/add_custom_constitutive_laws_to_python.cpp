@@ -22,6 +22,7 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/small_displacement_isotropic_damage_3D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/small_displacement_elasto_plastic_J2_3D_law.hpp"
@@ -74,6 +75,11 @@ void  AddCustomConstitutiveLawsToPython()
     class_< SmallDisplacementElastoPlasticJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "SmallDisplacementElastoPlasticJ23DLaw",
       init<>() )
+    ;
+
+    class_< SmallDisplacementIsotropicDamage3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+            ( "SmallDisplacementIsotropicDamage3DLaw",
+              init<>() )
     ;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;

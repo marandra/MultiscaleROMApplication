@@ -65,7 +65,6 @@ void KratosMultiscaleROMApplication::Register() {
                           mUpdatedLagrangianFbarElement2D4N)
   KRATOS_REGISTER_ELEMENT("TotalLagrangianFbarElement2D4N",
                           mTotalLagrangianFbarElement2D4N)
-
   KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N",
                             mMinimalKineticCondition2D3N)
   KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D3N",

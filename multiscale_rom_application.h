@@ -12,6 +12,8 @@
 #include "containers/flags.h"
 
 #include "custom_conditions/minimal_kinetic_2D.hpp"
+#include "custom_conditions/minimal_kinetic_3D.hpp"
+#include "custom_constitutive/small_displacement_isotropic_damage_3D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
@@ -57,7 +59,7 @@ private:
   const UpdatedLagrangianFbarElement mUpdatedLagrangianFbarElement2D4N;
   const TotalLagrangianFbarElement mTotalLagrangianFbarElement2D4N;
   const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
-  const MinimalKineticCondition2D mMinimalKineticCondition3D3N;
+  const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
   const LinearIsotropicDamagePlaneStrain2DLaw
       mLinearIsotropicDamagePlaneStrain2DLaw;
   const ExponentialIsotropicDamagePlaneStrain2DLaw
@@ -66,6 +68,7 @@ private:
       mLinearElasticPlasticJ2PlaneStrain2DLaw;
   const SmallDisplacementElastoPlasticJ23DLaw
       mSmallDisplacementElastoPlasticJ23DLaw;
+           const SmallDisplacementIsotropicDamage3DLaw mSmallDisplacementIsotropicDamage3DLaw;
   KratosMultiscaleROMApplication &
   operator=(KratosMultiscaleROMApplication const &rOther);
   KratosMultiscaleROMApplication(KratosMultiscaleROMApplication const &rOther);
