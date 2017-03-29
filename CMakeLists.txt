@@ -10,18 +10,21 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_rom_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_rom_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multiscale_rom_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_conditions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_displacement_elasto_plastic_J2_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rve_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_displacement_isotropic_damage_3D_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rve_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_2D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_3D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fbar_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_fbar_element.cpp
-)
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/lagrange_multiplier_utility.h)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

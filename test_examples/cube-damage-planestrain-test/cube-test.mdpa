@@ -1,0 +1,84 @@
+Begin ModelPartData
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Properties 1
+    DENSITY 1.
+    YOUNG_MODULUS   21000.0
+    POISSON_RATIO   0.3
+    ISOTROPIC_DAMAGE_MODULUS 0.015
+    YIELD_STRESS 5.5
+    INFINITY_YIELD_STRESS 1000.0
+End Properties
+
+Begin Nodes
+    1               0               1               1
+    2               0               1               0
+    3               0               0               1
+    4               1               1               1
+    5               0               0               0
+    6               1               1               0
+    7               1               0               1
+    8               1               0               0
+End Nodes
+
+//Begin Elements SmallDisplacementBbarElement3D8N
+Begin Elements SmallDisplacementElement3D8N
+1 1 7 4 6 8 3 1 2 5
+End Elements
+                                                                                
+Begin SubModelPart RVE
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart PINNED
+    Begin SubModelPartNodes
+         3
+         5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart FREE_Y
+    Begin SubModelPartNodes
+         1
+         2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISP
+    Begin SubModelPartNodes
+         4
+         6
+         7
+         8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+

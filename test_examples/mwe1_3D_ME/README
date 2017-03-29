@@ -1,0 +1,21 @@
+Tests 
+=====
+- Minimal Kinetic Restriction,
+
+Uses
+====
+- small displacement elements (Solid Mechanics Application)
+- linear elastic (Solid Mechanics Application)
+
+Geometry
+========
+4 quads, 9 nodes
+
+Conditions
+==========
+Receives initial strain.
+
+Notes
+=====
+BROKEN INIT STRAIN IN MULTISCALE APP!!!
+MainKratos.py adds the Lagrange multipliers as Dofs.

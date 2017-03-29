@@ -1,0 +1,43 @@
+Tests 
+=====
+- Small displacement Bbar 3D element
+- Elastoplastic J2 3D constitutive model
+
+Geometry
+========
+1 cube, 8 nodes
+
+Conditions
+==========
+Displacement, constrainted in Z to compare with 2D plane strain state.
+
+Notes
+=====
+Convergence should be quadratic
+
+Plots
+=====
+                                                                               
+  reaction X                                                                   
+  +--------------------------------------------------------------***********   
+  |                                               ***************          |   
+  |                                    ***********                         |   
+  |                                 ***                                    |   
+  |                               **                                       |   
+  |                             **                                         |   
+  |                           **                                           |   
+  |                         **                                             |   
+  |                       **                                               |   
+  |                    ***                                                 |   
+  |                 ***                                                    |   
+  |               **                                                       |   
+  |              *                                                         |   
+  |            **                                                          |   
+  |          **                                                            |   
+  |        **                                                              |   
+  |      **                                                                |   
+  |    **                                                                  |   
+  |  **                                                                    |   
+  |**                                                         case ******* |   
+  *----------------------------displacement X------------------------------+   
+                                                                               

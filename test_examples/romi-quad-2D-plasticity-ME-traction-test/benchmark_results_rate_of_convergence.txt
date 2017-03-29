@@ -1,0 +1,360 @@
+STAGE: 1  - STEP: 1  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.955e-16
+CONVERGE
+Tiempo del Newton: 0.095160
+FIN DE PASO: 1   (tiempo: 0.158132)
+*******************************************************************
+STAGE: 1  - STEP: 2  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 3.045e-16
+CONVERGE
+Tiempo del Newton: 0.010712
+FIN DE PASO: 2   (tiempo: 0.016820)
+*******************************************************************
+STAGE: 1  - STEP: 3  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 6.116e-16
+CONVERGE
+Tiempo del Newton: 0.010436
+FIN DE PASO: 3   (tiempo: 0.016649)
+*******************************************************************
+STAGE: 1  - STEP: 4  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 4.040e-16
+CONVERGE
+Tiempo del Newton: 0.011312
+FIN DE PASO: 4   (tiempo: 0.017811)
+*******************************************************************
+STAGE: 1  - STEP: 5  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 2.684e-03
+ITERACION:  2 ; |res| = 1.009e-06
+ITERACION:  3 ; |res| = 1.909e-13
+CONVERGE
+Tiempo del Newton: 0.025747
+FIN DE PASO: 5   (tiempo: 0.032842)
+*******************************************************************
+STAGE: 1  - STEP: 6  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 7.928e-04
+ITERACION:  2 ; |res| = 8.672e-09
+ITERACION:  3 ; |res| = 1.645e-15
+CONVERGE
+Tiempo del Newton: 0.021632
+FIN DE PASO: 6   (tiempo: 0.028253)
+*******************************************************************
+STAGE: 1  - STEP: 7  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 2.491e-03
+ITERACION:  2 ; |res| = 1.868e-06
+ITERACION:  3 ; |res| = 1.138e-12
+ITERACION:  4 ; |res| = 2.005e-15
+CONVERGE
+Tiempo del Newton: 0.026925
+FIN DE PASO: 7   (tiempo: 0.033564)
+*******************************************************************
+STAGE: 1  - STEP: 8  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 3.494e-03
+ITERACION:  2 ; |res| = 3.893e-06
+ITERACION:  3 ; |res| = 5.085e-12
+ITERACION:  4 ; |res| = 9.857e-16
+CONVERGE
+Tiempo del Newton: 0.026674
+FIN DE PASO: 8   (tiempo: 0.032902)
+*******************************************************************
+STAGE: 1  - STEP: 9  
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 4.450e-03
+ITERACION:  2 ; |res| = 6.538e-06
+ITERACION:  3 ; |res| = 1.495e-11
+ITERACION:  4 ; |res| = 1.303e-15
+CONVERGE
+Tiempo del Newton: 0.025733
+FIN DE PASO: 9   (tiempo: 0.032664)
+*******************************************************************
+STAGE: 1  - STEP: 10 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 3.914e-03
+ITERACION:  2 ; |res| = 7.454e-06
+ITERACION:  3 ; |res| = 2.672e-11
+ITERACION:  4 ; |res| = 1.571e-15
+CONVERGE
+Tiempo del Newton: 0.027735
+FIN DE PASO: 10  (tiempo: 0.033806)
+*******************************************************************
+STAGE: 1  - STEP: 11 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.754e-03
+ITERACION:  2 ; |res| = 1.174e-06
+ITERACION:  3 ; |res| = 6.468e-13
+CONVERGE
+Tiempo del Newton: 0.022519
+FIN DE PASO: 11  (tiempo: 0.028888)
+*******************************************************************
+STAGE: 1  - STEP: 12 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 7.783e-02
+ITERACION:  2 ; |res| = 1.125e-03
+ITERACION:  3 ; |res| = 2.707e-07
+ITERACION:  4 ; |res| = 2.081e-14
+CONVERGE
+Tiempo del Newton: 0.030653
+FIN DE PASO: 12  (tiempo: 0.037767)
+*******************************************************************
+STAGE: 1  - STEP: 13 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 2.381e-03
+ITERACION:  2 ; |res| = 1.082e-06
+ITERACION:  3 ; |res| = 5.046e-13
+CONVERGE
+Tiempo del Newton: 0.023506
+FIN DE PASO: 13  (tiempo: 0.029933)
+*******************************************************************
+STAGE: 1  - STEP: 14 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.131e-03
+ITERACION:  2 ; |res| = 1.109e-07
+ITERACION:  3 ; |res| = 5.284e-15
+CONVERGE
+Tiempo del Newton: 0.023468
+FIN DE PASO: 14  (tiempo: 0.029788)
+*******************************************************************
+STAGE: 1  - STEP: 15 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.110e-03
+ITERACION:  2 ; |res| = 1.058e-07
+ITERACION:  3 ; |res| = 5.381e-15
+CONVERGE
+Tiempo del Newton: 0.023432
+FIN DE PASO: 15  (tiempo: 0.030049)
+*******************************************************************
+STAGE: 1  - STEP: 16 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.092e-03
+ITERACION:  2 ; |res| = 1.014e-07
+ITERACION:  3 ; |res| = 4.720e-15
+CONVERGE
+Tiempo del Newton: 0.023174
+FIN DE PASO: 16  (tiempo: 0.029491)
+*******************************************************************
+STAGE: 1  - STEP: 17 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.076e-03
+ITERACION:  2 ; |res| = 9.764e-08
+ITERACION:  3 ; |res| = 5.409e-15
+CONVERGE
+Tiempo del Newton: 0.022795
+FIN DE PASO: 17  (tiempo: 0.028916)
+*******************************************************************
+STAGE: 1  - STEP: 18 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.062e-03
+ITERACION:  2 ; |res| = 9.439e-08
+ITERACION:  3 ; |res| = 4.381e-15
+CONVERGE
+Tiempo del Newton: 0.023175
+FIN DE PASO: 18  (tiempo: 0.029369)
+*******************************************************************
+STAGE: 1  - STEP: 19 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.050e-03
+ITERACION:  2 ; |res| = 9.153e-08
+ITERACION:  3 ; |res| = 4.625e-15
+CONVERGE
+Tiempo del Newton: 0.022844
+FIN DE PASO: 19  (tiempo: 0.029287)
+*******************************************************************
+STAGE: 1  - STEP: 20 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.038e-03
+ITERACION:  2 ; |res| = 8.900e-08
+ITERACION:  3 ; |res| = 3.781e-15
+CONVERGE
+Tiempo del Newton: 0.022924
+FIN DE PASO: 20  (tiempo: 0.029107)
+*******************************************************************
+STAGE: 1  - STEP: 21 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.028e-03
+ITERACION:  2 ; |res| = 8.673e-08
+ITERACION:  3 ; |res| = 3.964e-15
+CONVERGE
+Tiempo del Newton: 0.022551
+FIN DE PASO: 21  (tiempo: 0.028558)
+*******************************************************************
+STAGE: 1  - STEP: 22 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.019e-03
+ITERACION:  2 ; |res| = 8.468e-08
+ITERACION:  3 ; |res| = 4.467e-15
+CONVERGE
+Tiempo del Newton: 0.022950
+FIN DE PASO: 22  (tiempo: 0.029464)
+*******************************************************************
+STAGE: 1  - STEP: 23 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.010e-03
+ITERACION:  2 ; |res| = 8.281e-08
+ITERACION:  3 ; |res| = 3.773e-15
+CONVERGE
+Tiempo del Newton: 0.023055
+FIN DE PASO: 23  (tiempo: 0.029350)
+*******************************************************************
+STAGE: 1  - STEP: 24 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 1.002e-03
+ITERACION:  2 ; |res| = 8.109e-08
+ITERACION:  3 ; |res| = 4.881e-15
+CONVERGE
+Tiempo del Newton: 0.023348
+FIN DE PASO: 24  (tiempo: 0.029579)
+*******************************************************************
+STAGE: 1  - STEP: 25 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.951e-04
+ITERACION:  2 ; |res| = 7.949e-08
+ITERACION:  3 ; |res| = 3.070e-15
+CONVERGE
+Tiempo del Newton: 0.022490
+FIN DE PASO: 25  (tiempo: 0.028637)
+*******************************************************************
+STAGE: 1  - STEP: 26 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.881e-04
+ITERACION:  2 ; |res| = 7.801e-08
+ITERACION:  3 ; |res| = 4.706e-15
+CONVERGE
+Tiempo del Newton: 0.023108
+FIN DE PASO: 26  (tiempo: 0.029366)
+*******************************************************************
+STAGE: 1  - STEP: 27 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.816e-04
+ITERACION:  2 ; |res| = 7.662e-08
+ITERACION:  3 ; |res| = 4.753e-15
+CONVERGE
+Tiempo del Newton: 0.022984
+FIN DE PASO: 27  (tiempo: 0.029718)
+*******************************************************************
+STAGE: 1  - STEP: 28 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.753e-04
+ITERACION:  2 ; |res| = 7.531e-08
+ITERACION:  3 ; |res| = 7.510e-15
+CONVERGE
+Tiempo del Newton: 0.022906
+FIN DE PASO: 28  (tiempo: 0.029169)
+*******************************************************************
+STAGE: 1  - STEP: 29 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.694e-04
+ITERACION:  2 ; |res| = 7.407e-08
+ITERACION:  3 ; |res| = 5.192e-15
+CONVERGE
+Tiempo del Newton: 0.022663
+FIN DE PASO: 29  (tiempo: 0.028983)
+*******************************************************************
+STAGE: 1  - STEP: 30 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.637e-04
+ITERACION:  2 ; |res| = 7.290e-08
+ITERACION:  3 ; |res| = 3.663e-15
+CONVERGE
+Tiempo del Newton: 0.022639
+FIN DE PASO: 30  (tiempo: 0.028853)
+*******************************************************************
+STAGE: 1  - STEP: 31 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.582e-04
+ITERACION:  2 ; |res| = 7.178e-08
+ITERACION:  3 ; |res| = 3.360e-15
+CONVERGE
+Tiempo del Newton: 0.022688
+FIN DE PASO: 31  (tiempo: 0.028970)
+*******************************************************************
+STAGE: 1  - STEP: 32 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.529e-04
+ITERACION:  2 ; |res| = 7.071e-08
+ITERACION:  3 ; |res| = 5.770e-15
+CONVERGE
+Tiempo del Newton: 0.022855
+FIN DE PASO: 32  (tiempo: 0.029191)
+*******************************************************************
+STAGE: 1  - STEP: 33 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.478e-04
+ITERACION:  2 ; |res| = 6.968e-08
+ITERACION:  3 ; |res| = 4.907e-15
+CONVERGE
+Tiempo del Newton: 0.023055
+FIN DE PASO: 33  (tiempo: 0.029208)
+*******************************************************************
+STAGE: 1  - STEP: 34 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.428e-04
+ITERACION:  2 ; |res| = 6.870e-08
+ITERACION:  3 ; |res| = 2.812e-15
+CONVERGE
+Tiempo del Newton: 0.023107
+FIN DE PASO: 34  (tiempo: 0.029339)
+*******************************************************************
+STAGE: 1  - STEP: 35 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.380e-04
+ITERACION:  2 ; |res| = 6.775e-08
+ITERACION:  3 ; |res| = 5.721e-15
+CONVERGE
+Tiempo del Newton: 0.022631
+FIN DE PASO: 35  (tiempo: 0.028951)
+*******************************************************************
+STAGE: 1  - STEP: 36 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.333e-04
+ITERACION:  2 ; |res| = 6.683e-08
+ITERACION:  3 ; |res| = 5.584e-15
+CONVERGE
+Tiempo del Newton: 0.022686
+FIN DE PASO: 36  (tiempo: 0.028946)
+*******************************************************************
+STAGE: 1  - STEP: 37 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.287e-04
+ITERACION:  2 ; |res| = 6.594e-08
+ITERACION:  3 ; |res| = 5.488e-15
+CONVERGE
+Tiempo del Newton: 0.022666
+FIN DE PASO: 37  (tiempo: 0.029214)
+*******************************************************************
+STAGE: 1  - STEP: 38 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.242e-04
+ITERACION:  2 ; |res| = 6.507e-08
+ITERACION:  3 ; |res| = 5.652e-15
+CONVERGE
+Tiempo del Newton: 0.022829
+FIN DE PASO: 38  (tiempo: 0.028912)
+*******************************************************************
+STAGE: 1  - STEP: 39 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.198e-04
+ITERACION:  2 ; |res| = 6.424e-08
+ITERACION:  3 ; |res| = 6.208e-15
+CONVERGE
+Tiempo del Newton: 0.022566
+FIN DE PASO: 39  (tiempo: 0.028873)
+*******************************************************************
+STAGE: 1  - STEP: 40 
+ITERACION:  0 ; |res| = 1.000e+00 (VALOR INICIAL)
+ITERACION:  1 ; |res| = 9.155e-04
+ITERACION:  2 ; |res| = 6.342e-08
+ITERACION:  3 ; |res| = 4.826e-15
+CONVERGE
+Tiempo del Newton: 0.028945
+FIN DE PASO: 40  (tiempo: 0.036434)
+*******************************************************************
+**************************************************************
+Tiempo de calculo de nonlinear analysis: 1.409101 seg.
+**************************************************************
