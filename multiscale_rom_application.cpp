@@ -52,6 +52,10 @@ void KratosMultiscaleROMApplication::Register() {
   KRATOS_REGISTER_VARIABLE(REDUCED_MODES_MATRIX)
   KRATOS_REGISTER_VARIABLE(REDUCED_MODES_WEIGHTS)
   KRATOS_REGISTER_VARIABLE(INTEGRATION_POINT_WEIGHT)
+        KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_4)
+        KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_5)
+        KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_6)
+        KRATOS_REGISTER_VARIABLE(INITIAL_STRAIN_VECTOR)
 
   KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N",
                           mSmallDisplacementBbarElement2D4N)
@@ -67,12 +71,12 @@ void KratosMultiscaleROMApplication::Register() {
                           mTotalLagrangianFbarElement2D4N)
   KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N",
                             mMinimalKineticCondition2D3N)
-  KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D3N",
-                            mMinimalKineticCondition3D3N)
+        KRATOS_REGISTER_CONDITION( "MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N)
 
   // Register Constitutive Laws
   Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw",
                        mLinearIsotropicDamagePlaneStrain2DLaw);
+        Serializer::Register("SmallDisplacementIsotropicDamage3DLaw", mSmallDisplacementIsotropicDamage3DLaw);
   Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw",
                        mExponentialIsotropicDamagePlaneStrain2DLaw);
   Serializer::Register("LinearElasticPlasticJ2PlaneStrain2DLaw",

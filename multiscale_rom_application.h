@@ -62,6 +62,7 @@ private:
   const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
   const LinearIsotropicDamagePlaneStrain2DLaw
       mLinearIsotropicDamagePlaneStrain2DLaw;
+           const SmallDisplacementIsotropicDamage3DLaw mSmallDisplacementIsotropicDamage3DLaw;
   const ExponentialIsotropicDamagePlaneStrain2DLaw
       mExponentialIsotropicDamagePlaneStrain2DLaw;
   const LinearElasticPlasticJ2PlaneStrain2DLaw
