@@ -101,7 +101,9 @@ namespace Kratos
         unsigned int n_dofs = number_of_nodes * dimension + StrainComp; // 6 = Num components of (u_fl tens n)^s
 
         Vector currentValues(n_dofs, 0.0);
-        Matrix rNintMatrix;
+        Matrix rNintMatrix(dimension,dimension*number_of_nodes,0.0);
+        //MatrixType& rNintMatrix(dimension,dimension*number_of_nodes);
+        //Matrix rNintMatrix;
 
         GeometryType& geom = GetGeometry();
 
@@ -119,12 +121,23 @@ namespace Kratos
 
         this->CalculateIntegralOfShapeFunctions(rNintMatrix, rCurrentProcessInfo);
 
-        currentValues(12) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
-        currentValues(13) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
-        currentValues(14) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
-        currentValues(15) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_4);
-        currentValues(16) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_5);
-        currentValues(17) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_6);
+        // Auxiliar magic node
+        Node<3>::Pointer pNode = rCurrentProcessInfo[LAGRANGE_MULTIPLIER_NODE];
+
+        // Lagrange Multipliers
+        currentValues[12] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
+        currentValues[13] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
+        currentValues[14] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
+        currentValues[15] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_4);
+        currentValues[16] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_5);
+        currentValues[17] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_6);
+
+        //currentValues(12) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
+        //currentValues(13) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
+        //currentValues(14) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
+        //currentValues(15) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_4);
+        //currentValues(16) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_5);
+        //currentValues(17) = geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_6);
 
         //Vector V1(dimension, 0.0);
         //Vector V2(dimension, 0.0);
@@ -224,7 +237,15 @@ namespace Kratos
 
             noalias(rNintMatrix) = ZeroMatrix( dimension, MatSize );
 
+            //Get the shape functions for the order of the integration method [N]
+            const Matrix& Ncontainer = Variables.GetShapeFunctions();
+
+            Matrix& KCond = rNintMatrix;
+
             for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
+
+                //Set Shape Functions Values for this integration point
+                Variables.N=row( Ncontainer, PointNumber);
 
                 //calculating weights for integration on the "reference configuration"
                 double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -235,12 +256,13 @@ namespace Kratos
 
                 for (unsigned int i = 0; i < number_of_nodes; i++) {
 
-                    rNintMatrix(indexi, indexi)         += Variables.N[i] * IntegrationWeight;
-                    rNintMatrix(indexi + 1, indexi + 1) += Variables.N[i] * IntegrationWeight;
-                    rNintMatrix(indexi + 2, indexi + 2) += Variables.N[i] * IntegrationWeight;
+                    KCond(0, indexi)     += Variables.N[i] * IntegrationWeight;
+                    KCond(1, indexi + 1) += Variables.N[i] * IntegrationWeight;
+                    KCond(2, indexi + 2) += Variables.N[i] * IntegrationWeight;
 
                     indexi += dimension;
                 }
+                //KRATOS_WATCH( rNintMatrix )
             }
 
 /*
@@ -292,6 +314,8 @@ namespace Kratos
 
         // Auxiliar magic node
         Node<3>::Pointer pNode = rCurrentProcessInfo[LAGRANGE_MULTIPLIER_NODE];
+
+        //KRATOS_WATCH(*pNode)
 
         // Lagrange Multipliers
         rResult[12] = pNode->GetDof(LAGRANGE_MULTIPLIER_1).EquationId();
