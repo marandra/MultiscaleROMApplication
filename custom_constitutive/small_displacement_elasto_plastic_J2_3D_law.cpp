@@ -55,7 +55,12 @@ namespace Kratos
     
     double& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
     {
-    	return rValue;
+      if (rThisVariable==INELASTICITY_FLAG){
+        rValue=mInelasticFlag;
+        //KRATOS_WATCH(mInelasticFlag)
+      }
+
+      return rValue;
     }
     
     Vector& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
@@ -134,6 +139,7 @@ namespace Kratos
         //mPlasticStrainOld.resize(4);
         mPlasticStrainOld = ZeroVector(this->GetStrainSize());
         mAccumulatedPlasticStrainOld = 0.0;
+        mInelasticFlag=0.0;
     }
 	    
     void SmallDisplacementElastoPlasticJ23DLaw::InitializeSolutionStep(const Properties& rMaterialProperties,
@@ -199,7 +205,7 @@ namespace Kratos
         double volumetric_modulus = E / (3. * (1. - 2. * poisson_ratio));
 
         if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR)){
-            noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
+          noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
         }
 
         mPlasticStrain = mPlasticStrainOld;
@@ -260,6 +266,12 @@ namespace Kratos
 
             mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld + 0.8164965809277260 * dgamma;
 
+            if (!mInelasticFlag){
+              mInelasticFlag= rValues.GetProcessInfo().GetValue(TIME);
+              //KRATOS_WATCH(mInelasticFlag)
+            }
+
+            //KRATOS_WATCH(mInelasticFlag)
 
             // Actualizar derivada del modulo de hardening-softening
 

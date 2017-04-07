@@ -385,11 +385,13 @@ namespace Kratos
 		///@name Protected member Variables
 		///@{
 		//bool flag_C = false;
+
 		Vector mInitStrain;
     	Vector mPlasticStrain;
     	Vector mPlasticStrainOld;
 	    double mAccumulatedPlasticStrain;
 	    double mAccumulatedPlasticStrainOld;
+        double mInelasticFlag;
 		//boost::numeric::ublas::matrix<double>& mElasticityTensor();
 		///@}
 
