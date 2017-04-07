@@ -37,6 +37,9 @@ namespace Kratos {
         // Multiscale macro
         KRATOS_REGISTER_VARIABLE(INITIAL_STRAIN_VECTOR)
 
+        // Flag to identify if the timestep is elastic or inelastic
+        KRATOS_REGISTER_VARIABLE(INELASTICITY_FLAG)
+
         //KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_NODE)
 
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N )
