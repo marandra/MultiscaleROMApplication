@@ -166,6 +166,7 @@ namespace Kratos
         Matrix TensNormal(StrainComp, dimension, 0.0);
         //TensNormal = ZeroMatrix( 6, dimension );
 
+        /*
         //Matrix& K = rLeftHandSideMatrix;
         TensNormal(0, 0) = V3(0);       // xx
         TensNormal(1, 1) = V3(1);       // yy
@@ -176,9 +177,26 @@ namespace Kratos
         TensNormal(4, 2) = 0.5*V3(2);
         TensNormal(5, 0) = 0.5*V3(0);   // xz
         TensNormal(5, 2) = 0.5*V3(2);
+        */
+
+        TensNormal(0, 0) = V3(0);       // xx
+        TensNormal(1, 1) = V3(1);       // yy
+        TensNormal(2, 2) = V3(2);       // zz
+        TensNormal(3, 0) = 0.5*V3(1);   // xy
+        TensNormal(3, 1) = 0.5*V3(0);
+        TensNormal(4, 1) = 0.5*V3(2);   // yz
+        TensNormal(4, 2) = 0.5*V3(1);
+        TensNormal(5, 0) = 0.5*V3(2);   // xz
+        TensNormal(5, 2) = 0.5*V3(0);
+
+        KRATOS_WATCH(TensNormal)
+        KRATOS_WATCH(rNintMatrix)
+        //KRATOS_WATCH(V3)
 
         // constraint matrix
         Matrix ElemConstraintMatrix = prod(TensNormal, rNintMatrix);
+
+        KRATOS_WATCH(ElemConstraintMatrix)
 
         unsigned int indexi = number_of_nodes*dimension;
         Matrix& K = rLeftHandSideMatrix;
@@ -188,13 +206,18 @@ namespace Kratos
 
             for (unsigned int j = 0; j < number_of_nodes*dimension ; j++){
 
-                K(indexi, j) = ElemConstraintMatrix(i,j);
-                K(j, indexi) = ElemConstraintMatrix(i,j);
+                K(indexi+i, j) = ElemConstraintMatrix(i,j);
+                K(j, indexi+i) = ElemConstraintMatrix(i,j);
+                //K(indexi, j) = ElemConstraintMatrix(i,j);
+                //K(j, indexi) = ElemConstraintMatrix(i,j);
             }
         }
 
         // form residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, currentValues);
+        ////KRATOS_WATCH(currentValues)
+        //KRATOS_WATCH(rLeftHandSideMatrix)
+        //KRATOS_WATCH(rRightHandSideVector)
     }
 
     //***********************************************************************************
@@ -246,6 +269,10 @@ namespace Kratos
 
                 //Set Shape Functions Values for this integration point
                 Variables.N=row( Ncontainer, PointNumber);
+
+                //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+                Matrix InvJ;
+                MathUtils<double>::InvertMatrix(Variables.J[PointNumber], InvJ, Variables.detJ);
 
                 //calculating weights for integration on the "reference configuration"
                 double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -395,12 +422,12 @@ namespace Kratos
         //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
         rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
-
+        // in this case, is not necessary to compute F, because the use of small strain setting
         //Calculate Delta Position
         //rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
 
         //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-        //rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+        rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
     }
 

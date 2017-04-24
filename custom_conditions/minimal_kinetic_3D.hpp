@@ -358,7 +358,7 @@ namespace Kratos
             //variables including all integration points
             GeometryType::JacobiansType J;
             GeometryType::JacobiansType j;
-            //Matrix  DeltaPosition;
+            Matrix  DeltaPosition;
 
 
             /**
@@ -417,7 +417,7 @@ namespace Kratos
                 //F0.resize(dimension, dimension,false);
                 //DN_DX.resize(number_of_nodes, dimension,false);
                 //ConstitutiveMatrix.resize(voigt_size, voigt_size,false);
-                //DeltaPosition.resize(number_of_nodes, dimension,false);
+                DeltaPosition.resize(number_of_nodes, dimension,false);
 
                 //noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
                 //noalias(H)  = ZeroMatrix(dimension, dimension);
@@ -425,7 +425,7 @@ namespace Kratos
                 //noalias(F0) = IdentityMatrix(dimension);
                 //noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
                 //noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
-                //noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
+                noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
 
                 //others
                 J.resize(1,false);
