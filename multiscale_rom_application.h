@@ -69,7 +69,6 @@ private:
       mLinearElasticPlasticJ2PlaneStrain2DLaw;
   const SmallDisplacementElastoPlasticJ23DLaw
       mSmallDisplacementElastoPlasticJ23DLaw;
-           const SmallDisplacementIsotropicDamage3DLaw mSmallDisplacementIsotropicDamage3DLaw;
   KratosMultiscaleROMApplication &
   operator=(KratosMultiscaleROMApplication const &rOther);
   KratosMultiscaleROMApplication(KratosMultiscaleROMApplication const &rOther);

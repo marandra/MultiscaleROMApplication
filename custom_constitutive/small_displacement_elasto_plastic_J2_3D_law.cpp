@@ -459,5 +459,4 @@ int SmallDisplacementElastoPlasticJ23DLaw::Check(
         "SmallDisplacementsElastoPlasticJ23DLaw - missing POISSON_RATIO", "");
   return 0;
 }
-
 } /* namespace Kratos.*/

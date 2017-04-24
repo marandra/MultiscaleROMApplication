@@ -7,6 +7,7 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "multiscale_rom_application.h"
 
 namespace Kratos {
@@ -15,11 +16,9 @@ namespace Kratos {
         BOOST_PYTHON_MODULE(KratosMultiscaleROMApplication) {
             class_<KratosMultiscaleROMApplication, KratosMultiscaleROMApplication::Pointer,
                    bases<KratosApplication>, boost::noncopyable >("KratosMultiscaleROMApplication");
-
             AddCustomConstitutiveLawsToPython();
             AddCustomStrategiesToPython();
-
-            //registering variables in python ( if must to be seen from python )
+            AddCustomUtilitiesToPython();
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(ISOTROPIC_DAMAGE_MODULUS)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(INFINITY_YIELD_STRESS)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(FLOW_RULE_IS_TRACTION_ONLY)
@@ -35,6 +34,7 @@ namespace Kratos {
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(REDUCED_MODES_WEIGHTS)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(INTEGRATION_POINT_WEIGHT)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(LAGRANGE_MULTIPLIER_NODE)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(INELASTICITY_FLAG)
         }
     }  // namespace Python.
 }  // namespace Kratos.

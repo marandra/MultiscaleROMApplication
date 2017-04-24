@@ -5,9 +5,6 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "includes/variables.h"
 namespace Kratos {
-// Application variables creation: (see
-// solid_mechanics_application_variables.cpp)
-// Application Constructor:
 KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
     : mSmallDisplacementBbarElement2D4N(
           0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
@@ -30,9 +27,8 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
       mMinimalKineticCondition2D3N(
           0, Condition::GeometryType::Pointer(new Line2D3<Node<3>>(
                  Condition::GeometryType::PointsArrayType(3)))),
-      mMinimalKineticCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Line3D3<Node<3>>(
-                 Condition::GeometryType::PointsArrayType(3)))) {}
+        mMinimalKineticCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ))
+       	{}
 
 void KratosMultiscaleROMApplication::Register() {
   // calling base class register to register Kratos components
@@ -56,6 +52,7 @@ void KratosMultiscaleROMApplication::Register() {
   KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_5)
   KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_6)
   KRATOS_REGISTER_VARIABLE(INITIAL_STRAIN_VECTOR)
+  KRATOS_REGISTER_VARIABLE(INELASTICITY_FLAG)
 
   KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N",
                           mSmallDisplacementBbarElement2D4N)

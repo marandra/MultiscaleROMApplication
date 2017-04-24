@@ -385,6 +385,7 @@ namespace Kratos
 		///@name Protected member Variables
 		///@{
 		//bool flag_C = false;
+	    int mInelasticFlag = 0;
 		Vector mInitStrain;
     	Vector mPlasticStrain;
     	Vector mPlasticStrainOld;

@@ -55,7 +55,7 @@ namespace Kratos
     
     double& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
     {
-    	return rValue;
+      return rValue;
     }
     
     Vector& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
@@ -224,10 +224,14 @@ namespace Kratos
         double dgamma = 0;
 
         if (trial_yield_function <= 0.){
+          //ELASTIC
             StressVector = sigma_trial;
             TangentTensor = ElasticityTensor;
         }
         else{
+          //INELASTIC
+            mInelasticFlag = 1;
+
             Vector YieldFunctionNormalVector = StressTrialDev / norm_dev_stress;
             if (delta_k != 0.0 && hardening_exponent != 0.0){
                 // Exponential softening
