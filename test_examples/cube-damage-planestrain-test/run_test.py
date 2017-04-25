@@ -10,7 +10,7 @@ import process_factory
 from gid_output_process import GiDOutputProcess
 
 # For Benchmarking purposes
-from run_test_benchmark_results import *
+import run_test_benchmark_results
 
 km.CheckForPreviousImport()
 
@@ -42,7 +42,7 @@ def analysis(parameters, processes, gid_output, solver, model_part):
             process.ExecuteAfterOutputStep()
 
         # For Benchmarking purposes
-        WriteBenchmarkResults(model_part)
+        run_test_benchmark_results.WriteBenchmarkResults(model_part)
 
     for process in processes:
         process.ExecuteFinalize()
