@@ -3,6 +3,7 @@
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "includes/variables.h"
 namespace Kratos {
 KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
@@ -27,7 +28,9 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
       mMinimalKineticCondition2D3N(
           0, Condition::GeometryType::Pointer(new Line2D3<Node<3>>(
                  Condition::GeometryType::PointsArrayType(3)))),
-        mMinimalKineticCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ))
+      mMinimalKineticCondition3D4N(
+          0, Condition::GeometryType::Pointer( new Quadrilateral3D4<Node<3>>(
+                 Condition::GeometryType::PointsArrayType(4))))
        	{}
 
 void KratosMultiscaleROMApplication::Register() {
@@ -53,6 +56,8 @@ void KratosMultiscaleROMApplication::Register() {
   KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_6)
   KRATOS_REGISTER_VARIABLE(INITIAL_STRAIN_VECTOR)
   KRATOS_REGISTER_VARIABLE(INELASTICITY_FLAG)
+  KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_NODE)
+
 
   KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N",
                           mSmallDisplacementBbarElement2D4N)
