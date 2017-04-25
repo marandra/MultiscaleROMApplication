@@ -7,11 +7,11 @@ import benchmarking
 def run_case(case_name):
     os.chdir(case_name)
     sys.path.append(os.getcwd())
-    successful,Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
+    successful, Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
     if successful:
         result = case_name + " OK"
     else:
-        result += case_name + " FAILED:" + Msg
+        result = case_name + " FAILED"
     os.chdir("..")
     return result
 
