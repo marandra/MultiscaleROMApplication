@@ -1,8 +1,7 @@
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED)
+#define KRATOS_UPDATED_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED
 
 #include "custom_elements/large_displacement_element.hpp"
-
 
 namespace Kratos
 {
@@ -28,22 +27,20 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) UpdatedLagrangianFbarElement
-    : public LargeDisplacementElement
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) UpdatedLagrangianFbarElement : public LargeDisplacementElement
 {
 public:
-
     ///@name Type Definitions
     ///@{
-    ///Reference type definition for constitutive laws
+    /// Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
-    ///Pointer type for constitutive laws
+    /// Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///Type definition for integration methods
+    /// Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of UpdatedLagrangianFbarElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianFbarElement );
+    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianFbarElement);
     ///@}
     ///@name Life Cycle
     ///@{
@@ -51,9 +48,11 @@ public:
     /// Default constructors
     UpdatedLagrangianFbarElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianFbarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianFbarElement(IndexType NewId,
+                                 GeometryType::Pointer pGeometry,
+                                 PropertiesType::Pointer pProperties);
 
-    ///Copy constructor
+    /// Copy constructor
     UpdatedLagrangianFbarElement(UpdatedLagrangianFbarElement const& rOther);
 
     /// Destructor.
@@ -80,8 +79,9 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
-
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const;
 
     /**
      * clones the selected element variables, creating a new one
@@ -92,25 +92,25 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-  
     // //************* GETTING METHODS
 
-    //SET
+    // SET
 
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                     std::vector<double>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo);
 
-
-    //GET:
+    // GET:
 
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                     std::vector<double>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo);
 
     //************* STARTING - ENDING  METHODS
 
@@ -123,14 +123,15 @@ public:
     //************************************************************************************
     //************************************************************************************
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * This function provides the place to perform checks on the completeness of
+     * the input.
+     * It is designed to be called only once (or anyway, not often) typically at
+     * the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    //int Check(const ProcessInfo& rCurrentProcessInfo);
-
+    // int Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -159,7 +160,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-      GetGeometry().PrintData(rOStream);
+        GetGeometry().PrintData(rOStream);
     }
 
     ///@}
@@ -177,7 +178,7 @@ protected:
     /**
      * Container for historical total elastic deformation measure F0 = dx/dX
      */
-    std::vector< Matrix > mDeformationGradientF0;
+    std::vector<Matrix> mDeformationGradientF0;
 
     /**
      * Container for the total deformation gradient determinants
@@ -194,18 +195,13 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo);
-
-
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables,
+                                            const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, 
-				       const double& rPointNumber );
-
-
+    virtual void FinalizeStepVariables(GeneralVariables& rVariables, const double& rPointNumber);
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
@@ -230,38 +226,34 @@ protected:
                                      GeneralVariables& rVariables,
                                      double& rIntegrationWeight);
 
-
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
-                                     const double& rPointNumber);
+    virtual void CalculateKinematics(GeneralVariables& rVariables, const double& rPointNumber);
 
     /**
      * Calculation of the Deformation Gradient F
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition);
+    void CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    void CalculateDeformationMatrix(Matrix& rB,
-				    Matrix& rF,
-				    Matrix& rDN_DX);
+    void CalculateDeformationMatrix(Matrix& rB, Matrix& rF, Matrix& rDN_DX);
 
     /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
+     * Get the Historical Deformation Gradient to calculate after finalize the
+     * step
      */
-    void GetHistoricalVariables( GeneralVariables& rVariables, 
-				 const double& rPointNumber );
+    void GetHistoricalVariables(GeneralVariables& rVariables, const double& rPointNumber);
 
     /**
      * Calculate on Integration Points (Calculation of internal energy)
      */
-    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo );
-    
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo);
+
     /**
      * Calculation of the Volume Change of the Element
      */
@@ -279,7 +271,6 @@ protected:
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
     ///@}
@@ -290,11 +281,9 @@ private:
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
@@ -328,4 +317,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined

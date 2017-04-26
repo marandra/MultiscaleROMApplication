@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TOTAL_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED)
+#define KRATOS_TOTAL_LAGRANGIAN_FBAR_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -16,7 +16,6 @@
 
 // Project includes
 #include "custom_elements/large_displacement_element.hpp"
-
 
 namespace Kratos
 {
@@ -41,23 +40,21 @@ namespace Kratos
  * Implements a total Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D
  */
-//class KRATOS_API(SOLID_MECHANICS_APPLICATION) TotalLagrangianFbarElement
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) TotalLagrangianFbarElement
-    : public LargeDisplacementElement
+// class KRATOS_API(SOLID_MECHANICS_APPLICATION) TotalLagrangianFbarElement
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) TotalLagrangianFbarElement : public LargeDisplacementElement
 {
 public:
-
     ///@name Type Definitions
     ///@{
-    ///Reference type definition for constitutive laws
+    /// Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
-    ///Pointer type for constitutive laws
+    /// Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///Type definition for integration methods
+    /// Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of TotalLagrangianFbarElement
-    KRATOS_CLASS_POINTER_DEFINITION( TotalLagrangianFbarElement );
+    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangianFbarElement);
     ///@}
     ///@name Life Cycle
     ///@{
@@ -65,9 +62,11 @@ public:
     /// Default constructors
     TotalLagrangianFbarElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    TotalLagrangianFbarElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    TotalLagrangianFbarElement(IndexType NewId,
+                               GeometryType::Pointer pGeometry,
+                               PropertiesType::Pointer pProperties);
 
-    ///Copy constructor
+    /// Copy constructor
     TotalLagrangianFbarElement(TotalLagrangianFbarElement const& rOther);
 
     /// Destructor.
@@ -94,8 +93,9 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
-
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const;
 
     /**
      * clones the selected element variables, creating a new one
@@ -114,18 +114,18 @@ public:
       */
     void Initialize();
 
-
     //************************************************************************************
     //************************************************************************************
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * This function provides the place to perform checks on the completeness of
+     * the input.
+     * It is designed to be called only once (or anyway, not often) typically at
+     * the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    //int Check(const ProcessInfo& rCurrentProcessInfo);
-
+    // int Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -157,7 +157,7 @@ protected:
     /**
      * Container for historical total Jacobians
      */
-    std::vector< Matrix > mInvJ0;
+    std::vector<Matrix> mInvJ0;
 
     /**
      * Container for the total Jacobian determinants
@@ -170,8 +170,6 @@ protected:
     TotalLagrangianFbarElement() : LargeDisplacementElement()
     {
     }
-
-
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
@@ -196,29 +194,21 @@ protected:
                                      GeneralVariables& rVariables,
                                      double& rIntegrationWeight);
 
-
-
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables,
-                             const double& rPointNumber);
-
+    void CalculateKinematics(GeneralVariables& rVariables, const double& rPointNumber);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    Matrix& rF,
-                                    Matrix& rDN_DX);
-
+    void CalculateDeformationMatrix(Matrix& rB, Matrix& rF, Matrix& rDN_DX);
 
     /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
+     * Get the Historical Deformation Gradient to calculate after finalize the
+     * step
      */
-    void GetHistoricalVariables( GeneralVariables& rVariables, 
-				 const double& rPointNumber );
-
+    void GetHistoricalVariables(GeneralVariables& rVariables, const double& rPointNumber);
 
     /**
      * Calculation of the Total Mass of the Element
@@ -228,13 +218,14 @@ protected:
     /**
      * Calculate on Integration Points (Calculation of internal energy)
      */
-    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation of the Volume Change of the Element
      */
     double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
 
     ///@}
     ///@name Protected  Access
@@ -248,23 +239,19 @@ protected:
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
     ///@}
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
@@ -281,7 +268,6 @@ private:
     virtual void save(Serializer& rSerializer) const;
 
     virtual void load(Serializer& rSerializer);
-
 
     ///@name Private Inquiry
     ///@{
@@ -301,4 +287,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined
