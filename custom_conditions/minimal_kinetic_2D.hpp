@@ -1,19 +1,19 @@
-#if !defined(KRATOS_MINIMAL_KINETIC_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_MINIMAL_KINETIC_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_MINIMAL_KINETIC_CONDITION_2D_H_INCLUDED)
+#define KRATOS_MINIMAL_KINETIC_CONDITION_2D_H_INCLUDED
 
-#include <string>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
-#include <cstddef>
+#include <string>
 
+#include "geometries/geometry.h"
+#include "includes/condition.h"
 #include "includes/define.h"
 #include "includes/node.h"
-#include "geometries/geometry.h"
-#include "includes/properties.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
-#include "includes/condition.h"
+#include "includes/properties.h"
 #include "includes/serializer.h"
+#include "utilities/indexed_object.h"
 
 namespace Kratos
 {
@@ -45,16 +45,14 @@ namespace Kratos
  * Implements a Force Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) MinimalKineticCondition2D
-    : public Condition
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) MinimalKineticCondition2D : public Condition
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of MinimalKineticCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( MinimalKineticCondition2D );
+    KRATOS_CLASS_POINTER_DEFINITION(MinimalKineticCondition2D);
 
     typedef IndexedObject IndexedObjectType;
 
@@ -78,12 +76,11 @@ public:
 
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
-
 
     ///@}
     ///@name Life Cycle
@@ -99,16 +96,14 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    MinimalKineticCondition2D(IndexType NewId,
-                      const NodesArrayType& ThisNodes);
+    MinimalKineticCondition2D(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    MinimalKineticCondition2D(IndexType NewId,
-                      GeometryType::Pointer pGeometry);
+    MinimalKineticCondition2D(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constructor using Properties
     /**
@@ -117,23 +112,21 @@ public:
      @param pProperties Pointer to the element's properties
      */
     MinimalKineticCondition2D(IndexType NewId,
-                      GeometryType::Pointer pGeometry,
-                      PropertiesType::Pointer pProperties);
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties);
 
     /// Copy constructor.
     MinimalKineticCondition2D(MinimalKineticCondition2D const& rOther);
 
-
     /// Destructor.
     virtual ~MinimalKineticCondition2D();
-
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    MinimalKineticCondition2D & operator=(MinimalKineticCondition2D const& rOther);
+    MinimalKineticCondition2D& operator=(MinimalKineticCondition2D const& rOther);
 
     ///@}
     ///@name Operations
@@ -150,7 +143,8 @@ public:
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
      * The weight of the penalty terms is given by the member variable mWeight,
-     * set using SetValueOnIntegrationPoints. The periodic variables are read from
+     * set using SetValueOnIntegrationPoints. The periodic variables are read
+     * from
      * the value of PERIODIC_VARIABLES stored in rCurrentProcessInfo.
      * @param rLeftHandSideMatrix Local left hand side matrix (output)
      * @param rRightHandSideVector Local right hand side vector (output)
@@ -183,16 +177,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void GetDofList(DofsVectorType& ElementalDofList,
-                            ProcessInfo& CurrentProcessInfo);
+    virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
 
     /// Returns the values of the unknowns for each node
     virtual void GetValuesVector(Vector& Values, int Step = 0);
@@ -201,7 +193,6 @@ public:
     ///@name Conditional Data
     ///@{
 
-
     ///@}
     ///@name Access
     ///@{
@@ -209,7 +200,6 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -235,11 +225,9 @@ public:
         Condition::PrintData(rOStream);
     }
 
-
     ///@}
     ///@name Friends
     ///@{
-
 
     ///@}
 
@@ -247,36 +235,29 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 
@@ -284,11 +265,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Serialization
@@ -300,32 +279,25 @@ private:
 
     virtual void load(Serializer& rSerializer);
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
-
 
     ///@}
 
@@ -335,27 +307,24 @@ private:
 
 // TODO check the function of the template below,
 // and if it is OK to comment it out.
-//template class KRATOS_API(MULTISCALE_ROM_APPLICATION) KratosComponents<MinimalKineticCondition2D >;
+// template class KRATOS_API(MULTISCALE_ROM_APPLICATION)
+// KratosComponents<MinimalKineticCondition2D >;
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream & operator >>(std::istream& rIStream,
-                                  MinimalKineticCondition2D& rThis)
+inline std::istream& operator>>(std::istream& rIStream, MinimalKineticCondition2D& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-inline std::ostream & operator <<(std::ostream& rOStream,
-                                  const MinimalKineticCondition2D& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const MinimalKineticCondition2D& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -369,7 +338,4 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-
-#endif	/* KRATOS_FLUID_PERTIODIC_CONDITION_H */
-
-
+#endif /* KRATOS_FLUID_PERTIODIC_CONDITION_H */
