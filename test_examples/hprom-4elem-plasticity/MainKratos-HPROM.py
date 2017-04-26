@@ -1,0 +1,153 @@
+# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
+import pprint as pp
+import time as timer
+import operator
+import KratosMultiphysics as km
+import KratosMultiphysics.SolidMechanicsApplication as sol
+import KratosMultiphysics.MultiscaleROMApplication as msr
+import process_factory
+from gid_output_process import GiDOutputProcess
+
+
+def analysis(parameters, processes, gid_output, solver, model_part):
+    for process in processes:
+        process.ExecuteInitialize()
+    gid_output.ExecuteInitialize()
+
+    # TODO this should be automatized if only used here (eg from the columns in file)
+    # if in json, it should be used setting other aspects of the solver.
+    number_modes = parameters["problem_data"]["number_reduced_modes"].GetInt()
+    # TODO this should be gotten automatically
+    ngausspoints = 4
+    voigtsize = 4
+    # TODO this initialization should be done in scheme
+    modes_weights = km.Vector(number_modes)
+    for i in range(number_modes):
+        modes_weights[i] = 0.0
+    model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS] = modes_weights
+    # TODO move this to a process
+    with open("reduced_bases.dat", "r") as fo:
+        for elem in model_part.Elements:
+            BE = km.Matrix(ngausspoints * voigtsize, number_modes)
+            for i in range(ngausspoints * voigtsize):
+                line = fo.readline().strip().split()
+                for j, value in enumerate(line):
+                    BE[i, j] = float(value)
+            elem.SetValue(msr.REDUCED_MODES_MATRIX, BE)
+    # TODO move this to a process
+    with open("weights.dat", "r") as fo:
+        for elem in model_part.Elements:
+            integration_weights = [float(x) for x in fo.readline().split()]
+            elem.SetValue(msr.INTEGRATION_POINT_WEIGHT, integration_weights)
+            
+    for process in processes:
+        process.ExecuteBeforeSolutionLoop()
+    gid_output.ExecuteBeforeSolutionLoop()
+
+    with open("computed_weights.dat", "w") as fo:
+        delta_time = parameters["problem_data"]["time_step"].GetDouble()
+        time = parameters["problem_data"]["start_time"].GetDouble()
+        end_time = parameters["problem_data"]["end_time"].GetDouble()
+        while(time <= end_time):
+            time = time + delta_time
+            model_part.CloneTimeStep(time)
+            for process in processes:
+                process.ExecuteInitializeSolutionStep()
+            #gid_output.ExecuteInitializeSolutionStep()
+
+            solver.Solve()
+
+            for process in processes:
+                process.ExecuteFinalizeSolutionStep()
+            #gid_output.ExecuteFinalizeSolutionStep()
+            for process in processes:
+                process.ExecuteBeforeOutputStep()
+            #if gid_output.IsOutputStep():
+            #    gid_output.PrintOutput()
+            for process in processes:
+                process.ExecuteAfterOutputStep()
+            # TODO there sould be a process to handle the output of weights
+            print("OUTPUT MODES WEIGHTS:")
+            print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
+            #fo.write("{}\n".format(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS]))
+            for mode in model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS]:
+                print(mode)
+                fo.write("{:17.15f} ".format(mode))
+            fo.write("\n")
+
+            print("\n")
+
+    for process in processes:
+        process.ExecuteFinalize()
+    gid_output.ExecuteFinalize()
+
+
+def create_model(parameters):
+    domain_size = parameters["problem_data"]["domain_size"].GetInt()
+    model_part_name = parameters["problem_data"]["part_name"].GetString()
+    model_part = km.ModelPart(model_part_name)
+    model_part.ProcessInfo.SetValue(km.DOMAIN_SIZE, domain_size)
+    number_modes = parameters["problem_data"]["number_reduced_modes"].GetInt()
+    model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES] = number_modes
+    Model = {model_part_name: model_part}
+    return Model
+
+
+def create_solver_complete_model_part(model_part, parameters):
+    solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
+    solver = solver_module.CreateSolver(model_part, parameters["solver_settings"])
+    solver.AddVariables()
+    #print("Adding Variables for MinimalKineticBC to model part", flush=True)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_1)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
+    solver.ImportModelPart()
+    solver.AddDofs()
+    #print("Adding DOFs for MinimalKineticBC to reference node", flush=True)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_2)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_3)
+    #constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
+    #aux_obj_getter = operator.methodcaller(constitutive_law_name)
+    #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
+    return solver, model_part
+
+parameters = km.Parameters(open("ProjectParameters.json", 'r').read())
+Model = create_model(parameters)
+model_part = Model[parameters["problem_data"]["part_name"].GetString()]
+solver, model_part = create_solver_complete_model_part(model_part, parameters)
+#print(model_part.Nodes, flush=True)
+#build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+
+# initialize GiD  I/O (gid outputs, file_lists)
+output_settings = parameters["output_configuration"]
+problem_name = parameters["problem_data"]["problem_name"].GetString()
+gid_output = GiDOutputProcess(model_part, problem_name, output_settings)
+
+solver.Initialize()
+
+
+for i in range(parameters["solver_settings"]["processes_sub_model_part_list"].size()):
+    part_name = parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+    Model.update({part_name: model_part.GetSubModelPart(part_name)})
+
+processes = process_factory.KratosProcessFactory(Model)\
+    .ConstructListOfProcesses(parameters["constraints_process_list"])
+processes += process_factory.KratosProcessFactory(Model)\
+    .ConstructListOfProcesses(parameters["loads_process_list"])
+#processes += process_factory.KratosProcessFactory(Model)\
+#    .ConstructListOfProcesses(parameters["loads_rve_process_list"])
+
+t0p = timer.clock()
+t0w = timer.time()
+analysis(parameters, processes, gid_output, solver, model_part)
+tfp = timer.clock()
+tfw = timer.time()
+print("Computing Time = {:.2f} s ({:.2f} s wall-time)".format(tfp - t0p, tfw - t0w))
+print(timer.ctime())
+
+# to create a benchmark: add standard benchmark files and decomment next two lines 
+# rename the file to: run_test.py
+#from run_test_benchmark_results import *
+#WriteBenchmarkResults(model_part)

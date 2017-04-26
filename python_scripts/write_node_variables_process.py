@@ -37,13 +37,13 @@ class WriteNodeVariablesProcess(km.Process):
     def write_results(self):
         with open(self.filename, 'a') as ofile:
                 var1 = self.node.GetSolutionStepValue(self.Var1)
-                ofile.write("  {:.8e}".format(var1))
+                ofile.write("  {:.13f}".format(var1))
                 var2 = self.node.GetSolutionStepValue(self.Var2)
-                ofile.write("  {:.8e}".format(var2))
+                ofile.write("  {:.13f}".format(var2))
                 var3 = self.node.GetSolutionStepValue(self.Var3)
-                ofile.write("  {:.8e}".format(var3))
+                ofile.write("  {:.13f}".format(var3))
                 var4 = self.node.GetSolutionStepValue(self.Var4)
-                ofile.write("  {:.8e}".format(var4))
+                ofile.write("  {:.13f}".format(var4))
                 ofile.write("\n".format())
     
     def ExecuteInitialize(self):

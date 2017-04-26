@@ -1,0 +1,11 @@
+Testing
+=======
+- ROM solver
+
+Input
+=====
+- weights file: file for defining the weight of a specific integration point,
+  one row per element. IPs weight of -1 are skipped by the solver.
+- reduced strain modes: one mode by column
+
+
