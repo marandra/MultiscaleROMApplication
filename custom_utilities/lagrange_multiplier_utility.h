@@ -5,8 +5,8 @@
 #ifndef KRATOSMULTIPHYSICS_LAGRANGE_MULTIPLIER_UTILITY_H
 #define KRATOSMULTIPHYSICS_LAGRANGE_MULTIPLIER_UTILITY_H
 
-#include "multiscale_rom_application_variables.h"
 #include "includes/model_part.h"
+#include "multiscale_rom_application_variables.h"
 
 namespace Kratos
 {
@@ -29,103 +29,105 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief LagrangeMultiplierUtility 
+/** \brief LagrangeMultiplierUtility
  * Creates blah blah blah
  */
-    class LagrangeMultiplierUtility
+class LagrangeMultiplierUtility
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    LagrangeMultiplierUtility(ModelPart& MainModelPart)
+        : mMainModelPart(MainModelPart)
     {
-    public:
-        ///@name Type Definitions
-        ///@{
+        // Hello
+    }
 
-        ///@}
-        ///@name Life Cycle
-        ///@{
+    ~LagrangeMultiplierUtility()
+    {
+    }
 
-        LagrangeMultiplierUtility(ModelPart& MainModelPart)
-        :mMainModelPart(MainModelPart)
-        {
-            // Hello
-        }
+    ///@}
+    ///@name Operators
+    ///@{
 
-        ~LagrangeMultiplierUtility(){}
+    void Execute()
+    {
+        Node<3>::Pointer pNode = mMainModelPart.pGetNode(0);
+        mMainModelPart.GetProcessInfo()[LAGRANGE_MULTIPLIER_NODE] = pNode;
+    }
 
-        ///@}
-        ///@name Operators
-        ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-        void Execute()
-        {
-            Node<3>::Pointer pNode = mMainModelPart.pGetNode(0);
-            mMainModelPart.GetProcessInfo()[LAGRANGE_MULTIPLIER_NODE] = pNode;
-        }
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-        ///@}
-        ///@name Operations
-        ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
+    ModelPart& mMainModelPart;
 
-        ///@}
-        ///@name Protected member Variables
-        ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-        ModelPart& mMainModelPart;
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-        ///@}
-        ///@name Protected Operators
-        ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-        ///@}
-    private:
-        ///@name Static Member Variables
-        ///@{
-        ///@}
-        ///@name Member Variables
-        ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-        ///@}
-        ///@name Private Operators
-        ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
 
-        ///@}
-        ///@name Private Operations
-        ///@{
+    ///@}
+    ///@name Serialization
+    ///@{
 
-        ///@}
-        ///@name Private  Access
-        ///@{
-        ///@}
+    ///@name Private Inquiry
+    ///@{
+    ///@}
 
-        ///@}
-        ///@name Serialization
-        ///@{
-
-        ///@name Private Inquiry
-        ///@{
-        ///@}
-
-        ///@name Unaccessible methods
-        ///@{
-        ///@}
-    }; // Class LagrangeMultiplierUtility
+    ///@name Unaccessible methods
+    ///@{
+    ///@}
+}; // Class LagrangeMultiplierUtility
 }
 
-#endif //KRATOSMULTIPHYSICS_LAGRANGE_MULTIPLIER_UTILITY_H
+#endif // KRATOSMULTIPHYSICS_LAGRANGE_MULTIPLIER_UTILITY_H

@@ -1,5 +1,5 @@
-#if !defined(KRATOS_ADD_CUSTOM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_CUSTOM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED
 
 // System includes
 
@@ -9,11 +9,13 @@
 // Project includes
 #include "includes/define.h"
 
-namespace Kratos {
-    namespace Python {
-        void  AddCustomConstitutiveLawsToPython();
-        void  AddCustomPropertiesToPython();
-    }  // namespace Python.
-}  // namespace Kratos.
+namespace Kratos
+{
+namespace Python
+{
+void AddCustomConstitutiveLawsToPython();
+void AddCustomPropertiesToPython();
+} // namespace Python.
+} // namespace Kratos.
 
-#endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED  defined
