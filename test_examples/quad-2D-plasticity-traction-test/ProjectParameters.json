@@ -17,7 +17,7 @@
             "input_filename" : "model",
             "input_type": "mdpa"
             },
-        "line_search": true,
+        "line_search": false,
         "convergence_criterion": "Residual_criterion",
         "displacement_relative_tolerance": 1e-8,
         "displacement_absolute_tolerance": 1e-12,

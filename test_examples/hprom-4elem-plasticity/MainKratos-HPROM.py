@@ -45,7 +45,7 @@ def analysis(parameters, processes, gid_output, solver, model_part):
         process.ExecuteBeforeSolutionLoop()
     gid_output.ExecuteBeforeSolutionLoop()
 
-    with open("computed_weights.dat", "w") as fo:
+    with open("output.dat", "w") as fo:
         delta_time = parameters["problem_data"]["time_step"].GetDouble()
         time = parameters["problem_data"]["start_time"].GetDouble()
         end_time = parameters["problem_data"]["end_time"].GetDouble()
