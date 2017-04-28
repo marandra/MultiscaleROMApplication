@@ -203,14 +203,14 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     TensNormal(5, 0) = 0.5 * V3(2); // xz
     TensNormal(5, 2) = 0.5 * V3(0);
 
-    KRATOS_WATCH(TensNormal)
-    KRATOS_WATCH(rNintMatrix)
+    //KRATOS_WATCH(TensNormal)
+    //KRATOS_WATCH(rNintMatrix)
     // KRATOS_WATCH(V3)
 
     // constraint matrix
     Matrix ElemConstraintMatrix = prod(TensNormal, rNintMatrix);
 
-    KRATOS_WATCH(ElemConstraintMatrix)
+    //KRATOS_WATCH(ElemConstraintMatrix)
 
     unsigned int indexi = number_of_nodes * dimension;
     Matrix& K = rLeftHandSideMatrix;
@@ -291,8 +291,9 @@ void MinimalKineticCondition3D::CalculateIntegralOfShapeFunctions(MatrixType& rN
         // Calculating the inverse of the jacobian and the parameters needed
         // [d£/dx_n]
         Matrix InvJ;
-        MathUtils<double>::InvertMatrix(Variables.J[PointNumber], InvJ,
-                                        Variables.detJ);
+        //MathUtils<double>::InvertMatrix(Variables.J[PointNumber], InvJ,
+        //                                Variables.detJ);
+        Variables.detJ = MathUtils<double>::GeneralizedDet(Variables.J[PointNumber]);
 
         // calculating weights for integration on the "reference configuration"
         double IntegrationWeight =
