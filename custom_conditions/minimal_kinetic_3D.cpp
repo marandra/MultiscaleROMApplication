@@ -111,8 +111,6 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     Vector currentValues(n_dofs, 0.0);
     Matrix rNintMatrix(dimension, dimension * number_of_nodes, 0.0);
-    // MatrixType& rNintMatrix(dimension,dimension*number_of_nodes);
-    // Matrix rNintMatrix;
 
     GeometryType& geom = GetGeometry();
 
