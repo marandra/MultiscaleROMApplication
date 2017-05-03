@@ -178,19 +178,6 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     Matrix TensNormal(StrainComp, dimension, 0.0);
     // TensNormal = ZeroMatrix( 6, dimension );
 
-    /*
-    //Matrix& K = rLeftHandSideMatrix;
-    TensNormal(0, 0) = V3(0);       // xx
-    TensNormal(1, 1) = V3(1);       // yy
-    TensNormal(2, 2) = V3(2);       // zz
-    TensNormal(3, 1) = 0.5*V3(0);   // xy
-    TensNormal(3, 2) = 0.5*V3(1);
-    TensNormal(4, 1) = 0.5*V3(1);   // yz
-    TensNormal(4, 2) = 0.5*V3(2);
-    TensNormal(5, 0) = 0.5*V3(0);   // xz
-    TensNormal(5, 2) = 0.5*V3(2);
-    */
-
     TensNormal(0, 0) = V3(0);       // xx
     TensNormal(1, 1) = V3(1);       // yy
     TensNormal(2, 2) = V3(2);       // zz
@@ -203,7 +190,7 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     //KRATOS_WATCH(TensNormal)
     //KRATOS_WATCH(rNintMatrix)
-    // KRATOS_WATCH(V3)
+    //KRATOS_WATCH(V3)
 
     // constraint matrix
     Matrix ElemConstraintMatrix = prod(TensNormal, rNintMatrix);
@@ -233,25 +220,6 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     // KRATOS_WATCH(rRightHandSideVector)
 }
 
-//***********************************************************************************
-// CrossProduct calculates the cross product of two 3d vectors. a x b.
-// @return cross = a x b
-//***********************************************************************************
-// void MinimalKineticCondition3D::CrossProduct(Vector& cross,
-//                                             const Vector& a,
-//                                             const Vector& b)
-//{
-//    //array_1d<double, 3> cross;
-//    cross[0] = a[1] * b[2] - a[2] * b[1];
-//    cross[1] = a[2] * b[0] - a[0] * b[2];
-//    cross[2] = a[0] * b[1] - a[1] * b[0];
-//    //return cross;
-//}
-
-//************************************************************************************
-// Compute the integral of the shape functions within the finite element (for 3D
-// cases)
-//************************************************************************************
 void MinimalKineticCondition3D::CalculateIntegralOfShapeFunctions(MatrixType& rNintMatrix,
                                                                   ProcessInfo& rCurrentProcessInfo)
 {
@@ -264,6 +232,8 @@ void MinimalKineticCondition3D::CalculateIntegralOfShapeFunctions(MatrixType& rN
     // reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points =
         GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+    //this->GetGeometry().DeterminantOfJacobian(Variables.detJ,mThisIntegrationMethod);
 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -291,7 +261,12 @@ void MinimalKineticCondition3D::CalculateIntegralOfShapeFunctions(MatrixType& rN
         Matrix InvJ;
         //MathUtils<double>::InvertMatrix(Variables.J[PointNumber], InvJ,
         //                                Variables.detJ);
+
+        // DetJ using MathUtils (last version)
         Variables.detJ = MathUtils<double>::GeneralizedDet(Variables.J[PointNumber]);
+
+        // Vicente's implementation (in the elemental routine)
+        //Variables.detJ=GetGeometry().DeterminantOfJacobian(PointNumber,mThisIntegrationMethod);
 
         // calculating weights for integration on the "reference configuration"
         double IntegrationWeight =
@@ -314,9 +289,9 @@ void MinimalKineticCondition3D::CalculateIntegralOfShapeFunctions(MatrixType& rN
     }
 
     /*
-                //noalias(rRightHandSideVector) = prod( MassMatrix,
+    //noalias(rRightHandSideVector) = prod( MassMatrix,
        CurrentAccelerationVector );
-                //KRATOS_WATCH( rRightHandSideVector )
+    //KRATOS_WATCH( rRightHandSideVector )
     */
     KRATOS_CATCH("")
 }
@@ -451,7 +426,7 @@ void MinimalKineticCondition3D::InitializeGeneralVariables(GeneralVariables& rVa
 
     // calculating the current jacobian from cartesian coordinates to parent
     // coordinates for all integration points [dx_n+1/d£]
-    rVariables.j = GetGeometry().Jacobian(rVariables.j, mThisIntegrationMethod);
+    //rVariables.j = GetGeometry().Jacobian(rVariables.j, mThisIntegrationMethod);
 
     // in this case, is not necessary to compute F, because the use of small
     // strain setting
@@ -459,10 +434,48 @@ void MinimalKineticCondition3D::InitializeGeneralVariables(GeneralVariables& rVa
     // rVariables.DeltaPosition =
     // CalculateDeltaPosition(rVariables.DeltaPosition);
 
+    // Calculate Delta Position
+    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+
     // calculating the reference jacobian from cartesian coordinates to parent
     // coordinates for all integration points [dx_n/d£]
+    // compunting Jacobian using updated coordinates minus the increment of
+    // displacement in order to get the reference coordinates, even if the
+    //problem is under small strains setting
     rVariables.J = GetGeometry().Jacobian(rVariables.J, mThisIntegrationMethod,
                                           rVariables.DeltaPosition);
+
+    //rVariables.J = GetGeometry().Jacobian(rVariables.J, mThisIntegrationMethod);
+
+    //KRATOS_WATCH(rVariables.J)
+}
+
+
+//*************************COMPUTE DELTA POSITION******************************
+//*****************************************************************************
+
+Matrix& MinimalKineticCondition3D::CalculateDeltaPosition(Matrix& rDeltaPosition)
+{
+  KRATOS_TRY
+
+    GeometryType& geom = GetGeometry();
+    const unsigned int number_of_nodes = geom.PointsNumber();
+    unsigned int dimension = geom.WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>(number_of_nodes, dimension);
+
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+      const NodeType& iNode = geom[i];
+      rDeltaPosition(i, 0) = iNode.X() - iNode.X0();
+      rDeltaPosition(i, 1) = iNode.Y() - iNode.Y0();
+      if (dimension == 3)
+        rDeltaPosition(i, 2) = iNode.Z() - iNode.Z0();
+    }
+
+    return rDeltaPosition;
+
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
