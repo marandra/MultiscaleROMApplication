@@ -324,7 +324,10 @@ protected:
         // general variables for large displacement use
         // double  detF;
         // double  detF0;
+
         double detJ;
+        //Vector detJ;
+
         // Vector  StrainVector;
         // Vector  StressVector;
         Vector N;
@@ -381,7 +384,9 @@ protected:
             // jacobians
             // detF  = 1;
             // detF0 = 1;
+
             detJ = 1;
+
 
             // vectors
             // StrainVector.resize(voigt_size,false);
@@ -407,15 +412,13 @@ protected:
             // noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
             // noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
             noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-
             // others
             J.resize(1, false);
-            j.resize(1, false);
+            //j.resize(1, false);
             J[0].resize(dimension, dimension, false);
-            j[0].resize(dimension, dimension, false);
+            //j[0].resize(dimension, dimension, false);
             noalias(J[0]) = ZeroMatrix(dimension, dimension);
-            noalias(j[0]) = ZeroMatrix(dimension, dimension);
-
+            //noalias(j[0]) = ZeroMatrix(dimension, dimension);
             // pointers
             pDN_De = NULL;
             pNcontainer = NULL;
@@ -437,6 +440,11 @@ protected:
      * Calculation of the Integration Weight
      */
     virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    Matrix& CalculateDeltaPosition(Matrix& rDeltaPosition);
 
 private:
     ///@name Static Member Variables
