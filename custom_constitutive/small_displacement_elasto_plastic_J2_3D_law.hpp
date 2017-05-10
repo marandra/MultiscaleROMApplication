@@ -82,14 +82,14 @@ public:
                       const ProcessInfo& rCurrentProcessInfo);
 
 protected:
-    Vector mInitStrain;
+    double mStrainEnergy;
     Vector mPlasticStrain;
     Vector mPlasticStrainOld;
     double mAccumulatedPlasticStrain;
     double mAccumulatedPlasticStrainOld;
-    // boost::numeric::ublas::matrix<double>& mElasticityTensor();
     double yieldFunction(const double, const Properties& rMaterialProperties);
     double GetDeltaGamma(double norm_s_trial, const Properties& rMaterialProperties);
+    double GetSaturationHardening(const Properties& rMaterialProperties);
     virtual void CalculateTangentTensor(double dgamma,
                                         double norm_s_trial,
                                         const Vector& N_new,

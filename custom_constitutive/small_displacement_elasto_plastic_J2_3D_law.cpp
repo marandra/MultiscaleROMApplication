@@ -29,6 +29,9 @@ SmallDisplacementElastoPlasticJ23DLaw::SizeType SmallDisplacementElastoPlasticJ2
 
 bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<double>& rThisVariable)
 {
+    if(rThisVariable == STRAIN_ENERGY){
+        return true;
+    }
     return false;
 }
 
@@ -55,6 +58,9 @@ bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<array_1d<double, 
 double& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<double>& rThisVariable,
                                                         double& rValue)
 {
+    if(rThisVariable == STRAIN_ENERGY){
+        rValue = mStrainEnergy;
+    }
     return rValue;
 }
 
@@ -296,6 +302,13 @@ void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponseCauchy(Para
         CalculateTangentTensor(dgamma, norm_dev_stress, YieldFunctionNormalVector,
                                matprops, TangentTensor);
     }
+
+    //TODO add check of flag here (COMPUTE_STRAIN_ENERGY)
+    mStrainEnergy = 0.5 * inner_prod(epsilon - mPlasticStrain, prod(ElasticityTensor, epsilon - mPlasticStrain))
+        + 0.5 * GetSaturationHardening(matprops) * mAccumulatedPlasticStrain ;
+
+
+
 }
 
 void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
@@ -323,6 +336,20 @@ void SmallDisplacementElastoPlasticJ23DLaw::ResetMaterial(const Properties& rMat
 {
 }
 
+double SmallDisplacementElastoPlasticJ23DLaw::GetSaturationHardening(const Properties& rMaterialProperties)
+{
+    double yield_stress = rMaterialProperties[YIELD_STRESS];
+    double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
+    double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
+    double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
+    double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
+    mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
+        double k_new =
+            yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
+                delta_k * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
+    return k_new;
+}
+
 double SmallDisplacementElastoPlasticJ23DLaw::GetDeltaGamma(double norm_s_trial,
                                                             const Properties& rMaterialProperties)
 {
@@ -340,9 +367,7 @@ double SmallDisplacementElastoPlasticJ23DLaw::GetDeltaGamma(double norm_s_trial,
     mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
     while (norm_yieldfunction > tolerance)
     {
-        double k_new =
-            yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
-            delta_k * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
+        double k_new = GetSaturationHardening(rMaterialProperties);
         double kp_new =
             theta * hardening_modulus +
             delta_k * (hardening_exponent *

@@ -2471,10 +2471,9 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints(
             // compute stresses and constitutive parameters
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
             mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY, StrainEnergy);
-
-            rOutput[PointNumber] =
-                Variables.detJ * integration_points[PointNumber].Weight() *
-                Thickness * StrainEnergy; // 1/2 * sigma * epsilon
+            rOutput[PointNumber] = StrainEnergy;
+            //    Variables.detJ * integration_points[PointNumber].Weight() *
+            //    Thickness * StrainEnergy; // 1/2 * sigma * epsilon
             // rOutput[PointNumber] = Variables.detJ *
             // integration_points[PointNumber].Weight() * Thickness *
             // StrainEnergy;  // 1/2 * sigma * epsilon

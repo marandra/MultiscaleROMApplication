@@ -289,6 +289,9 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponseCauchy(Par
         CalculateTangentTensor(dgamma, norm_dev_stress, YieldFunctionNormalVector,
                                matprops, TangentTensor);
     }
+        //TODO add check of flag here (COMPUTE_STRAIN_ENERGY)
+    mStrainEnergy = 0.5 * inner_prod(epsilon - mPlasticStrain, prod(ElasticityTensor, epsilon - mPlasticStrain))
+        + 0.5 * GetSaturationHardening(matprops) * mAccumulatedPlasticStrain ;
 }
 
 void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
@@ -314,6 +317,20 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::ResetMaterial(const Properties& rMa
                                                            const GeometryType& rElementGeometry,
                                                            const Vector& rShapeFunctionsValues)
 {
+}
+
+double LinearElasticPlasticJ2PlaneStrain2DLaw::GetSaturationHardening(const Properties& rMaterialProperties)
+{
+    double yield_stress = rMaterialProperties[YIELD_STRESS];
+    double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
+    double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
+    double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
+    double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
+    mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
+        double k_new =
+            yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
+                delta_k * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
+    return k_new;
 }
 
 double LinearElasticPlasticJ2PlaneStrain2DLaw::GetDeltaGamma(double norm_s_trial,
