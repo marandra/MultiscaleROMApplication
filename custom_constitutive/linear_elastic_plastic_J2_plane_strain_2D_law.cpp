@@ -30,6 +30,9 @@ LinearElasticPlasticJ2PlaneStrain2DLaw::SizeType LinearElasticPlasticJ2PlaneStra
 
 bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<double>& rThisVariable)
 {
+     if(rThisVariable == STRAIN_ENERGY){
+        return true;
+    }
     return false;
 }
 
@@ -56,6 +59,9 @@ bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<array_1d<double,
 double& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable,
                                                          double& rValue)
 {
+    if(rThisVariable == STRAIN_ENERGY){
+        rValue = mStrainEnergy;
+    }
     return rValue;
 }
 
