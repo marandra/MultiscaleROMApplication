@@ -2,10 +2,7 @@ import sys
 import configparser
 import glob
 import numpy as np
-import lsqnonneg
-import numpy
 
-eps = 2.22e-16    # from matlab 
 
 def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
     '''Linear least squares with nonnegativity constraints.
@@ -28,11 +25,11 @@ def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
 
 
     if tol is None:
-        tol = 10*eps*norm1(C)*(max(C.shape)+1)
-    C = numpy.asarray(C)
+        tol = 10 * eps * norm1(C) * (max(C.shape) + 1)
+    C = np.asarray(C)
     (m,n) = C.shape
-    P = numpy.zeros(n)
-    Z = numpy.arange(1, n+1)
+    P = np.zeros(n)
+    Z = np.arange(1, n + 1)
     if x0 is None:
         x = P
     else:
@@ -41,86 +38,94 @@ def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
         else:
             x = x0
     ZZ = Z
-    resid = d - numpy.dot(C, x)
-    w = numpy.dot(C.T, resid)
+    resid = d - np.dot(C, x)
+    w = np.dot(C.T, resid)
     outeriter = 0
     it = 0
     itmax = itmax_factor * n
     exitflag = 1
 
     # outer loop to put variables into set to hold positive coefficients
-    while numpy.any(Z) and numpy.any(w[ZZ - 1] > tol):
+    while np.any(Z) and np.any(w[ZZ - 1] > tol):
         outeriter += 1
         t = w[ZZ - 1].argmax()
         t = ZZ[t]
         P[t - 1] = t
         Z[t - 1] = 0
-        PP = numpy.where(P <> 0)[0] + 1
-        ZZ = numpy.where(Z <> 0)[0] + 1
-        CP = numpy.zeros(C.shape)
+        PP = np.where(P != 0)[0] + 1
+        ZZ = np.where(Z != 0)[0] + 1
+        CP = np.zeros(C.shape)
         CP[:, PP - 1] = C[:, PP - 1]
-        CP[:, ZZ - 1] = numpy.zeros((m, msize(ZZ, 1)))
-        z = numpy.dot(numpy.linalg.pinv(CP), d)
-        z[ZZ - 1] = numpy.zeros((msize(ZZ, 1), msize(ZZ, 0)))
+        CP[:, ZZ - 1] = np.zeros((m, msize(ZZ, 1)))
+        z = np.dot(np.linalg.pinv(CP), d)
+        z[ZZ - 1] = np.zeros((msize(ZZ, 1), msize(ZZ, 0)))
 
         # inner loop to remove elements from the positve set which no longer belong
-        while numpy.any(z[PP-1] <= tol):
+        while np.any(z[PP-1] <= tol):
             it += 1
             if it > itmax:
                 max_error = z[PP - 1].max()
                 raise Exception('Exiting: Iteration count (=%d) exceeded\n Try raising the \
                                  tolerance tol. (max_error=%d)' % (it, max_error))
-            QQ = numpy.where((z <= tol) & (P <> 0))[0]
+            QQ = np.where((z <= tol) & (P != 0))[0]
             alpha = min(x[QQ] / (x[QQ] - z[QQ]))
-            x = x + alpha*(z - x)
-            ij = numpy.where((abs(x) < tol) & (P <> 0))[0] + 1
+            x = x + alpha * (z - x)
+            ij = np.where((abs(x) < tol) & (P != 0))[0] + 1
             Z[ij - 1] = ij
-            P[ij - 1] = numpy.zeros(max(ij.shape))
-            PP = numpy.where(P <> 0)[0] + 1
-            ZZ = numpy.where(Z <> 0)[0] + 1
-            CP[:, PP - 1] = C[:, PP-1]
-            CP[:, ZZ - 1] = numpy.zeros((m, msize(ZZ, 1)))
-            z=numpy.dot(numpy.linalg.pinv(CP), d)
-            z[ZZ - 1] = numpy.zeros((msize(ZZ, 1), msize(ZZ, 0)))
+            P[ij - 1] = np.zeros(max(ij.shape))
+            PP = np.where(P != 0)[0] + 1
+            ZZ = np.where(Z != 0)[0] + 1
+            CP[:, PP - 1] = C[:, PP - 1]
+            CP[:, ZZ - 1] = np.zeros((m, msize(ZZ, 1)))
+            z=np.dot(np.linalg.pinv(CP), d)
+            z[ZZ - 1] = np.zeros((msize(ZZ, 1), msize(ZZ, 0)))
         x = z
-        resid = d - numpy.dot(C, x)
-        w = numpy.dot(C.T, resid)
+        resid = d - np.dot(C, x)
+        w = np.dot(C.T, resid)
     return (x, sum(resid * resid), resid)
 
 
 def ComputeJandb(Modes, weights, factorLEQ=None):
+
+    eps = 2.22e-16    # from matlab
+
     if factorLEQ is None:
         factorLEQ = 1.0
     # Exact integral - numerical integration
-    INTexact = numpy.dot(Modes.T,weights)
+    INTexact = np.dot(Modes.T,weights)
 
     # Total microscale volume
-    vol = numpy.sum(weights)
-    sqrtVol = numpy.sqrt(weights)
+    vol = np.sum(weights)
+    sqrtVol = np.sqrt(weights)
 
     # Matrix of modified modes (with zero integral)
-    Xf = numpy.zeros(Modes.shape)
+    Xf = np.zeros(Modes.shape)
 
     # Loops over the initial modes
-    Xf = numpy.subtract(Modes, INTexact / vol)
-    Xf = numpy.multiply(Xf.T, sqrtVol).T
+    Xf = np.subtract(Modes, INTexact / vol)
+    Xf = np.multiply(Xf.T, sqrtVol).T
 
     # Singular Value Decomposition
-    [Lambda,SValues,VValues] = numpy.linalg.svd(Xf,full_matrices=False)
+    [Lambda,SValues,VValues] = np.linalg.svd(Xf,full_matrices=False)
 
     # fixed tolerance to define the reduced modified set of modes
-    tol = numpy.max(Modes.shape) * eps * numpy.max(SValues)
+    tol = np.max(Modes.shape) * eps * np.max(SValues)
     RankXf = sum(i > tol for i in SValues)
     Lambda = Lambda[:,0:RankXf]
     J = Lambda.T
-    Jw = factorLEQ * sqrtVol / numpy.sqrt(vol)
+    Jw = factorLEQ * sqrtVol / np.sqrt(vol)
 
     # Adding last row related with the sqrt of gauss integration weigths
-    J = numpy.vstack([J, Jw.T])
+    J = np.vstack([J, Jw.T])
 
     # Initializing the RHS vector for the optimization problem
-    b = numpy.append(numpy.zeros(Lambda.T.shape[0]), factorLEQ * numpy.sqrt(vol))
+    b = np.append(np.zeros(Lambda.T.shape[0]), factorLEQ * np.sqrt(vol))
     return (J, b, INTexact)
+
+
+#######################################
+# Main
+#######################################
 
 # get parameters
 fname = sys.argv[1]
@@ -134,6 +139,7 @@ nr_strain_components = int(conf['Parameters']['nr_strain_components'])
 energy_file_name = conf['Parameters']['energy_file_name']
 strain_file_name = conf['Parameters']['strain_file_name']
 
+# get files
 trajectory_paths = glob.glob('*_?')
 energy_elastic_files = []
 strain_elastic_files = []
@@ -145,28 +151,14 @@ for path in trajectory_paths:
     energy_inelast_files.extend(sorted(glob.glob(path + '/' + energy_file_name + '*'))[nr_elastic_snapshots:])
     strain_inelast_files.extend(sorted(glob.glob(path + '/' + strain_file_name + '*'))[nr_elastic_snapshots:])
     
-#import pprint
-#print("AAAAAAA")
-#pprint.pprint(energy_elastic_files)
-#print("BBBBBB")
-#pprint.pprint(strain_elastic_files)
-#print("CCCCCCC")
-#pprint.pprint(energy_inelast_files)
-#print("DDDDDDD")
-#pprint.pprint(strain_inelast_files)
-
-
 # first part: read and compute elastic energy modes, compute projector
 nr_dofs = nr_elements * nr_integration_points
 X = np.empty([nr_dofs, len(energy_elastic_files)])
 for i, file in enumerate(energy_elastic_files):
     X[:, i] = np.fromfile(file, dtype=np.float32)
 Ue_el = np.linalg.svd(X, full_matrices=False)[0]
-print(Ue_el)
 print("Fin svd strain elastic")
-print(X.shape)
 
-sys.exit()
 
 # second part: read inelastic energy modes, remove elastic component, decomp svd
 X = np.empty([nr_dofs, len(energy_inelast_files)])
@@ -177,6 +169,8 @@ X = X - np.dot(Ue_el, np.dot(Ue_el.T, X))
 print("Desp de proyector")
 Ue_in = np.linalg.svd(X, full_matrices=False)[0]
 print("Fin svd energy inelastic")
+
+sys.exit()
 
 # third part: read and compute elastic strain modes
 nr_dofs = nr_elements * nr_integration_points * nr_strain_components
@@ -195,3 +189,62 @@ X = X - np.dot(Us_el, np.dot(Us_el.T, X))
 print("Desp de proyector")
 Us_in = np.linalg.svd(X, full_matrices=False)[0]
 print("fin")
+
+# computation of integration points weights
+J, b, INTexact = ComputeJandb(k, GaussWeights, factorLEQ)
+M=len(GaussWeights)
+y = np.arange(M)
+
+# Resudual vector, initial guess
+r = b
+
+# Number of iterations
+it = 0
+mPOS=0
+z = []
+Jnorm = np.sqrt(sum(np.multiply(J,J),0))
+
+# Point Selection Algorithm
+while (np.linalg.norm(r) / np.linalg.norm(b) > tol and mPOS <= nGP):
+
+   # 1. Compute new point
+   ObjFun = np.dot((J[:, y]).T, r)
+   div = np.multiply(Jnorm[y], np.linalg.norm(r))
+   ObjFun = np.divide(ObjFun, div)
+   s = ObjFun.argmax()
+   t = y[s]
+
+   # 2. Move i from set y to set z
+   z = (np.append(z, t)).astype(int)
+   y=np.delete(y, s)
+
+   #   #solving LS conventional problem
+   x = np.linalg.lstsq(J[:, z], b)[0]
+   if any(x < 0):
+      # 3. Determime alpha for solving a NNLS
+      [x, resnorm, residual] = lsqnonneg(J[:,z], b)
+
+   # 3. Determime alpha for solving a NNLS
+   [x, resnorm, residual] = lsqnonneg(J[:,z], b)
+
+   # 4. Update the residual 
+   r = b - np.dot(J[:,z],x)
+
+   # 5. Update mPOS and k
+   mPOS = len(np.where(x>0)[0])
+
+   # Iteration counter
+   it = it + 1
+   # print "k =", it, "--- mPOS =",mPOS, "--- error (%) = ", np.linalg.norm(r)/np.linalg.norm(b)*100
+
+# 6. Postprocess of points - neglecting null weights
+INDzero = np.where(x == 0)[0]
+if any(INDzero):
+   z = np.delete(z, INDzero)   
+w = np.multiply(x, np.sqrt(GaussWeights[z]))
+
+#print "Reduced Weights"
+#print w
+#
+#print "GP's index"
+#print z
