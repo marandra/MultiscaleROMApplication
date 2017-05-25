@@ -24,15 +24,15 @@ class WriteElementsOutputScalar(km.Process):
         self.Var = f(km)
 
     def write_results(self, filename):
-        with open(filename, 'w') as ofile:
-        #with open(filename, 'wb') as ofile:
+        #with open(filename, 'w') as ofile:
+        with open(filename, 'wb') as ofile:
             process_info = self.model_part.ProcessInfo
             for elem in self.model_part.Elements:
                 variables = elem.GetValuesOnIntegrationPoints(self.Var, process_info)
                 for v in variables:
-                    ofile.write(" {:18.16f}\n".format(v[0]))
-                    #ofile.write(struct.pack('f', v[0])) #  'f'=float32
-            #ofile.write(b'\n')
+                    #ofile.write(" {:18.16f}\n".format(v[0]))
+                    ofile.write(struct.pack('f', v[0])) #  'f'=float32
+            ofile.write(b'\n')
 
     def ExecuteInitialize(self):
         pass
