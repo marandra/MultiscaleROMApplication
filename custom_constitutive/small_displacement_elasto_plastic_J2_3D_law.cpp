@@ -61,6 +61,9 @@ double& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<double>& 
     if(rThisVariable == STRAIN_ENERGY){
         rValue = mStrainEnergy;
     }
+    if(rThisVariable == INELASTICITY_FLAG){
+        rValue = mInelasticFlag;
+    }
     return rValue;
 }
 
@@ -249,11 +252,17 @@ void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponseCauchy(Para
 
     if (trial_yield_function <= 0.)
     {
+        // INELASTIC
+        mInelasticFlag = 0;
+
         StressVector = sigma_trial;
         TangentTensor = ElasticityTensor;
     }
     else
     {
+        // INELASTIC
+        mInelasticFlag = 1;
+
         Vector YieldFunctionNormalVector = StressTrialDev / norm_dev_stress;
         if (delta_k != 0.0 && hardening_exponent != 0.0)
         {
