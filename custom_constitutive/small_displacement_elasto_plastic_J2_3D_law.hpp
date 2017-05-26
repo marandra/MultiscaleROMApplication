@@ -82,6 +82,7 @@ public:
                       const ProcessInfo& rCurrentProcessInfo);
 
 protected:
+    double mInelasticFlag;
     double mStrainEnergy;
     Vector mPlasticStrain;
     Vector mPlasticStrainOld;
