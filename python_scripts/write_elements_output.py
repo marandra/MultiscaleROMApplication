@@ -25,28 +25,25 @@ class WriteElementsOutputScalar(km.Process):
             "filename": "unset_filename",
             "write_frequency": "every_timestep",
             "write_mode": "ascii",
-            "variable_reach": "core",
+            "variable_location": "core",
             "variable_name": "unset_variable_name"
         }
         """)
-        print("DEBUG")
-        print(default_settings)
-        print(settings)
         settings.ValidateAndAssignDefaults(default_settings)
-        print(settings)
-
         self.model_part = Model[settings['model_part_name'].GetString()]
         self.filename = settings['filename'].GetString()
         self.write_frequency = settings['write_frequency'].GetString()
         self.write_mode = settings['write_mode'].GetString()
-        self.var_reach = settings['variable_reach'].GetString()
+        self.var_location = settings['variable_location'].GetString()
         self.var_name = settings['variable_name'].GetString()
         f = operator.attrgetter(self.var_name)
-        if self.var_reach == "core":
+        if self.var_location == "core":
             self.var = f(km)
         else:
-            import KratosMultiphysics.MultiscaleROMApplication as msr
-            self.var = f(msr)
+            f = operator.attrgetter(self.var_location)
+            app = f(km)
+            f = operator.attrgetter(self.var_name)
+            self.var = f(app)
 
     def write_results(self, filename):
 

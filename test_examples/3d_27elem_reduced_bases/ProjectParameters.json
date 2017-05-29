@@ -62,7 +62,7 @@
             "lookuptable_mult": [0.0, 2.5]
             }
         },{                                                                     
-        "implemented_in_file"   : "write_elements_output_scalar",               
+        "implemented_in_file"   : "write_elements_output",               
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "help": "",                                                             
         "process_name": "WriteElementsOutputScalar",                            
@@ -74,7 +74,7 @@
 	    "write_mode": "binary"
             }                                                                   
         },{                                                                     
-        "implemented_in_file"   : "write_elements_output_scalar",               
+        "implemented_in_file"   : "write_elements_output",               
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "help": "",                                                             
         "process_name": "WriteElementsOutputScalar",                            
@@ -83,19 +83,19 @@
             "model_part_name": "RVE",                                           
             "filename": "strain_tensor",                                        
             "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
-	    "variable_reach": "application",
+	    "variable_location": "MultiscaleROMApplication",
 	    "write_mode": "ascii"
             }                                                                   
         },{
-        "implemented_in_file"   : "write_elements_output_scalar",
+        "implemented_in_file"   : "write_elements_output",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
 	    "filename": "gauss_weights",
+            "variable_name": "GAUSS_WEIGHTS",
 	    "write_frequency": "last_timestep",
-	    "variable_reach": "application",
-            "variable_name": "GAUSS_WEIGHTS"
+	    "variable_location": "MultiscaleROMApplication"
 	    }
         },{
         "implemented_in_file"   : "write_global_output_scalar_application",
@@ -105,8 +105,8 @@
             "mesh_id": 0,
             "model_part_name": "RVE",
 	    "filename": "inelasticity_flag",
-	    "variable_reach": "application",
-            "variable_name": "INELASTICITY_FLAG"
+            "variable_name": "INELASTICITY_FLAG",
+	    "variable_location": "MultiscaleROMApplication"
 	    }
         }],
     "output_configuration"     : {},
