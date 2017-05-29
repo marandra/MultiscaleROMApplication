@@ -69,7 +69,7 @@
         "Parameters": {                                                         
             "mesh_id": 0,                                                       
             "model_part_name": "RVE",                                           
-            "filename": "strain_energy",                                        
+            "filename": "energy",                                        
             "variable_name": "STRAIN_ENERGY",
 	    "write_mode": "binary"
             }                                                                   
@@ -81,10 +81,10 @@
         "Parameters": {                                                         
             "mesh_id": 0,                                                       
             "model_part_name": "RVE",                                           
-            "filename": "strain_tensor",                                        
+            "filename": "strain",                                        
             "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
 	    "variable_location": "MultiscaleROMApplication",
-	    "write_mode": "ascii"
+	    "write_mode": "binary"
             }                                                                   
         },{
         "implemented_in_file"   : "write_elements_output",
@@ -104,8 +104,8 @@
         "Parameters": {
             "mesh_id": 0,
             "model_part_name": "RVE",
-	    "filename": "inelasticity_flag",
-            "variable_name": "INELASTICITY_FLAG",
+	    "filename": "inelastic_timestep",
+            "variable_name": "INELASTIC_FLAG",
 	    "variable_location": "MultiscaleROMApplication"
 	    }
         }],

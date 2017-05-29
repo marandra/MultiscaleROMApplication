@@ -61,7 +61,7 @@ double& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<double>& 
     if(rThisVariable == STRAIN_ENERGY){
         rValue = mStrainEnergy;
     }
-    if(rThisVariable == INELASTICITY_FLAG){
+    if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
     }
     return rValue;
