@@ -71,31 +71,29 @@
             "model_part_name": "RVE",                                           
             "filename": "strain_energy",                                        
             "variable_name": "STRAIN_ENERGY",
-	    "variable_reach": "core",
-	    "write_frequency": "every_timestep",
-	    "write_mode": "ascii"
+	    "write_mode": "binary"
             }                                                                   
         },{                                                                     
-        "implemented_in_file"   : "write_elements_output_vector",               
+        "implemented_in_file"   : "write_elements_output_scalar",               
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "help": "",                                                             
-        "process_name": "WriteElementsOutputVector",                            
+        "process_name": "WriteElementsOutputScalar",                            
         "Parameters": {                                                         
             "mesh_id": 0,                                                       
             "model_part_name": "RVE",                                           
             "filename": "strain_tensor",                                        
-            "variable_name": "GREEN_LAGRANGE_STRAIN_TENSOR"                     
+            "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
+	    "variable_reach": "application",
+	    "write_mode": "ascii"
             }                                                                   
         },{
         "implemented_in_file"   : "write_elements_output_scalar",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
-        "process_name": "WriteElementsOutputScalarApplication",
+        "process_name": "WriteElementsOutputScalar",
         "Parameters": {
-            "mesh_id": 0,
             "model_part_name": "RVE",
 	    "filename": "gauss_weights",
 	    "write_frequency": "last_timestep",
-	    "write_mode": "ascii",
 	    "variable_reach": "application",
             "variable_name": "GAUSS_WEIGHTS"
 	    }
@@ -107,8 +105,6 @@
             "mesh_id": 0,
             "model_part_name": "RVE",
 	    "filename": "inelasticity_flag",
-	    "write_frequency": "every_timestep",
-	    "write_mode": "ascii",
 	    "variable_reach": "application",
             "variable_name": "INELASTICITY_FLAG"
 	    }
