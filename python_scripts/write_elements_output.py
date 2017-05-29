@@ -16,19 +16,37 @@ def parameters_get_list_int(ilist):
 
 
 class WriteElementsOutputScalar(km.Process):
-    def __init__(self, param, Model):
-        self.model_part = Model[param['model_part_name'].GetString()]
-        self.filename = param['filename'].GetString()
-        self.write_frequency = param['write_frequency'].GetString()
-        self.write_mode = param['write_mode'].GetString()
-        self.var_reach = param['variable_reach'].GetString()
-        self.var_name = param['variable_name'].GetString()
+    def __init__(self, settings, Model):
+
+        default_settings = km.Parameters("""
+        {
+            "mesh_id": 0,
+            "model_part_name": "unset_model_part_name",
+            "filename": "unset_filename",
+            "write_frequency": "every_timestep",
+            "write_mode": "ascii",
+            "variable_reach": "core",
+            "variable_name": "unset_variable_name"
+        }
+        """)
+        print("DEBUG")
+        print(default_settings)
+        print(settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        print(settings)
+
+        self.model_part = Model[settings['model_part_name'].GetString()]
+        self.filename = settings['filename'].GetString()
+        self.write_frequency = settings['write_frequency'].GetString()
+        self.write_mode = settings['write_mode'].GetString()
+        self.var_reach = settings['variable_reach'].GetString()
+        self.var_name = settings['variable_name'].GetString()
         f = operator.attrgetter(self.var_name)
         if self.var_reach == "core":
-            self.Var = f(km)
+            self.var = f(km)
         else:
             import KratosMultiphysics.MultiscaleROMApplication as msr
-            self.Var = f(msr)
+            self.var = f(msr)
 
     def write_results(self, filename):
 
@@ -36,18 +54,20 @@ class WriteElementsOutputScalar(km.Process):
             with open(filename, 'wb') as ofile:
                 process_info = self.model_part.ProcessInfo
                 for elem in self.model_part.Elements:
-                    variables = elem.GetValuesOnIntegrationPoints(self.Var, process_info)
+                    variables = elem.GetValuesOnIntegrationPoints(self.var, process_info)
                     for v in variables:
-                        ofile.write(struct.pack('f', v[0])) # 'f'=float32
+                        for comp in v:
+                            ofile.write(struct.pack('f', comp)) # 'f'=float32
                 ofile.write(b'\n')
 
         def write_results_ascii():
             with open(filename, 'w') as ofile:
                 process_info = self.model_part.ProcessInfo
                 for elem in self.model_part.Elements:
-                    variables = elem.GetValuesOnIntegrationPoints(self.Var, process_info)
+                    variables = elem.GetValuesOnIntegrationPoints(self.var, process_info)
                     for v in variables:
-                        ofile.write("{:18.16f}\n".format(v[0]))
+                        for comp in v:
+                            ofile.write("{:18.16f}\n".format(comp))
 
         if self.write_mode == "binary":
             write_results_binary()
