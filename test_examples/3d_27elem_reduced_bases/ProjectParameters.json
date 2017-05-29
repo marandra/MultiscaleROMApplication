@@ -67,7 +67,6 @@
         "help": "",                                                             
         "process_name": "WriteElementsOutputScalar",                            
         "Parameters": {                                                         
-            "mesh_id": 0,                                                       
             "model_part_name": "RVE",                                           
             "filename": "energy",                                        
             "variable_name": "STRAIN_ENERGY",
@@ -79,7 +78,6 @@
         "help": "",                                                             
         "process_name": "WriteElementsOutputScalar",                            
         "Parameters": {                                                         
-            "mesh_id": 0,                                                       
             "model_part_name": "RVE",                                           
             "filename": "strain",                                        
             "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
@@ -98,15 +96,14 @@
 	    "variable_location": "MultiscaleROMApplication"
 	    }
         },{
-        "implemented_in_file"   : "write_global_output_scalar_application",
+        "implemented_in_file"   : "write_flag_time",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteGlobalOutputScalarApplication",
         "Parameters": {
-            "mesh_id": 0,
             "model_part_name": "RVE",
-	    "filename": "inelastic_timestep",
-            "variable_name": "INELASTIC_FLAG",
-	    "variable_location": "MultiscaleROMApplication"
+	    "filename": "inelastic_time",
+            "flag_name": "INELASTIC_FLAG",
+	    "flag_location": "MultiscaleROMApplication"
 	    }
         }],
     "output_configuration"     : {},
