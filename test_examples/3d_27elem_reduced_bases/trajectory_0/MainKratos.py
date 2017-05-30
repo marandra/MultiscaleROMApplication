@@ -18,7 +18,8 @@ def analysis(parameters, processes, solver, model_part):
     delta_time = parameters["problem_data"]["time_step"].GetDouble()
     time = parameters["problem_data"]["start_time"].GetDouble()
     end_time = parameters["problem_data"]["end_time"].GetDouble()
-    while(time <= end_time):
+    tolerance = delta_time / 10.
+    while(time <= end_time + tolerance):
         model_part.CloneTimeStep(time)
         for process in processes:
             process.ExecuteInitializeSolutionStep()

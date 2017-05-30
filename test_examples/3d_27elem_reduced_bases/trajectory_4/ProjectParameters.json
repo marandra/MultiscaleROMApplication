@@ -3,9 +3,9 @@
         "problem_name"    : "3d_27elem",
         "part_name"       : "TRIANGLES",
         "domain_size"     : 3,
-        "time_step"       : 0.1,
+        "time_step"       : 0.025,
         "start_time"      : 0.0,
-        "end_time"        : 5.0,
+        "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -57,9 +57,9 @@
             "mesh_id": 0,
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-            "initial_strain": [0.01, 0.00, 0.00],
-            "lookuptable_time": [0.0, 5.0],
-            "lookuptable_mult": [0.0, 2.5]
+            "initial_strain": [0.0, 0.0, 0.0, 0.0, 0.1, 0.0],
+            "lookuptable_time": [0.0, 1.0],
+            "lookuptable_mult": [0.0, 1.0]
             }
         },{                                                                     
         "implemented_in_file"   : "write_elements_output",               
