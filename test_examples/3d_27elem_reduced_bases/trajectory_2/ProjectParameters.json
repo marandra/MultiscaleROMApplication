@@ -57,7 +57,7 @@
             "mesh_id": 0,
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-            "initial_strain": [0.0, 0.0, 0.1, 0.0, 0.0, 0.0],
+            "initial_strain": [0.1, 0.0, 0.0, 0.0, 0.0, 0.0],
             "lookuptable_time": [0.0, 1.0],
             "lookuptable_mult": [0.0, 1.0]
             }
@@ -96,12 +96,12 @@
 	    "variable_location": "MultiscaleROMApplication"
 	    }
         },{
-        "implemented_in_file"   : "write_flag_time",
+        "implemented_in_file"   : "write_flag_timesteps",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteGlobalOutputScalarApplication",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "inelastic_time",
+	    "filename": "elastic_timesteps",
             "flag_name": "INELASTIC_FLAG",
 	    "flag_location": "MultiscaleROMApplication"
 	    }

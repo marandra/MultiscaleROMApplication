@@ -42,10 +42,11 @@ class WriteElementsOutputScalar(km.Process):
 
     def write_results(self):
         with open(self.filename, 'w') as ofile:
-            ofile.write("{:.3f}\n".format(self.time))
+            ofile.write("{}\n".format(self.timestep_counter))
 
     def ExecuteInitialize(self):
-        self.time = 0
+        self.timestep_counter = -1
+        self.inelastic_flag = False
         try:
             os.remove(self.filename)
         except OSError:
@@ -64,12 +65,13 @@ class WriteElementsOutputScalar(km.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        if not self.time:
+        if not self.inelastic_flag:
             for elem in self.model_part.Elements:
                 flag = elem.GetValuesOnIntegrationPoints(self.var, self.model_part.ProcessInfo)
                 if 1 in [x for y in flag for x in y]:
-                    self.time = self.model_part.ProcessInfo[km.TIME]
+                    self.inelastic_flag = True
                     self.write_results()
+        self.timestep_counter = self.timestep_counter + 1
 
     def ExecuteFinalize(self):
         pass
