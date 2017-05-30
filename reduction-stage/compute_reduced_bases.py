@@ -3,9 +3,6 @@ import configparser
 import glob
 import numpy as np
 
-#import scipy as sci
-
-
 def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
     '''Linear least squares with nonnegativity constraints.
     (x, resnorm, residual) = lsqnonneg(C,d) returns the vector x that minimizes norm(d-C*x)
@@ -24,7 +21,6 @@ def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
             return 1
         else:
             return s[dim]
-
 
     if tol is None:
         tol = 10 * eps * norm1(C) * (max(C.shape) + 1)
@@ -87,14 +83,12 @@ def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
     return (x, sum(resid * resid), resid)
 
 
-def ComputeJandb(Modes, weights, factorLEQ=None):
+def ComputeJandb(Modes, weights, factorLEQ=1.0):
 
     eps = 2.22e-16    # from matlab
 
-    if factorLEQ is None:
-        factorLEQ = 1.0
     # Exact integral - numerical integration
-    INTexact = np.dot(Modes.T,weights)
+    INTexact = np.dot(Modes.T, weights)
 
     # Total microscale volume
     vol = np.sum(weights)
@@ -122,14 +116,13 @@ def ComputeJandb(Modes, weights, factorLEQ=None):
 
     # Initializing the RHS vector for the optimization problem
     b = np.append(np.zeros(Lambda.T.shape[0]), factorLEQ * np.sqrt(vol))
-    return (J, b, INTexact)
+    return J, b, INTexact
 
 
 def ComputeROQ(Modes, weights, factorLEQ, nGP, tol):
     # computation of integration points weights
-    #[J, b, INTexact] = ComputeJandb(k, GaussWeights, factorLEQ)
     [J, b, INTexact] = ComputeJandb(Modes, weights, factorLEQ)
-    M=len(weights)
+    M = len(weights)
     y = np.arange(M)
 
     # Resudual vector, initial guess
@@ -201,298 +194,209 @@ def ComputeROQ(Modes, weights, factorLEQ, nGP, tol):
 #######################################
 # Main
 #######################################
-if __name__=='__main__':
 
-   # get parameters
-   fname = sys.argv[1]
-   conf = configparser.ConfigParser()
-   conf.read(fname)
-   file_format = conf['Parameters']['file_format']
-   nr_elastic_snapshots = int(conf['Parameters']['nr_elastic_snapshots'])
-   nr_elements = int(conf['Parameters']['nr_elements'])
-   nr_integration_points = int(conf['Parameters']['nr_integration_points'])
-   nr_strain_components = int(conf['Parameters']['nr_strain_components'])
-   nr_energy_reduced_modes = int(conf['Parameters']['nr_energy_reduced_modes'])
-   energy_file_name = conf['Parameters']['energy_file_name']
-   strain_file_name = conf['Parameters']['strain_file_name']
-   gaussweights_file_name = conf['Parameters']['gaussweights_file_name']
-   inelasticity_flag_name = conf['Parameters']['inelflag_file_name']
+# get parameters
+conf = configparser.ConfigParser()
+conf.read(sys.argv[1])
+snapshot_file_format = conf['Parameters']['snapshot_file_format']
+basis_file_format = conf['Parameters']['basis_file_format']
+nr_elements = int(conf['Parameters']['nr_elements'])
+nr_integration_points = int(conf['Parameters']['nr_integration_points'])
+nr_strain_components = int(conf['Parameters']['nr_strain_components'])
+nr_energy_reduced_modes = int(conf['Parameters']['nr_energy_reduced_modes'])
+trajectory_filename = conf['Parameters']['trajectory_filename']
+energy_filename = conf['Parameters']['energy_filename']
+strain_filename = conf['Parameters']['strain_filename']
+integration_weights_filename = conf['Parameters']['gauss_weights_filename']
+nr_elastic_snapshots_filename = conf['Parameters']['nr_elastic_snapshots_filename']
+energy_basis_filename = conf['Parameters']['energy_basis_filename']
+strain_basis_filename = conf['Parameters']['strain_basis_filename']
+roq_weigths_filename = conf['Parameters']['roq_weights_filename']
 
-   # get files
-   trajectory_paths = glob.glob('*_?')
-   energy_elastic_files = []
-   strain_elastic_files = []
-   energy_inelast_files = []
-   strain_inelast_files = []
+# get files
+integration_weights_files = glob.glob("{}_?/{}".format(trajectory_filename, integration_weights_filename))
+elastic_snapshots_files = glob.glob("{}_?/{}".format(trajectory_filename, nr_elastic_snapshots_filename))
+trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
 
-   gaussweights_file    = glob.glob(trajectory_paths[0] + '/' + gaussweights_file_name)
+# TODO : for the future, take into account loadin/unloading trajectory cases
+elastic_mode_traj = []
+for filename in elastic_snapshots_files:
+    with open(filename, "r") as f:
+        elastic_mode_traj.append(int(f.readline().strip()))
+nr_elastic_snapshots = min(elastic_mode_traj)
+print("Nr of elastic snapshots: {}".format(nr_elastic_snapshots))
 
-   # TODO : define the number of snapshots per trajectory
-   inelastic_flag_global = np.empty([len(trajectory_paths), 61])
+energy_elastic_files = []
+energy_inelast_files = []
+strain_elastic_files = []
+strain_inelast_files = []
+for path in trajectory_paths:
+    energy_elastic_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[:nr_elastic_snapshots])
+    energy_inelast_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[nr_elastic_snapshots:])
+    strain_elastic_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[:nr_elastic_snapshots])
+    strain_inelast_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[nr_elastic_snapshots:])
 
-   iTest=0
-   inelastic_flag_max = np.empty([len(trajectory_paths),1])
-   for path in trajectory_paths:
-       inelasticity_flag_files = []
-       inelasticity_flag_files.extend(sorted(glob.glob(path + '/' + inelasticity_flag_name + '*')))
-       for i, file in enumerate(inelasticity_flag_files):
-           inelastic_flag_global[iTest, i] = np.fromfile(file, dtype=np.float32)
-       inelastic_flag_max[iTest]=inelastic_flag_global[iTest, :].argmax()
-       iTest=iTest+1
+print("STRAIN SNAPSHOTS")
 
-   #print(inelastic_flag_global)
-   #print(inelastic_flag_max)
+# first part: read and compute elastic strain modes
+print("Step 01: svd of strain elastic snapshots")
+nr_dofs = nr_elements * nr_integration_points * nr_strain_components
+X = np.empty([nr_dofs, len(strain_elastic_files)])
+for i, file in enumerate(strain_elastic_files):
+    X[:, i] = np.fromfile(file, dtype=np.float32)
+# TODO: incluir el SVD del paquete scipy, parece que es mas optimo, ver si esta instalada una version reciente de scipy en el cluster
+[Utmp, Stmp, Vtmp] = np.linalg.svd(X, full_matrices=False)
 
-   # TODO : for the future, take into account loadin/unloading trajectory cases
-   #for path in trajectory_paths:
-   for j, path in enumerate(trajectory_paths):
-       #energy_elastic_files.extend(sorted(glob.glob(path + '/' + energy_file_name + '*'))[:nr_elastic_snapshots])
-       #strain_elastic_files.extend(sorted(glob.glob(path + '/' + strain_file_name + '*'))[:nr_elastic_snapshots])
-       #energy_inelast_files.extend(sorted(glob.glob(path + '/' + energy_file_name + '*'))[nr_elastic_snapshots:])
-       #strain_inelast_files.extend(sorted(glob.glob(path + '/' + strain_file_name + '*'))[nr_elastic_snapshots:])
-       #print(trajectory_paths[iPath])
-       nr_elastic_snapshots=int(inelastic_flag_max[j][0])
-       energy_elastic_files.extend(sorted(glob.glob(path + '/' + energy_file_name + '*'))[:nr_elastic_snapshots])
-       strain_elastic_files.extend(sorted(glob.glob(path + '/' + strain_file_name + '*'))[:nr_elastic_snapshots])
-       energy_inelast_files.extend(sorted(glob.glob(path + '/' + energy_file_name + '*'))[nr_elastic_snapshots:])
-       strain_inelast_files.extend(sorted(glob.glob(path + '/' + strain_file_name + '*'))[nr_elastic_snapshots:])
-       #print(strain_elastic_files)
-       #print(strain_elastic_files)
-       #print(strain_inelast_files)
+print("Step 02: selection process of strain elastic modes")
+tolSVD = 1e-8
+cont = 1
+Us_el = []
+for iValue, sin_val in enumerate(Stmp):
+    #print(Stmp[iValue])
+    if sin_val > tolSVD:
+        if cont == 1:
+            Us_el = Utmp[:, iValue]
+            #print(Us_el)
+        else:
+            Us_el = np.column_stack((Us_el, Utmp[:, iValue]))
+            #print(Us_el[:,iValue])
+        cont = cont + 1
 
-   #print(trajectory_paths)
+# second part: read inelastic strain modes, remove elastic component, decomp svd
+X = np.empty([nr_dofs, len(strain_inelast_files)])
 
-   #for ener in inelasticity_flag_files:
-   #    print(ener)
-
-   print("****************")
-   print("STRAIN SNAPSHOTS")
-   print("****************")
-   # TODO: incluir el SVD del paquete scipy, parece que es mas optimo, ver si esta instalada una version reciente de scipy en el cluster
-   # first part: read and compute elastic strain modes
-   nr_dofs = nr_elements * nr_integration_points * nr_strain_components
-   X = np.empty([nr_dofs, len(strain_elastic_files)])
-   for i, file in enumerate(strain_elastic_files):
-       #print(file)
-       X[:, i] = np.fromfile(file, dtype=np.float32)
-   [Utmp,Stmp,Vtmp] = np.linalg.svd(X, full_matrices=False)#[0]
-   #print(Stmp)
-   print("Step 01: svd of strain elastic snapshots")
-
-   tolSVD=1e-8
-   #tolSVD=1e-6 # for 27k 3D microscale
-   cont=1
-   Us_el=[]
-   for iValue, sin_val in enumerate(Stmp):
-       #print(Stmp[iValue])
-       if sin_val>tolSVD:
-           if cont==1:
-               Us_el=Utmp[:,iValue]
-               #print(Us_el)
-           else:
-               Us_el = np.column_stack((Us_el,Utmp[:,iValue]))
-               #print(Us_el[:,iValue])
-           cont=cont+1
-   #print(Us_el.shape)
-   print("Step 02: selection process of strain elastic modes")
-
-   #[Us_el,ss_el,Vs_el] = np.linalg.svd(X, full_matrices=False)#[0]
-   #Us_el = np.linalg.svd(X, full_matrices=False)[0]
-   #[Us_el,ss_el,Vs_el] = sci.linalg.svd(X, full_matrices=False)#[0]
-   #print(ss_el)
-   #print(Us_el[:,0])
-   #print(Us_el)
-
-   # second part: read inelastic strain modes, remove elastic component, decomp svd
-   X = np.empty([nr_dofs, len(strain_inelast_files)])
-
-   #for i, file in enumerate(strain_inelast_files):
-   #    X[:, i] = np.fromfile(file, dtype=np.float32)
-   #print("Antes de proyector")
-   #X = X - np.dot(Us_el, np.dot(Us_el.T, X))
+#for i, file in enumerate(strain_inelast_files):
+#    X[:, i] = np.fromfile(file, dtype=np.float32)
+#print("Antes de proyector")
+#X = X - np.dot(Us_el, np.dot(Us_el.T, X))
 
 
-   for i, file in enumerate(strain_inelast_files):
-       #print(i)
-       X[:, i] = np.fromfile(file, dtype=np.float32)
-       for j in range(Us_el.shape[1]):
-           X[:,i] = X[:,i] - np.multiply(np.dot(Us_el[:,j],X[:,i]),Us_el[:,j])
+print("Step 03: projection of strain inelastic snapshots")
+for i, file in enumerate(strain_inelast_files):
+    #print(i)
+    X[:, i] = np.fromfile(file, dtype=np.float32)
+    for j in range(Us_el.shape[1]):
+        X[:,i] = X[:,i] - np.multiply(np.dot(Us_el[:,j],X[:,i]),Us_el[:,j])
 
-   #print("Desp de proyector")
-   print("Step 03: projection of strain inelastic snapshots")
-   #Us_in = np.linalg.svd(X, full_matrices=False)#[0]
-   [Utmp,Stmp,Vtmp] = np.linalg.svd(X, full_matrices=False)#[0]
-   #print(Stmp)
-   print("Step 04: svd of strain inelastic modified snapshots")
-
-
-   tolSVD=1e-7
-   cont=1
-   Us_in=[]
-   #for iValue in range(len(Stmp)):
-   for iValue, sin_val in enumerate(Stmp):
-       #print(Stmp[iValue])
-       if sin_val>tolSVD:
-           if cont==1:
-               Us_in=Utmp[:,iValue]
-           else:
-               Us_in = np.column_stack((Us_in,Utmp[:,iValue]))
-           cont=cont+1
-   #print(Us_in.shape)
-   print("Step 05: Selection process of strain inelastic modes")
-
-   Us=np.hstack([Us_el, Us_in])
-   print("Step 06: assembly of global matrix of strain modes")
-   print("SIZE OF Us")
-   print(Us.shape)
-
-   #sys.exit()
-
-   print("****************")
-   print("ENERGY SNAPSHOTS")
-   print("****************")
-   # third part: read and compute elastic energy modes, compute projector
-   nr_dofs = nr_elements * nr_integration_points
-   X = np.empty([nr_dofs, len(energy_elastic_files)])
-   for i, file in enumerate(energy_elastic_files):
-       X[:, i] = np.fromfile(file, dtype=np.float32)
-   #Ue_el = np.linalg.svd(X, full_matrices=False)[0]
-   [Utmp,Stmp,Vtmp] = np.linalg.svd(X, full_matrices=False)#[0]
-   #print(Stmp)
-   #print(Ue_el.shape)
-
-   print("Step 07: svd of elastic energy snapshots")
-
-   tolSVD=1e-7
-   #tolSVD=1e-6 #for 27k 3D microscale
-   cont=1
-   Ue_el=[]
-   for iValue, sin_val in enumerate(Stmp):
-       #print(Stmp[iValue])
-       if sin_val>tolSVD:
-           if cont==1:
-               Ue_el=Utmp[:,iValue]
-           else:
-               Ue_el = np.column_stack((Ue_el,Utmp[:,iValue]))
-           cont=cont+1
-   #print(Ue_el.shape)
-   print("Step 08: Selection process of elastic energy modes")
-
-   #sys.exit()
-
-   # fourth part: read inelastic energy modes, remove elastic component, decomp svd
-   X = np.empty([nr_dofs, len(energy_inelast_files)])
-   #for i, file in enumerate(energy_inelast_files):
-   #    X[:, i] = np.fromfile(file, dtype=np.float32)
-   #print("Antes de proyector")
-   #X = X - np.dot(Ue_el, np.dot(Ue_el.T, X))
-
-   for i, file in enumerate(energy_inelast_files):
-       #print(i)
-       X[:, i] = np.fromfile(file, dtype=np.float32)
-       for j in range(Ue_el.shape[1]):
-           X[:,i] = X[:,i] - np.multiply(np.dot(Ue_el[:,j],X[:,i]),Ue_el[:,j])
-
-   print("Step 09: projection of energy inelastic snapshots")
-   #print("Desp de proyector")
-   #print(X.shape)
-   #Ue_in = np.linalg.svd(X, full_matrices=False)[0]
-   [Utmp,Stmp,Vtmp] = np.linalg.svd(X, full_matrices=False)#[0]
-   #print(Stmp)
-   print("Step 10: svd of inelastic energy modified snapshots")
+print("Step 04: svd of strain inelastic modified snapshots")
+#Us_in = np.linalg.svd(X, full_matrices=False)#[0]
+[Utmp, Stmp, Vtmp] = np.linalg.svd(X, full_matrices=False)#[0]
+#print(Stmp)
 
 
-   tolSVD=1e-7
-   cont=1
-   Ue_in=[]
-   for iValue, sin_val in enumerate(Stmp):
-       #print(Stmp[iValue])
-       if sin_val>tolSVD:
-           if cont==1:
-               Ue_in=Utmp[:,iValue]
-           else:
-               Ue_in = np.column_stack((Ue_in,Utmp[:,iValue]))
-           cont=cont+1
-   #print(Ue_in.shape)
-   print("Step 11: selection process of inelastic energy modes")
+print("Step 05: Selection process of strain inelastic modes")
+tolSVD=1e-7
+cont=1
+Us_in=[]
+#for iValue in range(len(Stmp)):
+for iValue, sin_val in enumerate(Stmp):
+    #print(Stmp[iValue])
+    if sin_val>tolSVD:
+        if cont==1:
+            Us_in=Utmp[:,iValue]
+        else:
+            Us_in = np.column_stack((Us_in,Utmp[:,iValue]))
+        cont=cont+1
+#print(Us_in.shape)
 
-   Ue=np.hstack([Ue_el, Ue_in])
-   print("Step 12: assembly of global matrix of energy modes")
-   print("SIZE OF Ue")
-   print(Ue.shape)
+print("Step 06: assembly of global matrix of strain modes")
+Us=np.hstack([Us_el, Us_in])
 
-   #sys.exit()
+print("ENERGY SNAPSHOTS")
+print("Step 07: svd of elastic energy snapshots")
+# third part: read and compute elastic energy modes, compute projector
+nr_dofs = nr_elements * nr_integration_points
+X = np.empty([nr_dofs, len(energy_elastic_files)])
+for i, file in enumerate(energy_elastic_files):
+    X[:, i] = np.fromfile(file, dtype=np.float32)
+#Ue_el = np.linalg.svd(X, full_matrices=False)[0]
+[Utmp,Stmp,Vtmp] = np.linalg.svd(X, full_matrices=False)#[0]
+#print(Stmp)
+#print(Ue_el.shape)
 
-   # reading the gauss weigths for computing the ROQ
-   nr_dofs = nr_elements * nr_integration_points
-   for i, file in enumerate(gaussweights_file):
-       GaussWeights = np.fromfile(file, dtype=np.float32)
-   #print("Gauss Weights")
-   #print(GaussWeights)
+print("Step 08: Selection process of elastic energy modes")
+tolSVD=1e-7
+#tolSVD=1e-6 #for 27k 3D microscale
+cont=1
+Ue_el=[]
+for iValue, sin_val in enumerate(Stmp):
+    #print(Stmp[iValue])
+    if sin_val>tolSVD:
+        if cont==1:
+            Ue_el=Utmp[:,iValue]
+        else:
+            Ue_el = np.column_stack((Ue_el,Utmp[:,iValue]))
+        cont=cont+1
+#print(Ue_el.shape)
 
-   #sys.exit()
+print("Step 09: projection of energy inelastic snapshots")
+# fourth part: read inelastic energy modes, remove elastic component, decomp svd
+X = np.empty([nr_dofs, len(energy_inelast_files)])
+#for i, file in enumerate(energy_inelast_files):
+#    X[:, i] = np.fromfile(file, dtype=np.float32)
+#print("Antes de proyector")
+#X = X - np.dot(Ue_el, np.dot(Ue_el.T, X))
 
-   # TODO: change the print format of the matrix in order to avoid wrong tabulation because of the minus (-) sign.
-   print("**********************")
-   print("Printing data to files")
-   print("**********************")
-   file_Us='./Output/StrainBasis.dat'
-   with open(file_Us,'wb') as ofileBasis:
-       #np.savetxt(ofileBasis, Us, fmt='%+.13f')
-       np.savetxt(ofileBasis, Us, fmt='%.13f')
-       #for v in Us_el:
-           #ofileBasis.write("f\n".format(v))
-           #np.savetxt(ofileBasis, v, fmt='%.13f')
-           #np.matrix.tofile(ofileBasis, v, fmt='%.13f')
+for i, file in enumerate(energy_inelast_files):
+    #print(i)
+    X[:, i] = np.fromfile(file, dtype=np.float32)
+    for j in range(Ue_el.shape[1]):
+        X[:,i] = X[:,i] - np.multiply(np.dot(Ue_el[:,j],X[:,i]),Ue_el[:,j])
 
-   #num_ener_modes=20
-   if nr_energy_reduced_modes > Ue.shape[1]:
-       sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
-   else:
-       num_ener_modes = nr_energy_reduced_modes
+print("Step 10: svd of inelastic energy modified snapshots")
+#print("Desp de proyector")
+#print(X.shape)
+#Ue_in = np.linalg.svd(X, full_matrices=False)[0]
+[Utmp,Stmp,Vtmp] = np.linalg.svd(X, full_matrices=False)#[0]
+#print(Stmp)
 
-   Ue_red=Ue[:,0:num_ener_modes]
 
-   file_Ue='./Output/EnergyBasis.dat'
-   with open(file_Ue,'wb') as ofileBasis_ener:
-       #np.savetxt(ofileBasis_ener, Ue, fmt='%+.13f')
-       np.savetxt(ofileBasis_ener, Ue_red, fmt='%.13f')
+print("Step 11: selection process of inelastic energy modes")
+tolSVD=1e-7
+cont=1
+Ue_in=[]
+for iValue, sin_val in enumerate(Stmp):
+    #print(Stmp[iValue])
+    if sin_val>tolSVD:
+        if cont==1:
+            Ue_in=Utmp[:,iValue]
+        else:
+            Ue_in = np.column_stack((Ue_in,Utmp[:,iValue]))
+        cont=cont+1
 
-   #cc=np.array([0, 9, 19, 8, 6])
-   #d=np.where(cc==7)[0]
-   #if not d:
-   #    print("no hay na!!!")
-   #else:
-   #    print(d)
+print("Step 12: assembly of global matrix of energy modes")
+Ue=np.hstack([Ue_el, Ue_in])
 
-   #sys.exit()
+# reading the gauss weights for computing the ROQ
+nr_dofs = nr_elements * nr_integration_points
+gauss_weights = np.loadtxt(integration_weights_files[0])
 
-   print("************************")
-   print("REDUCED ORDER QUADRATURE")
-   print("************************")
-   # fifth part: COMPUTING REDUCED ORDER QUADRATURE (ROQ)
-   factorLEQ=1.0
-   tol = 1e-10
-   nGP = num_ener_modes
-   #nGP = 20
-   #nGP=Ue.shape[1] #In case of use the same number of points as energy modes.
-   #nGP = 120
-   #nGP = 12
-   [w,z] = ComputeROQ(Ue_red, GaussWeights, factorLEQ, nGP, tol)
+# TODO: change the print format of the matrix in order to avoid wrong tabulation because of the minus (-) sign.
+print("Printing data to files")
+with open(strain_basis_filename,'wb') as ofile:
+    np.savetxt(ofile, Us, fmt='%.13f')
 
-   #sys.exit()
+if nr_energy_reduced_modes > Ue.shape[1]:
+    sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
 
-   # Print matrix with new weigths
-   roq_weigths=np.empty([nr_elements, nr_integration_points])
-   for i in range(nr_elements):
-       for j in range(nr_integration_points):
-           i_elem=nr_integration_points*(i)+j
-           d=np.where(z==i_elem)[0]
-           if not d:
-               roq_weigths[i][j]=-1
-           else:
-               roq_weigths[i][j]=w[d[0]]
+Ue_red = Ue[:, 0:nr_energy_reduced_modes]
 
-   file_roq_weights='./Output/weights.dat'
-   with open(file_roq_weights,'wb') as ofile_roq_weights:
-       np.savetxt(ofile_roq_weights, roq_weigths, fmt='%+.13f')
+with open(energy_basis_filename,'wb') as ofile:
+   np.savetxt(ofile, Ue_red, fmt='%.13f')
+
+print("COMPUTING REDUCED ORDER QUADRATURE (ROQ)")
+factorLEQ = 1.0
+tol = 1e-10
+nGP = nr_energy_reduced_modes
+[w, z] = ComputeROQ(Ue_red, gauss_weights, factorLEQ, nGP, tol)
+roq_weigths = np.empty([nr_elements, nr_integration_points])
+for i in range(nr_elements):
+    for j in range(nr_integration_points):
+        i_elem = nr_integration_points * i + j
+        d = np.where(z==i_elem)[0]
+        if not d:
+            roq_weigths[i][j] = -1
+        else:
+            roq_weigths[i][j] = w[d[0]]
+with open(roq_weigths_filename,'wb') as ofile:
+    np.savetxt(ofile, roq_weigths, fmt='%+.13f')
