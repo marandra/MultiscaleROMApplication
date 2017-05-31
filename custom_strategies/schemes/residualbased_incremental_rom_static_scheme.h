@@ -22,8 +22,8 @@ public:
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    // typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    // typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     /// Default constructor.
     ResidualBasedIncrementalROMStaticScheme()
@@ -42,6 +42,19 @@ public:
             r_model_part.GetProcessInfo()[REDUCED_MODES_WEIGHTS].size();
         TSystemVectorType modes_weights = ZeroVector(nr_modes);
         r_model_part.GetProcessInfo().SetValue(REDUCED_MODES_WEIGHTS, modes_weights);
+    }
+
+    virtual void Predict(
+            ModelPart& r_model_part,
+            DofsArrayType& rDofSet,
+            LocalSystemMatrixType & A,
+            LocalSystemVectorType & Dx,
+            LocalSystemVectorType & b
+    )
+    {
+        KRATOS_TRY
+
+        KRATOS_CATCH("")
     }
 
     virtual void Update(ModelPart& r_model_part,
