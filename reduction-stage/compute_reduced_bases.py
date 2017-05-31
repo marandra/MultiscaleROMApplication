@@ -211,7 +211,7 @@ integration_weights_filename = conf['Parameters']['gauss_weights_filename']
 nr_elastic_snapshots_filename = conf['Parameters']['nr_elastic_snapshots_filename']
 energy_basis_filename = conf['Parameters']['energy_basis_filename']
 strain_basis_filename = conf['Parameters']['strain_basis_filename']
-roq_weigths_filename = conf['Parameters']['roq_weights_filename']
+roq_weights_filename = conf['Parameters']['roq_weights_filename']
 
 # get files
 integration_weights_files = glob.glob("{}_?/{}".format(trajectory_filename, integration_weights_filename))
@@ -398,5 +398,5 @@ for i in range(nr_elements):
             roq_weigths[i][j] = -1
         else:
             roq_weigths[i][j] = w[d[0]]
-with open(roq_weigths_filename,'wb') as ofile:
+with open(roq_weights_filename, 'wb') as ofile:
     np.savetxt(ofile, roq_weigths, fmt='%+.13f')

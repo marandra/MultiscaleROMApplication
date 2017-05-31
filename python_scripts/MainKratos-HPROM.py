@@ -7,15 +7,20 @@ import KratosMultiphysics as km
 import KratosMultiphysics.SolidMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
+import configparser
+import sys
 
-
-def analysis(parameters, processes, gid_output, solver, model_part):
+def analysis(parameters, processes, solver, model_part):
     for process in processes:
         process.ExecuteInitialize()
 
     conf = configparser.ConfigParser()
     conf.read("reduced_bases.cfg")
-    nr_modes = parameters["problem_data"]["nr_energy_reduced_modes"].GetInt()
+    nr_modes = 10
+    energy_basis_filename = conf['Parameters']['energy_basis_filename']
+    strain_basis_filename = conf['Parameters']['strain_basis_filename']
+    roq_weights_filename = conf['Parameters']['roq_weights_filename']
+
     # TODO this should be gotten automatically
     ngausspoints = 8
     voigtsize = 6
@@ -24,43 +29,54 @@ def analysis(parameters, processes, gid_output, solver, model_part):
     for i in range(nr_modes):
         modes_weights[i] = 0.0
     model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS] = modes_weights
+    model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES] = nr_modes
     # TODO move this to a process
-    with open("reduced_bases.dat", "r") as fo:
+    with open(strain_basis_filename, "r") as fo:
         for elem in model_part.Elements:
             BE = km.Matrix(ngausspoints * voigtsize, nr_modes)
             for i in range(ngausspoints * voigtsize):
-                line = fo.readline().strip().split()
+                line = fo.readline().strip().split()[:nr_modes]
+                print(line)
                 for j, value in enumerate(line):
                     BE[i, j] = float(value)
             elem.SetValue(msr.REDUCED_MODES_MATRIX, BE)
-
+    # TODO move this to a process
+    with open(roq_weights_filename, "r") as fo:
+        for elem in model_part.Elements:
+            integration_weights = [float(x) for x in fo.readline().split()]
+            elem.SetValue(msr.INTEGRATION_POINT_WEIGHT, integration_weights)
+            
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
 
-    delta_time = parameters["problem_data"]["time_step"].GetDouble()
-    time = parameters["problem_data"]["start_time"].GetDouble()
-    end_time = parameters["problem_data"]["end_time"].GetDouble()
-    tolerance = delta_time / 10.
+    with open("output.dat", "w") as fo:
+        delta_time = parameters["problem_data"]["time_step"].GetDouble()
+        time = parameters["problem_data"]["start_time"].GetDouble()
+        end_time = parameters["problem_data"]["end_time"].GetDouble()
+        tolerance = delta_time / 10.
+        while(time <= end_time + tolerance):
+            time = time + delta_time
+            model_part.CloneTimeStep(time)
+            for process in processes:
+                process.ExecuteInitializeSolutionStep()
 
-    while(time <= end_time + tolerance):
-        model_part.CloneTimeStep(time)
-        for process in processes:
-            process.ExecuteInitializeSolutionStep()
-        gid_output.ExecuteInitializeSolutionStep()
+            solver.Solve()
 
-        solver.Solve()
+            for process in processes:
+                process.ExecuteFinalizeSolutionStep()
+            for process in processes:
+                process.ExecuteBeforeOutputStep()
+            for process in processes:
+                process.ExecuteAfterOutputStep()
+            # TODO there sould be a process to handle the output of weights
+            print("OUTPUT MODES WEIGHTS:")
+            print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
+            for mode in model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS]:
+                print(mode)
+                fo.write("{:17.15f} ".format(mode))
+            fo.write("\n")
 
-        for process in processes:
-            process.ExecuteFinalizeSolutionStep()
-        for process in processes:
-            process.ExecuteBeforeOutputStep()
-        for process in processes:
-            process.ExecuteAfterOutputStep()
-        # TODO there sould be a process to handle the output of weights
-        print("OUTPUT MODES WEIGHTS:")
-        print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
-        print("\n")
-        time = time + delta_time
+            print("\n")
 
     for process in processes:
         process.ExecuteFinalize()
@@ -71,8 +87,6 @@ def create_model(parameters):
     model_part_name = parameters["problem_data"]["part_name"].GetString()
     model_part = km.ModelPart(model_part_name)
     model_part.ProcessInfo.SetValue(km.DOMAIN_SIZE, domain_size)
-    number_modes = parameters["problem_data"]["number_reduced_modes"].GetInt()
-    model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES] = number_modes
     Model = {model_part_name: model_part}
     return Model
 
@@ -81,19 +95,8 @@ def create_solver_complete_model_part(model_part, parameters):
     solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
     solver = solver_module.CreateSolver(model_part, parameters["solver_settings"])
     solver.AddVariables()
-    #print("Adding Variables for MinimalKineticBC to model part", flush=True)
-    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_1)
-    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
-    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
     solver.ImportModelPart()
     solver.AddDofs()
-    #print("Adding DOFs for MinimalKineticBC to reference node", flush=True)
-    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)
-    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_2)
-    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_3)
-    #constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
-    #aux_obj_getter = operator.methodcaller(constitutive_law_name)
-    #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
     return solver, model_part
 
 parameters = km.Parameters(open("ProjectParameters.json", 'r').read())
@@ -106,10 +109,8 @@ solver, model_part = create_solver_complete_model_part(model_part, parameters)
 # initialize GiD  I/O (gid outputs, file_lists)
 output_settings = parameters["output_configuration"]
 problem_name = parameters["problem_data"]["problem_name"].GetString()
-gid_output = GiDOutputProcess(model_part, problem_name, output_settings)
 
 solver.Initialize()
-
 
 for i in range(parameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
@@ -124,7 +125,7 @@ processes += process_factory.KratosProcessFactory(Model)\
 
 t0p = timer.clock()
 t0w = timer.time()
-analysis(parameters, processes, gid_output, solver, model_part)
+analysis(parameters, processes, solver, model_part)
 tfp = timer.clock()
 tfw = timer.time()
 print("Computing Time = {:.2f} s ({:.2f} s wall-time)".format(tfp - t0p, tfw - t0w))
