@@ -25,8 +25,11 @@ public:
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+<<<<<<< HEAD
+=======
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+>>>>>>> good-master
 
     /** Constructor. */
     ResidualBasedIncrementalROMStaticScheme()
@@ -45,6 +48,26 @@ public:
         r_model_part.GetProcessInfo().SetValue(REDUCED_MODES_WEIGHTS, modes_weights);
     }
 
+<<<<<<< HEAD
+    virtual void Predict(
+            ModelPart& r_model_part,
+            DofsArrayType& rDofSet,
+            LocalSystemMatrixType & A,
+            LocalSystemVectorType & Dx,
+            LocalSystemVectorType & b
+    )
+    {
+        KRATOS_TRY
+
+        KRATOS_CATCH("")
+    }
+
+    virtual void Update(ModelPart& r_model_part,
+                        DofsArrayType& rDofSet,
+                        TSystemMatrixType& A,
+                        TSystemVectorType& Dx,
+                        TSystemVectorType& b)
+=======
 
     virtual void Update(
         ModelPart& r_model_part,
@@ -53,6 +76,7 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b
     ) override
+>>>>>>> good-master
     {
         KRATOS_TRY
 
