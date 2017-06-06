@@ -453,8 +453,5 @@ class ROMSolver(object):
                         self.computing_model_part, mechanical_scheme, self.linear_solver,
                         mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions,
                         reform_step_dofs, move_mesh_flag)
-        self.mechanical_solver = msr.ResidualBasedNewtonRaphsonDenseStrategy(
-            self.computing_model_part, mechanical_scheme, self.linear_solver, mechanical_convergence_criterion,
-            builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag)
 
         print("::[ROM Solver]:: {} selected".format(self.mechanical_solver))
