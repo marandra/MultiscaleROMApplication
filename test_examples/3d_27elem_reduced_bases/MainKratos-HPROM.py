@@ -59,7 +59,6 @@ def analysis(parameters, processes, solver, model_part):
                 process.ExecuteInitializeSolutionStep()
 
             solver.Solve()
-            sys.exit()
             for process in processes:
                 process.ExecuteFinalizeSolutionStep()
             for process in processes:
