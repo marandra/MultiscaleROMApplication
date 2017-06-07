@@ -54,5 +54,5 @@ for i in range(nr_elements):
             roq_weigths[i][j] = w[d[0]]
 
 with open(roq_weights_filename,'wb') as of:
-    np.savetxt(of, roq_weigths, fmt='%.13f')
+    np.savetxt(of, roq_weigths, fmt='%.17f')
 

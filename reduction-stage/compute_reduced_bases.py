@@ -356,7 +356,7 @@ if __name__ == '__main__':
     # TODO: change the print format of the matrix in order to avoid wrong tabulation because of the minus (-) sign.
     logger.info("Printing data to files")
     with open(strain_bases_filename, 'wb') as ofile:
-        np.savetxt(ofile, Us, fmt='%.13f')
+        np.savetxt(ofile, Us, fmt='%.17f')
 
     if nr_energy_reduced_modes > Ue.shape[1]:
         sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
@@ -364,7 +364,7 @@ if __name__ == '__main__':
     Ue_red = Ue[:, 0:nr_energy_reduced_modes]
 
     with open(energy_bases_filename, 'wb') as ofile:
-       np.savetxt(ofile, Ue_red, fmt='%.13f')
+       np.savetxt(ofile, Ue_red, fmt='%.17f')
 
     logger.info("COMPUTING REDUCED ORDER QUADRATURE (ROQ)")
     factorLEQ = 1.0
@@ -381,4 +381,4 @@ if __name__ == '__main__':
             else:
                 roq_weigths[i][j] = w[d[0]]
     with open(roq_weights_filename, 'wb') as ofile:
-        np.savetxt(ofile, roq_weigths, fmt='%.13f')
+        np.savetxt(ofile, roq_weigths, fmt='%.17f')
