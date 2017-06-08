@@ -50,29 +50,9 @@ class WriteElementsOutputHomogenizedVector(km.Process):
 
     def write_results(self, filename):
         with open(filename, 'a') as ofile:
-
             homog_value = homogenization_function(self)
-            #with open(filename, 'wb') as ofile:
-
-            #process_info = self.model_part.ProcessInfo
-            #for elem in self.model_part.Elements:
-            #    variables = elem.GetValuesOnIntegrationPoints(self.Var, process_info)
             for v in homog_value:
-                #print(v)
                 ofile.write("{:.17f}   ".format(v))
-                #ofile.write("{:18.16f}\n".format(v[4]))
-                #ofile.write("{:18.16f}\n".format(v[8]))
-                #ofile.write("{:18.16f}\n".format(v[1]))
-                #ofile.write("{:18.16f}\n".format(v[5]))
-                #ofile.write("{:18.16f}\n".format(v[2]))
-                    #ofile.write(struct.pack('f', v[0])) #  'f'=float32
-                    #ofile.write(b'\n')
-                    #print(variable)
-                    #ofile.write("{: .3e} {: .3e} {: .3e}  {: .3e} {: .3e} {: .3e}"  #"  {: .3e} {: .3e} {: .3e} {: .3e}"
-                    #    .format(
-                    #        CX[0], CX[3], CX[1],  # CX[0],
-                    #        CY[0], CY[3], CY[1],  # CY[0],
-                    #        ))
             ofile.write("\n")
 
     def ExecuteInitialize(self):
@@ -102,6 +82,7 @@ class WriteElementsOutputHomogenizedVector(km.Process):
         #t = self.Model.ProcessInfo[km.TIME]
         #if t == self.Model.ProcessInfo[km.END_TIME] or self.__check_write_freq(t):
         #self.write_results(self.filename + self.timestep)
+        pass
 
 
     def ExecuteFinalize(self):
