@@ -49,7 +49,7 @@ class WriteElementsOutputHomogenizedVector(km.Process):
         self.Var = f(km)
 
     def write_results(self, filename):
-        with open(filename, 'w') as ofile:
+        with open(filename, 'a') as ofile:
 
             homog_value = homogenization_function(self)
             #with open(filename, 'wb') as ofile:
@@ -59,7 +59,7 @@ class WriteElementsOutputHomogenizedVector(km.Process):
             #    variables = elem.GetValuesOnIntegrationPoints(self.Var, process_info)
             for v in homog_value:
                 #print(v)
-                ofile.write("{:18.16f}\n".format(v))
+                ofile.write("{:.17f}   ".format(v))
                 #ofile.write("{:18.16f}\n".format(v[4]))
                 #ofile.write("{:18.16f}\n".format(v[8]))
                 #ofile.write("{:18.16f}\n".format(v[1]))
@@ -73,33 +73,21 @@ class WriteElementsOutputHomogenizedVector(km.Process):
                     #        CX[0], CX[3], CX[1],  # CX[0],
                     #        CY[0], CY[3], CY[1],  # CY[0],
                     #        ))
-                    #ofile.write("\n")
+            ofile.write("\n")
 
     def ExecuteInitialize(self):
         try:
             os.remove(self.filename)
         except OSError:
             pass
-            #with open(self.filename, 'a') as ofile:
-            #    ofile.write("#{:<32}  {:<32}\n".format(self.vname1, self.vname2))
-            #    ofile.write("#{:<10} {:<10} {:<10}" #" {:<10} {:<10}"
-            #                "  {:<10} {:<10} {:<10}" #" {:<10} {:<10}"
-            #        .format(
-            #        "Comp XX", "Comp YY", "Comp XY", #"Comp 4", "Comp 5",
-            #        "Comp XX", "Comp YY", "Comp XY", #"Comp 4", "Comp 5"
-            #        ))
-            #    ofile.write("\n")
-            #
-
-            #self.write_results()
-            #self.Tn = self.Model.ProcessInfo[km.TIME]
 
     def ExecuteInitializeSolutionStep(self):
-        self.timestep = "-{:.3f}".format(self.model_part.ProcessInfo[km.TIME])
-        try:
-            os.remove(self.filename + self.timestep)
-        except OSError:
-            pass
+        #self.timestep = "-{:.3f}".format(self.model_part.ProcessInfo[km.TIME])
+        #try:
+        #    os.remove(self.filename + self.timestep)
+        #except OSError:
+        #    pass
+        self.write_results(self.filename)
 
     def ExecuteAfterOutputStep(self):
         pass
@@ -113,7 +101,7 @@ class WriteElementsOutputHomogenizedVector(km.Process):
     def ExecuteFinalizeSolutionStep(self):
         #t = self.Model.ProcessInfo[km.TIME]
         #if t == self.Model.ProcessInfo[km.END_TIME] or self.__check_write_freq(t):
-        self.write_results(self.filename + self.timestep)
+        #self.write_results(self.filename + self.timestep)
 
 
     def ExecuteFinalize(self):
