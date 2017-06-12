@@ -36,7 +36,6 @@ def analysis(parameters, processes, solver, model_part):
             BE = km.Matrix(ngausspoints * voigtsize, nr_modes)
             for i in range(ngausspoints * voigtsize):
                 line = fo.readline().strip().split()[:nr_modes]
-                print(line)
                 for j, value in enumerate(line):
                     BE[i, j] = float(value)
             elem.SetValue(msr.REDUCED_MODES_MATRIX, BE)
@@ -55,13 +54,11 @@ def analysis(parameters, processes, solver, model_part):
         end_time = parameters["problem_data"]["end_time"].GetDouble()
         tolerance = delta_time / 10.
         while(time <= end_time + tolerance):
-            time = time + delta_time
             model_part.CloneTimeStep(time)
             for process in processes:
                 process.ExecuteInitializeSolutionStep()
 
             solver.Solve()
-
             for process in processes:
                 process.ExecuteFinalizeSolutionStep()
             for process in processes:
@@ -69,14 +66,14 @@ def analysis(parameters, processes, solver, model_part):
             for process in processes:
                 process.ExecuteAfterOutputStep()
             # TODO there sould be a process to handle the output of weights
-            print("OUTPUT MODES WEIGHTS:")
-            print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
-            for mode in model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS]:
-                print(mode)
-                fo.write("{:17.15f} ".format(mode))
-            fo.write("\n")
-
-            print("\n")
+            #print("OUTPUT MODES WEIGHTS:")
+            #print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
+            #for mode in model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS]:
+            #    print(mode)
+            #    fo.write("{:17.15f} ".format(mode))
+            #fo.write("\n")
+            #print("\n")
+            time = time + delta_time
 
     for process in processes:
         process.ExecuteFinalize()
