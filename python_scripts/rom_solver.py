@@ -406,9 +406,7 @@ class ROMSolver(object):
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         print("::[ROM Solver]:: {} selected".format(convergence_criterion.mechanical_convergence_criterion))
-        return msr.DenseDisplacementCriteria(1e-12, 1e-12) #TODO arreglar
-
-       # return convergence_criterion.mechanical_convergence_criterion
+        return convergence_criterion.mechanical_convergence_criterion
 
     def _GetBuilderAndSolver(self, component_wise, block_builder):
         # Creating the builder and solver
@@ -421,8 +419,6 @@ class ROMSolver(object):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
-        convergence_criterion = msr.DenseDisplacementCriteria(1e-12, 1e-12) #TODO arreglar
-        self.linear_solver = msr.DenseLinearSolver()
         builder_and_solver = msr.ResidualBasedROMBuilderAndSolver(self.linear_solver)
         print("::[ROM Solver]:: {} selected".format(builder_and_solver))
         return builder_and_solver
@@ -453,8 +449,7 @@ class ROMSolver(object):
                         self.computing_model_part, mechanical_scheme, self.linear_solver, builder_and_solver,
                         compute_reactions, reform_step_dofs, False, move_mesh_flag)
                 else:
-
-                    self.mechanical_solver = msr.ResidualBasedNewtonRaphsonROMStrategy(
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                         self.computing_model_part, mechanical_scheme, self.linear_solver,
                         mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions,
                         reform_step_dofs, move_mesh_flag)
