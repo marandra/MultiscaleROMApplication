@@ -16,12 +16,13 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_J2_plasticity_3D_law.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_J2_plasticity_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rve_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_2D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_3D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_std_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_hprom_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fbar_element.cpp

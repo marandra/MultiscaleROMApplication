@@ -72,8 +72,10 @@ void KratosMultiscaleROMApplication::Register()
     KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_VECTOR)
 
 
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement2D4N", mSmallDisplacementStdElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement2D4N", mSmallDisplacementHpromElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement3D8N", mSmallDisplacementStdElement3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement3D8N", mSmallDisplacementBbarElement3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement3D8N", mSmallDisplacementHpromElement3D8N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFbarElement2D4N", mUpdatedLagrangianFbarElement2D4N)

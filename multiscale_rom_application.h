@@ -18,6 +18,7 @@
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
+#include "custom_elements/small_displacement_std_element.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/small_displacement_hprom_element.hpp"
 #include "custom_elements/total_lagrangian_fbar_element.hpp"
@@ -61,9 +62,11 @@ public:
 
 protected:
 private:
-    const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;
+    const SmallDisplacementStdElement mSmallDisplacementStdElement2D4N;
+  const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;
     const SmallDisplacementHpromElement mSmallDisplacementHpromElement2D4N;
-    const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D8N;
+    const SmallDisplacementStdElement mSmallDisplacementStdElement3D8N;
+  const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D8N;
     const SmallDisplacementHpromElement mSmallDisplacementHpromElement3D8N;
     const UpdatedLagrangianFbarElement mUpdatedLagrangianFbarElement2D4N;
     const TotalLagrangianFbarElement mTotalLagrangianFbarElement2D4N;

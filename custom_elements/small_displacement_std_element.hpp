@@ -43,7 +43,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementStdElement
     : public Element
 {
 public:
@@ -59,7 +59,7 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     /// Counted pointer of SmallDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementElement );
+    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementStdElement );
     ///@}
 
 protected:
@@ -246,25 +246,25 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    SmallDisplacementElement();
+    SmallDisplacementStdElement();
 
     /// Default constructors
-    SmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacementStdElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallDisplacementStdElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SmallDisplacementElement(SmallDisplacementElement const& rOther);
+    SmallDisplacementStdElement(SmallDisplacementStdElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementElement();
+    virtual ~SmallDisplacementStdElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SmallDisplacementElement& operator=(SmallDisplacementElement const& rOther);
+    SmallDisplacementStdElement& operator=(SmallDisplacementStdElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -856,7 +856,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SmallDisplacementElement
+}; // Class SmallDisplacementStdElement
 
 ///@}
 ///@name Type Definitions
