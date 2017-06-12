@@ -5,7 +5,7 @@ import struct
 
 
 def Factory(settings, Model):
-    return WriteElementsOutputScalar(settings["Parameters"], Model)
+    return WriteElementsOutput(settings["Parameters"], Model)
 
 
 def parameters_get_list_int(ilist):
@@ -15,7 +15,7 @@ def parameters_get_list_int(ilist):
     return olist
 
 
-class WriteElementsOutputScalar(km.Process):
+class WriteElementsOutput(km.Process):
     def __init__(self, settings, Model):
 
         default_settings = km.Parameters("""
