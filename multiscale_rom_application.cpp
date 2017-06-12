@@ -84,13 +84,13 @@ void KratosMultiscaleROMApplication::Register()
     // Register Constitutive Laws
     Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw",
                          mLinearIsotropicDamagePlaneStrain2DLaw);
-    Serializer::Register("SmallDisplacementIsotropicDamage3DLaw",
-                         mSmallDisplacementIsotropicDamage3DLaw);
+    Serializer::Register("LinearIsotropicDamage3DLaw",
+                         mLinearIsotropicDamage3DLaw);
     Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw",
                          mExponentialIsotropicDamagePlaneStrain2DLaw);
-    Serializer::Register("LinearElasticPlasticJ2PlaneStrain2DLaw",
-                         mLinearElasticPlasticJ2PlaneStrain2DLaw);
-    Serializer::Register("SmallDisplacementElastoPlasticJ23DLaw",
-                         mSmallDisplacementElastoPlasticJ23DLaw);
+    Serializer::Register("LinearJ2PlasticityPlaneStrain2DLaw",
+                         mLinearJ2PlasticityPlaneStrain2DLaw);
+    Serializer::Register("LinearJ2Plasticity3DLaw",
+                         mLinearJ2Plasticity3DLaw);
 }
 }

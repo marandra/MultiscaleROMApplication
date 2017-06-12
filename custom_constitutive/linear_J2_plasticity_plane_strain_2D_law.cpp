@@ -1,4 +1,4 @@
-#include "linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "linear_J2_plasticity_plane_strain_2D_law.hpp"
 #include "../../../kratos/includes/variables.h"
 #include "multiscale_rom_application_variables.h"
 #include <solid_mechanics_application_variables.h>
@@ -7,28 +7,28 @@ namespace Kratos
 {
 // CONSTRUCTOR
 // ElastoplasticJ2PlanStrain2DLaw
-LinearElasticPlasticJ2PlaneStrain2DLaw::LinearElasticPlasticJ2PlaneStrain2DLaw()
+LinearJ2PlasticityPlaneStrain2DLaw::LinearJ2PlasticityPlaneStrain2DLaw()
     : ConstitutiveLaw()
 {
 }
 
 // CLONE
-ConstitutiveLaw::Pointer LinearElasticPlasticJ2PlaneStrain2DLaw::Clone() const
+ConstitutiveLaw::Pointer LinearJ2PlasticityPlaneStrain2DLaw::Clone() const
 {
-    return ConstitutiveLaw::Pointer(new LinearElasticPlasticJ2PlaneStrain2DLaw());
+    return ConstitutiveLaw::Pointer(new LinearJ2PlasticityPlaneStrain2DLaw());
 }
 
-LinearElasticPlasticJ2PlaneStrain2DLaw::SizeType LinearElasticPlasticJ2PlaneStrain2DLaw::WorkingSpaceDimension()
+LinearJ2PlasticityPlaneStrain2DLaw::SizeType LinearJ2PlasticityPlaneStrain2DLaw::WorkingSpaceDimension()
 {
     return 2;
 }
 
-LinearElasticPlasticJ2PlaneStrain2DLaw::SizeType LinearElasticPlasticJ2PlaneStrain2DLaw::GetStrainSize()
+LinearJ2PlasticityPlaneStrain2DLaw::SizeType LinearJ2PlasticityPlaneStrain2DLaw::GetStrainSize()
 {
     return 4;
 }
 
-bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<double>& rThisVariable)
+bool LinearJ2PlasticityPlaneStrain2DLaw::Has(const Variable<double>& rThisVariable)
 {
      if(rThisVariable == STRAIN_ENERGY){
         return true;
@@ -36,27 +36,27 @@ bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<double>& rThisVa
     return false;
 }
 
-bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<Vector>& rThisVariable)
+bool LinearJ2PlasticityPlaneStrain2DLaw::Has(const Variable<Vector>& rThisVariable)
 {
     return false;
 }
 
-bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<Matrix>& rThisVariable)
+bool LinearJ2PlasticityPlaneStrain2DLaw::Has(const Variable<Matrix>& rThisVariable)
 {
     return false;
 }
 
-bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<array_1d<double, 2>>& rThisVariable)
+bool LinearJ2PlasticityPlaneStrain2DLaw::Has(const Variable<array_1d<double, 2>>& rThisVariable)
 {
     return false;
 }
 
-bool LinearElasticPlasticJ2PlaneStrain2DLaw::Has(const Variable<array_1d<double, 3>>& rThisVariable)
+bool LinearJ2PlasticityPlaneStrain2DLaw::Has(const Variable<array_1d<double, 3>>& rThisVariable)
 {
     return false;
 }
 
-double& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable,
+double& LinearJ2PlasticityPlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable,
                                                          double& rValue)
 {
     if(rThisVariable == STRAIN_ENERGY){
@@ -68,81 +68,81 @@ double& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<double>&
     return rValue;
 }
 
-Vector& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable,
+Vector& LinearJ2PlasticityPlaneStrain2DLaw::GetValue(const Variable<Vector>& rThisVariable,
                                                          Vector& rValue)
 {
     return rValue;
 }
 
-Matrix& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable,
+Matrix& LinearJ2PlasticityPlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable,
                                                          Matrix& rValue)
 {
     return rValue;
 }
 
-array_1d<double, 2>& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(
+array_1d<double, 2>& LinearJ2PlasticityPlaneStrain2DLaw::GetValue(
     const Variable<array_1d<double, 2>>& rVariable, array_1d<double, 2>& rValue)
 {
     return rValue;
 }
 
-array_1d<double, 3>& LinearElasticPlasticJ2PlaneStrain2DLaw::GetValue(
+array_1d<double, 3>& LinearJ2PlasticityPlaneStrain2DLaw::GetValue(
     const Variable<array_1d<double, 3>>& rVariable, array_1d<double, 3>& rValue)
 {
     return rValue;
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<double>& rVariable,
+void LinearJ2PlasticityPlaneStrain2DLaw::SetValue(const Variable<double>& rVariable,
                                                       const double& rValue,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<Vector>& rVariable,
+void LinearJ2PlasticityPlaneStrain2DLaw::SetValue(const Variable<Vector>& rVariable,
                                                       const Vector& rValue,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<Matrix>& rVariable,
+void LinearJ2PlasticityPlaneStrain2DLaw::SetValue(const Variable<Matrix>& rVariable,
                                                       const Matrix& rValue,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 2>>& rVariable,
+void LinearJ2PlasticityPlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 2>>& rVariable,
                                                       const array_1d<double, 2>& rValue,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 3>>& rVariable,
+void LinearJ2PlasticityPlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 3>>& rVariable,
                                                       const array_1d<double, 3>& rValue,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-bool LinearElasticPlasticJ2PlaneStrain2DLaw::ValidateInput(const Properties& rMaterialProperties)
+bool LinearJ2PlasticityPlaneStrain2DLaw::ValidateInput(const Properties& rMaterialProperties)
 {
     return true;
 }
 
-LinearElasticPlasticJ2PlaneStrain2DLaw::StrainMeasure LinearElasticPlasticJ2PlaneStrain2DLaw::GetStrainMeasure()
+LinearJ2PlasticityPlaneStrain2DLaw::StrainMeasure LinearJ2PlasticityPlaneStrain2DLaw::GetStrainMeasure()
 {
     return ConstitutiveLaw::StrainMeasure_Infinitesimal;
 }
 
-LinearElasticPlasticJ2PlaneStrain2DLaw::StressMeasure LinearElasticPlasticJ2PlaneStrain2DLaw::GetStressMeasure()
+LinearJ2PlasticityPlaneStrain2DLaw::StressMeasure LinearJ2PlasticityPlaneStrain2DLaw::GetStressMeasure()
 {
     return ConstitutiveLaw::StressMeasure_Cauchy;
 }
 
-bool LinearElasticPlasticJ2PlaneStrain2DLaw::IsIncremental()
+bool LinearJ2PlasticityPlaneStrain2DLaw::IsIncremental()
 {
     return false;
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeMaterial(const Properties& material_prop,
+void LinearJ2PlasticityPlaneStrain2DLaw::InitializeMaterial(const Properties& material_prop,
                                                                 const GeometryType& rElementGeometry,
                                                                 const Vector& rShapeFunctionsValues)
 {
@@ -150,7 +150,7 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeMaterial(const Properties
     mAccumulatedPlasticStrainOld = 0.;
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeSolutionStep(
+void LinearJ2PlasticityPlaneStrain2DLaw::InitializeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -158,7 +158,7 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeSolutionStep(
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeSolutionStep(
+void LinearJ2PlasticityPlaneStrain2DLaw::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -168,7 +168,7 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeSolutionStep(
     mAccumulatedPlasticStrainOld = mAccumulatedPlasticStrain;
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeNonLinearIteration(
+void LinearJ2PlasticityPlaneStrain2DLaw::InitializeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -176,7 +176,7 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::InitializeNonLinearIteration(
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeNonLinearIteration(
+void LinearJ2PlasticityPlaneStrain2DLaw::FinalizeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -184,22 +184,22 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeNonLinearIteration(
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& matprops = rValues.GetMaterialProperties();
     Vector& epsilon = rValues.GetStrainVector();
@@ -303,32 +303,32 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateMaterialResponseCauchy(Par
         + 0.5 * GetSaturationHardening(matprops) * mAccumulatedPlasticStrain ;
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2PlasticityPlaneStrain2DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::ResetMaterial(const Properties& rMaterialProperties,
+void LinearJ2PlasticityPlaneStrain2DLaw::ResetMaterial(const Properties& rMaterialProperties,
                                                            const GeometryType& rElementGeometry,
                                                            const Vector& rShapeFunctionsValues)
 {
 }
 
-double LinearElasticPlasticJ2PlaneStrain2DLaw::GetSaturationHardening(const Properties& rMaterialProperties)
+double LinearJ2PlasticityPlaneStrain2DLaw::GetSaturationHardening(const Properties& rMaterialProperties)
 {
     double yield_stress = rMaterialProperties[YIELD_STRESS];
     double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
@@ -342,7 +342,7 @@ double LinearElasticPlasticJ2PlaneStrain2DLaw::GetSaturationHardening(const Prop
     return k_new;
 }
 
-double LinearElasticPlasticJ2PlaneStrain2DLaw::GetDeltaGamma(double norm_s_trial,
+double LinearJ2PlasticityPlaneStrain2DLaw::GetDeltaGamma(double norm_s_trial,
                                                              const Properties& rMaterialProperties)
 {
     double E = rMaterialProperties[YOUNG_MODULUS];
@@ -377,7 +377,7 @@ double LinearElasticPlasticJ2PlaneStrain2DLaw::GetDeltaGamma(double norm_s_trial
     return dgamma;
 }
 
-double LinearElasticPlasticJ2PlaneStrain2DLaw::yieldFunction(const double norm_dev_stress,
+double LinearJ2PlasticityPlaneStrain2DLaw::yieldFunction(const double norm_dev_stress,
                                                              const Properties& rMaterialProperties)
 {
     double yield_stress = rMaterialProperties[YIELD_STRESS];
@@ -392,7 +392,7 @@ double LinearElasticPlasticJ2PlaneStrain2DLaw::yieldFunction(const double norm_d
     return norm_dev_stress - k_old * 0.8164965809277260; // sqrt(2/3)
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateElasticityTensor(const Properties& props,
+void LinearJ2PlasticityPlaneStrain2DLaw::CalculateElasticityTensor(const Properties& props,
                                                                        Matrix& D)
 {
     double E = props[YOUNG_MODULUS];
@@ -421,7 +421,7 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateElasticityTensor(const Pro
     D(3, 3) = mu;
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateTangentTensor(
+void LinearJ2PlasticityPlaneStrain2DLaw::CalculateTangentTensor(
     double dgamma, double norm_s_trial, const Vector& N_new, const Properties& props, Matrix& D)
 {
     double hardening_modulus = props[ISOTROPIC_HARDENING_MODULUS];
@@ -470,7 +470,7 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::CalculateTangentTensor(
     D(3, 3) = mu * theta_new - (2 * mu * theta_new_b * (N_new(3) * N_new(3)));
 }
 
-void LinearElasticPlasticJ2PlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+void LinearJ2PlasticityPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -480,19 +480,19 @@ void LinearElasticPlasticJ2PlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-int LinearElasticPlasticJ2PlaneStrain2DLaw::Check(const Properties& rMaterialProperties,
+int LinearJ2PlasticityPlaneStrain2DLaw::Check(const Properties& rMaterialProperties,
                                                   const GeometryType& rElementGeometry,
                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     if (!rMaterialProperties.Has(YOUNG_MODULUS))
         KRATOS_THROW_ERROR(
             std::invalid_argument,
-            "LinearElasticPlasticJ2PlaneStrain2DLaw - missing YOUNG_MODULUS",
+            "LinearJ2PlasticityPlaneStrain2DLaw - missing YOUNG_MODULUS",
             "");
     if (!rMaterialProperties.Has(POISSON_RATIO))
         KRATOS_THROW_ERROR(
             std::invalid_argument,
-            "LinearElasticPlasticJ2PlaneStrain2DLaw - missing POISSON_RATIO",
+            "LinearJ2PlasticityPlaneStrain2DLaw - missing POISSON_RATIO",
             "");
     // TODO how to check the size of INITIAL STRAIN VECTOR? At this point it has
     // not been define by the process
@@ -500,7 +500,7 @@ int LinearElasticPlasticJ2PlaneStrain2DLaw::Check(const Properties& rMaterialPro
     // rCurrentProcessInfo[INITIAL_STRAIN_VECTOR].size() !=
     // this->GetStrainSize())
     //    KRATOS_THROW_ERROR(std::invalid_argument,
-    //    "LinearElasticPlasticJ2PlaneStrain2DLaw - wrong size of
+    //    "LinearJ2PlasticityPlaneStrain2DLaw - wrong size of
     //    INITIAL_STRAIN_VECTOR", "");
 
     return 0;

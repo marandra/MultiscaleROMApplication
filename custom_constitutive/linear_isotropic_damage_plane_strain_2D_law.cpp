@@ -27,6 +27,9 @@ LinearIsotropicDamagePlaneStrain2DLaw::SizeType LinearIsotropicDamagePlaneStrain
 
 bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<double>& rThisVariable)
 {
+    if(rThisVariable == STRAIN_ENERGY){
+        return true;
+    }
     return false;
 }
 
@@ -53,6 +56,12 @@ bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 
 double& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable,
                                                         double& rValue)
 {
+    if(rThisVariable == STRAIN_ENERGY){
+        rValue = mStrainEnergy;
+    }
+    if(rThisVariable == INELASTIC_FLAG){
+        rValue = mInelasticFlag;
+    }
     return rValue;
 }
 
@@ -253,6 +262,8 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
     }
     else
     {
+
+        mInelasticFlag = 1;
         r = tau_epsilon;
         q = CalculateQ(r, matprops);
         d = 1. - q / r;
@@ -261,6 +272,7 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
         constitutiveMatrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
         sigma_bar *= (1. - d);
     }
+  //TODO compute mStrainEnergy here
 }
 
 void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)

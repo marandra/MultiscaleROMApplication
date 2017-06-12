@@ -5,13 +5,13 @@
 
 namespace Kratos
 {
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementElastoPlasticJ23DLaw
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) LinearJ2Plasticity3DLaw
     : public ConstitutiveLaw
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementElastoPlasticJ23DLaw);
-    SmallDisplacementElastoPlasticJ23DLaw();
-    virtual ~SmallDisplacementElastoPlasticJ23DLaw(){};
+    KRATOS_CLASS_POINTER_DEFINITION(LinearJ2Plasticity3DLaw);
+    LinearJ2Plasticity3DLaw();
+    virtual ~LinearJ2Plasticity3DLaw(){};
     virtual ConstitutiveLaw::Pointer Clone() const;
     virtual SizeType WorkingSpaceDimension();
     virtual SizeType GetStrainSize();

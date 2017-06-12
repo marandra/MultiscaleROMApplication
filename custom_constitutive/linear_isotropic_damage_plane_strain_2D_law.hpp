@@ -388,6 +388,8 @@ protected:
     double r;
     double r_prev;
     double tau_epsilon;
+    int mInelasticFlag = 0;
+    double mStrainEnergy;
     // boost::numeric::ublas::matrix<double>& constitutiveMatrix();
     ///@}
 

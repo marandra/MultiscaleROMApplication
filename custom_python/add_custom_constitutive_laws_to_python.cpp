@@ -20,11 +20,11 @@
 
 // Application includes
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_elastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/rve_law.h"
-#include "custom_constitutive/small_displacement_elasto_plastic_J2_3D_law.hpp"
-#include "custom_constitutive/small_displacement_isotropic_damage_3D_law.hpp"
+#include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
+#include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 // For RVELaw
@@ -58,21 +58,21 @@ void AddCustomConstitutiveLawsToPython()
     class_<ExponentialIsotropicDamagePlaneStrain2DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
         "ExponentialIsotropicDamagePlaneStrain2DLaw", init<>());
 
-    class_<LinearElasticPlasticJ2PlaneStrain2DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
-        "LinearElasticPlasticJ2PlaneStrain2DLaw", init<>());
+    class_<LinearJ2PlasticityPlaneStrain2DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+        "LinearJ2PlasticityPlaneStrain2DLaw", init<>());
 
-    class_<SmallDisplacementElastoPlasticJ23DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
-        "SmallDisplacementElastoPlasticJ23DLaw", init<>());
+    class_<LinearJ2Plasticity3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+        "LinearJ2Plasticity3DLaw", init<>());
 
-    class_<SmallDisplacementIsotropicDamage3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
-        "SmallDisplacementIsotropicDamage3DLaw", init<>());
+    class_<LinearIsotropicDamage3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+        "LinearIsotropicDamage3DLaw", init<>());
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
-    class_<RVELaw<SolvingStrategyType>, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
-        "RVELaw", init<typename SolvingStrategyType::Pointer>());
+   // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+   // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+   // typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+   // typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+   // class_<RVELaw<SolvingStrategyType>, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+   //     "RVELaw", init<typename SolvingStrategyType::Pointer>());
 }
 
 } // namespace Python.

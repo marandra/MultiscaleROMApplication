@@ -1,4 +1,4 @@
-#include "small_displacement_elasto_plastic_J2_3D_law.hpp"
+#include "linear_J2_plasticity_3D_law.hpp"
 #include "multiscale_rom_application_variables.h"
 #include <solid_mechanics_application_variables.h>
 
@@ -6,28 +6,28 @@ namespace Kratos
 {
 // CONSTRUCTOR
 // ElastoplasticJ2PlanStrain2DLaw
-SmallDisplacementElastoPlasticJ23DLaw::SmallDisplacementElastoPlasticJ23DLaw()
+LinearJ2Plasticity3DLaw::LinearJ2Plasticity3DLaw()
     : ConstitutiveLaw()
 {
 }
 
 // CLONE
-ConstitutiveLaw::Pointer SmallDisplacementElastoPlasticJ23DLaw::Clone() const
+ConstitutiveLaw::Pointer LinearJ2Plasticity3DLaw::Clone() const
 {
-    return ConstitutiveLaw::Pointer(new SmallDisplacementElastoPlasticJ23DLaw());
+    return ConstitutiveLaw::Pointer(new LinearJ2Plasticity3DLaw());
 }
 
-SmallDisplacementElastoPlasticJ23DLaw::SizeType SmallDisplacementElastoPlasticJ23DLaw::WorkingSpaceDimension()
+LinearJ2Plasticity3DLaw::SizeType LinearJ2Plasticity3DLaw::WorkingSpaceDimension()
 {
     return 2;
 }
 
-SmallDisplacementElastoPlasticJ23DLaw::SizeType SmallDisplacementElastoPlasticJ23DLaw::GetStrainSize()
+LinearJ2Plasticity3DLaw::SizeType LinearJ2Plasticity3DLaw::GetStrainSize()
 {
     return 6;
 }
 
-bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<double>& rThisVariable)
+bool LinearJ2Plasticity3DLaw::Has(const Variable<double>& rThisVariable)
 {
     if(rThisVariable == STRAIN_ENERGY){
         return true;
@@ -35,27 +35,27 @@ bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<double>& rThisVar
     return false;
 }
 
-bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<Vector>& rThisVariable)
+bool LinearJ2Plasticity3DLaw::Has(const Variable<Vector>& rThisVariable)
 {
     return false;
 }
 
-bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<Matrix>& rThisVariable)
+bool LinearJ2Plasticity3DLaw::Has(const Variable<Matrix>& rThisVariable)
 {
     return false;
 }
 
-bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<array_1d<double, 2>>& rThisVariable)
+bool LinearJ2Plasticity3DLaw::Has(const Variable<array_1d<double, 2>>& rThisVariable)
 {
     return false;
 }
 
-bool SmallDisplacementElastoPlasticJ23DLaw::Has(const Variable<array_1d<double, 3>>& rThisVariable)
+bool LinearJ2Plasticity3DLaw::Has(const Variable<array_1d<double, 3>>& rThisVariable)
 {
     return false;
 }
 
-double& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<double>& rThisVariable,
+double& LinearJ2Plasticity3DLaw::GetValue(const Variable<double>& rThisVariable,
                                                         double& rValue)
 {
     if(rThisVariable == STRAIN_ENERGY){
@@ -67,81 +67,81 @@ double& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<double>& 
     return rValue;
 }
 
-Vector& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<Vector>& rThisVariable,
+Vector& LinearJ2Plasticity3DLaw::GetValue(const Variable<Vector>& rThisVariable,
                                                         Vector& rValue)
 {
     return rValue;
 }
 
-Matrix& SmallDisplacementElastoPlasticJ23DLaw::GetValue(const Variable<Matrix>& rThisVariable,
+Matrix& LinearJ2Plasticity3DLaw::GetValue(const Variable<Matrix>& rThisVariable,
                                                         Matrix& rValue)
 {
     return rValue;
 }
 
-array_1d<double, 2>& SmallDisplacementElastoPlasticJ23DLaw::GetValue(
+array_1d<double, 2>& LinearJ2Plasticity3DLaw::GetValue(
     const Variable<array_1d<double, 2>>& rVariable, array_1d<double, 2>& rValue)
 {
     return rValue;
 }
 
-array_1d<double, 3>& SmallDisplacementElastoPlasticJ23DLaw::GetValue(
+array_1d<double, 3>& LinearJ2Plasticity3DLaw::GetValue(
     const Variable<array_1d<double, 3>>& rVariable, array_1d<double, 3>& rValue)
 {
     return rValue;
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<double>& rVariable,
+void LinearJ2Plasticity3DLaw::SetValue(const Variable<double>& rVariable,
                                                      const double& rValue,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<Vector>& rVariable,
+void LinearJ2Plasticity3DLaw::SetValue(const Variable<Vector>& rVariable,
                                                      const Vector& rValue,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<Matrix>& rVariable,
+void LinearJ2Plasticity3DLaw::SetValue(const Variable<Matrix>& rVariable,
                                                      const Matrix& rValue,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<array_1d<double, 2>>& rVariable,
+void LinearJ2Plasticity3DLaw::SetValue(const Variable<array_1d<double, 2>>& rVariable,
                                                      const array_1d<double, 2>& rValue,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::SetValue(const Variable<array_1d<double, 3>>& rVariable,
+void LinearJ2Plasticity3DLaw::SetValue(const Variable<array_1d<double, 3>>& rVariable,
                                                      const array_1d<double, 3>& rValue,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-bool SmallDisplacementElastoPlasticJ23DLaw::ValidateInput(const Properties& rMaterialProperties)
+bool LinearJ2Plasticity3DLaw::ValidateInput(const Properties& rMaterialProperties)
 {
     return true;
 }
 
-SmallDisplacementElastoPlasticJ23DLaw::StrainMeasure SmallDisplacementElastoPlasticJ23DLaw::GetStrainMeasure()
+LinearJ2Plasticity3DLaw::StrainMeasure LinearJ2Plasticity3DLaw::GetStrainMeasure()
 {
     return ConstitutiveLaw::StrainMeasure_Infinitesimal;
 }
 
-SmallDisplacementElastoPlasticJ23DLaw::StressMeasure SmallDisplacementElastoPlasticJ23DLaw::GetStressMeasure()
+LinearJ2Plasticity3DLaw::StressMeasure LinearJ2Plasticity3DLaw::GetStressMeasure()
 {
     return ConstitutiveLaw::StressMeasure_Cauchy;
 }
 
-bool SmallDisplacementElastoPlasticJ23DLaw::IsIncremental()
+bool LinearJ2Plasticity3DLaw::IsIncremental()
 {
     return false;
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::InitializeMaterial(const Properties& material_prop,
+void LinearJ2Plasticity3DLaw::InitializeMaterial(const Properties& material_prop,
                                                                const GeometryType& rElementGeometry,
                                                                const Vector& rShapeFunctionsValues)
 {
@@ -150,7 +150,7 @@ void SmallDisplacementElastoPlasticJ23DLaw::InitializeMaterial(const Properties&
     mAccumulatedPlasticStrainOld = 0.0;
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::InitializeSolutionStep(
+void LinearJ2Plasticity3DLaw::InitializeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -158,7 +158,7 @@ void SmallDisplacementElastoPlasticJ23DLaw::InitializeSolutionStep(
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::FinalizeSolutionStep(
+void LinearJ2Plasticity3DLaw::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -168,7 +168,7 @@ void SmallDisplacementElastoPlasticJ23DLaw::FinalizeSolutionStep(
     mAccumulatedPlasticStrainOld = mAccumulatedPlasticStrain;
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::InitializeNonLinearIteration(
+void LinearJ2Plasticity3DLaw::InitializeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -176,7 +176,7 @@ void SmallDisplacementElastoPlasticJ23DLaw::InitializeNonLinearIteration(
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::FinalizeNonLinearIteration(
+void LinearJ2Plasticity3DLaw::FinalizeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -184,22 +184,22 @@ void SmallDisplacementElastoPlasticJ23DLaw::FinalizeNonLinearIteration(
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& matprops = rValues.GetMaterialProperties();
     Vector& epsilon = rValues.GetStrainVector();
@@ -320,32 +320,32 @@ void SmallDisplacementElastoPlasticJ23DLaw::CalculateMaterialResponseCauchy(Para
 
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2Plasticity3DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::ResetMaterial(const Properties& rMaterialProperties,
+void LinearJ2Plasticity3DLaw::ResetMaterial(const Properties& rMaterialProperties,
                                                           const GeometryType& rElementGeometry,
                                                           const Vector& rShapeFunctionsValues)
 {
 }
 
-double SmallDisplacementElastoPlasticJ23DLaw::GetSaturationHardening(const Properties& rMaterialProperties)
+double LinearJ2Plasticity3DLaw::GetSaturationHardening(const Properties& rMaterialProperties)
 {
     double yield_stress = rMaterialProperties[YIELD_STRESS];
     double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
@@ -359,7 +359,7 @@ double SmallDisplacementElastoPlasticJ23DLaw::GetSaturationHardening(const Prope
     return k_new;
 }
 
-double SmallDisplacementElastoPlasticJ23DLaw::GetDeltaGamma(double norm_s_trial,
+double LinearJ2Plasticity3DLaw::GetDeltaGamma(double norm_s_trial,
                                                             const Properties& rMaterialProperties)
 {
     double E = rMaterialProperties[YOUNG_MODULUS];
@@ -392,7 +392,7 @@ double SmallDisplacementElastoPlasticJ23DLaw::GetDeltaGamma(double norm_s_trial,
     return dgamma;
 }
 
-double SmallDisplacementElastoPlasticJ23DLaw::yieldFunction(const double norm_dev_stress,
+double LinearJ2Plasticity3DLaw::yieldFunction(const double norm_dev_stress,
                                                             const Properties& rMaterialProperties)
 {
     double yield_stress = rMaterialProperties[YIELD_STRESS];
@@ -407,7 +407,7 @@ double SmallDisplacementElastoPlasticJ23DLaw::yieldFunction(const double norm_de
     return norm_dev_stress - k_old * 0.8164965809277260; // sqrt(2/3)
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::CalculateElasticityTensor(const Properties& props,
+void LinearJ2Plasticity3DLaw::CalculateElasticityTensor(const Properties& props,
                                                                       Matrix& D)
 {
     double E = props[YOUNG_MODULUS];
@@ -434,7 +434,7 @@ void SmallDisplacementElastoPlasticJ23DLaw::CalculateElasticityTensor(const Prop
     D(5, 5) = mu;
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::CalculateTangentTensor(
+void LinearJ2Plasticity3DLaw::CalculateTangentTensor(
     double dgamma, double norm_s_trial, const Vector& N_new, const Properties& props, Matrix& D)
 {
     double hardening_modulus = props[ISOTROPIC_HARDENING_MODULUS];
@@ -505,7 +505,7 @@ void SmallDisplacementElastoPlasticJ23DLaw::CalculateTangentTensor(
     D(5, 5) = mu * theta_new - (2 * mu * theta_new_b * (N_new(5) * N_new(5)));
 }
 
-void SmallDisplacementElastoPlasticJ23DLaw::GetLawFeatures(Features& rFeatures)
+void LinearJ2Plasticity3DLaw::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -515,7 +515,7 @@ void SmallDisplacementElastoPlasticJ23DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-int SmallDisplacementElastoPlasticJ23DLaw::Check(const Properties& rMaterialProperties,
+int LinearJ2Plasticity3DLaw::Check(const Properties& rMaterialProperties,
                                                  const GeometryType& rElementGeometry,
                                                  const ProcessInfo& rCurrentProcessInfo)
 {
