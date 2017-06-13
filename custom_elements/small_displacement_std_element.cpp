@@ -2215,7 +2215,38 @@ void SmallDisplacementStdElement::CalculateOnIntegrationPoints( const Variable<d
       
       
     }
-    
+
+    else if (rVariable ==
+	    GAUSS_WEIGHTS) // VARIABLE SET FOR HOMOGENIZATION PURPOSES
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+        // create and initialize element variables:
+	    GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+        //for (unsigned int PointNumber = 0;
+        //     PointNumber < mConstitutiveLawVector.size(); PointNumber++)
+
+        for ( unsigned int PointNumber = 0;
+              PointNumber < integration_points.size(); PointNumber++ )
+        {
+             // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+            Matrix InvJ;
+            MathUtils<double>::InvertMatrix(Variables.J[PointNumber], InvJ, Variables.detJ);
+
+            //calculating weights for integration on the "reference configuration"
+            double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+            IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+            //KRATOS_WATCH(IntegrationWeight)
+            rOutput[PointNumber] = IntegrationWeight;
+
+
+        } // for each gauss_point
+
+    }
+
     else
     {
 
