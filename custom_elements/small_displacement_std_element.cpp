@@ -1,21 +1,7 @@
-//
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
-//
-//
-
-// System includes
-
-// External includes
-
-// Project includes
-#include "includes/define.h"
 #include "custom_elements/small_displacement_std_element.hpp"
 #include "includes/constitutive_law.h"
-
+#include "includes/define.h"
+#include "multiscale_rom_application_variables.h"
 #include "solid_mechanics_application_variables.h"
 
 

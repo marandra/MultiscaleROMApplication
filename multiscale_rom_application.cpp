@@ -7,8 +7,12 @@
 #include "includes/variables.h"
 namespace Kratos
 {
-KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
-    : mSmallDisplacementBbarElement2D4N(
+KratosMultiscaleROMApplication::KratosMultiscaleROMApplication() :
+        mSmallDisplacementStdElement2D4N(
+                0,
+                Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+                        Element::GeometryType::PointsArrayType(4)))),
+        mSmallDisplacementBbarElement2D4N(
           0,
           Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
@@ -16,6 +20,10 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
           0,
           Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
+        mSmallDisplacementStdElement3D8N(
+                0,
+                Element::GeometryType::Pointer(
+                        new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
       mSmallDisplacementBbarElement3D8N(
           0,
           Element::GeometryType::Pointer(

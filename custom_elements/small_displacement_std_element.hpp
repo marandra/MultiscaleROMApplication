@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_STD_ELEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_STD_ELEMENT_H_INCLUDED
 
 // System includes 
 
@@ -43,8 +43,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementStdElement
-    : public Element
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementStdElement : public Element
 {
 public:
 
@@ -867,4 +866,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_STD_ELEMENT_H_INCLUDED  defined 
