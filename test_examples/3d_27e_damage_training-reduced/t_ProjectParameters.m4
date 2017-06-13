@@ -67,7 +67,7 @@
             "model_part_name": "RVE",                                           
             "filename": "energy",                                        
             "variable_name": "STRAIN_ENERGY",
-	    "write_mode": "ascii"
+	        "write_mode": "ascii"
             }                                                                   
         },{                                                                     
         "implemented_in_file"   : "write_elements_output",               
@@ -78,8 +78,8 @@
             "model_part_name": "RVE",                                           
             "filename": "strain",                                        
             "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
-	    "variable_location": "MultiscaleROMApplication",
-	    "write_mode": "ascii"
+	        "variable_location": "MultiscaleROMApplication",
+	        "write_mode": "ascii"
             }                                                                   
         },{
         "implemented_in_file"   : "write_elements_output",
@@ -87,21 +87,30 @@
         "process_name": "WriteElementsOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "gauss_weights",
+	        "filename": "gauss_weights",
             "variable_name": "GAUSS_WEIGHTS",
-	    "write_frequency": "last_timestep",
-	    "variable_location": "MultiscaleROMApplication"
-	    }
+	        "write_frequency": "last_timestep",
+	        "variable_location": "MultiscaleROMApplication"
+	        }
         },{
         "implemented_in_file"   : "write_flag_timesteps",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteGlobalOutputScalarApplication",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "elastic_timesteps",
+	        "filename": "elastic_timesteps",
             "flag_name": "INELASTIC_FLAG",
-	    "flag_location": "MultiscaleROMApplication"
-	    }
+	        "flag_location": "MultiscaleROMApplication"
+	        }
+        },{
+        "implemented_in_file"   : "write_elements_output_homogenized_vector",
+        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+        "process_name": "WriteElementsOutputHomogenizedVector",
+        "Parameters": {
+            "model_part_name": "RVE",
+	        "filename": "homogenized_stress.dat",
+            "variable_name": "CAUCHY_STRESS_VECTOR"
+	        }
         }],
     "output_configuration"     : {},
     "restart_options"          : {
