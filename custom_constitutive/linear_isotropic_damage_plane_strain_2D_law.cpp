@@ -272,7 +272,8 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
         constitutiveMatrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
         sigma_bar *= (1. - d);
     }
-  //TODO compute mStrainEnergy here
+  //TODO compute mStrainEnergy here/
+    mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutiveMatrix, epsilon)));
 }
 
 void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)

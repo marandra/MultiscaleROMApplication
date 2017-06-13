@@ -307,8 +307,7 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     }
 
     //TODO add check of flag here (COMPUTE_STRAIN_ENERGY)
-    //mStrainEnergy = 0.5 * inner_prod(epsilon - mPlasticStrain, prod(ElasticityTensor, epsilon - mPlasticStrain))
-    //    + 0.5 * GetSaturationHardening(matprops) * mAccumulatedPlasticStrain ;
+    mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutiveMatrix, epsilon)));
 }
 
 void LinearIsotropicDamage3DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
