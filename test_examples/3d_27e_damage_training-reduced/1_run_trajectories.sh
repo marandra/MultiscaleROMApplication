@@ -4,6 +4,6 @@ for i in trajectory_?
 do
        	cd $i
 	echo $i
-	time python3 MainKratos.py >& outMainKratos &
+	python3 MainKratos.py > outMainKratos 2>&1 &
 	cd ..
 done

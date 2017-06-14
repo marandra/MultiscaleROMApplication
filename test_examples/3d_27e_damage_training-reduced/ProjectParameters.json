@@ -15,7 +15,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "3d_27elem-hprom"
+            "input_filename" : "3d_27elem"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -37,13 +37,11 @@
     "loads_process_list"       : [{
         "implemented_in_file"   : "impose_initial_strain_process",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
-        "help": "",
         "process_name": "ImposeInitialStrainProcess",
         "Parameters": {
-            "mesh_id": 0,
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-            "initial_strain": [0.1, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "initial_strain": [0.02, 0.0, 0.0, 0.0, 0.0, 0.0],
             "lookuptable_time": [0.0, 1.0],
             "lookuptable_mult": [0.0, 1.0]
             }

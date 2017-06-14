@@ -3,7 +3,7 @@
         "problem_name"    : "3d_27elem",
         "part_name"       : "TRIANGLES",
         "domain_size"     : 3,
-        "time_step"       : 0.05,
+        "time_step"       : 0.01,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -67,7 +67,7 @@
             "model_part_name": "RVE",                                           
             "filename": "energy",                                        
             "variable_name": "STRAIN_ENERGY",
-	        "write_mode": "ascii"
+	        "write_mode": "binary"
             }                                                                   
         },{                                                                     
         "implemented_in_file"   : "write_elements_output",               
@@ -79,7 +79,7 @@
             "filename": "strain",                                        
             "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
 	        "variable_location": "MultiscaleROMApplication",
-	        "write_mode": "ascii"
+	        "write_mode": "binary"
             }                                                                   
         },{
         "implemented_in_file"   : "write_elements_output",

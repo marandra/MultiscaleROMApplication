@@ -17,8 +17,7 @@ def analysis(parameters, processes, solver, model_part):
     conf = configparser.ConfigParser()
     conf.read("reduced_bases.cfg")
     nr_modes = 10
-    energy_basis_filename = conf['Parameters']['energy_basis_filename']
-    strain_basis_filename = conf['Parameters']['strain_basis_filename']
+    strain_bases_filename = conf['Parameters']['strain_bases_filename']
     roq_weights_filename = conf['Parameters']['roq_weights_filename']
 
     # TODO this should be gotten automatically
@@ -31,7 +30,7 @@ def analysis(parameters, processes, solver, model_part):
     model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS] = modes_weights
     model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES] = nr_modes
     # TODO move this to a process
-    with open(strain_basis_filename, "r") as fo:
+    with open(strain_bases_filename, "r") as fo:
         for elem in model_part.Elements:
             BE = km.Matrix(ngausspoints * voigtsize, nr_modes)
             for i in range(ngausspoints * voigtsize):
@@ -47,6 +46,8 @@ def analysis(parameters, processes, solver, model_part):
             
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
+
+    print("Finished reading reduced bases")
 
     with open("output.dat", "w") as fo:
         delta_time = parameters["problem_data"]["time_step"].GetDouble()
@@ -69,8 +70,8 @@ def analysis(parameters, processes, solver, model_part):
             #print("OUTPUT MODES WEIGHTS:")
             #print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
             #for mode in model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS]:
-            #    print(mode)
-            #    fo.write("{:17.15f} ".format(mode))
+                #print(mode)
+                #fo.write("{:17.15f} ".format(mode))
             #fo.write("\n")
             #print("\n")
             time = time + delta_time
