@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
-        "problem_name"    : "3d_27elem",
-        "part_name"       : "TRIANGLES",
+        "problem_name"    : "training",
+        "part_name"       : "DOMAIN",
         "domain_size"     : 3,
         "time_step"       : 0.01,
         "start_time"      : 0.0,
@@ -15,7 +15,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "3d_27elem"
+            "input_filename" : "model"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
