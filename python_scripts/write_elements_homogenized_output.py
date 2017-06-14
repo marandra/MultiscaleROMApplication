@@ -19,7 +19,7 @@ def homogenization_function(self):
     var_accum = [0.0] * nr_comp
     volume = 0.0
 
-    for elem in self.model_part.Elements:
+    for e, elem in enumerate(self.model_part.Elements):
         values = elem.GetValuesOnIntegrationPoints(self.Var, self.model_part.ProcessInfo)
         weights = elem.GetValuesOnIntegrationPoints(msr.GAUSS_WEIGHTS, self.model_part.ProcessInfo)
         weights = [x[0] for x in weights] # to unpack received list-inside-list
