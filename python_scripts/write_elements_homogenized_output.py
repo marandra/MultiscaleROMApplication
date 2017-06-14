@@ -5,7 +5,7 @@ import os
 import operator
 
 def Factory(settings, Model):
-    return WriteElementsOutputHomogenizedVector(settings["Parameters"], Model)
+    return WriteElementsHomogenizedOutput(settings["Parameters"], Model)
 
 def parameters_get_list_int(ilist):
     olist = []
@@ -14,33 +14,27 @@ def parameters_get_list_int(ilist):
     return olist
 
 def homogenization_function(self):
-
     var_ref = self.model_part.Elements[1].GetValuesOnIntegrationPoints(self.Var,self.model_part.ProcessInfo)
-    homog_comp = var_ref[0].__len__()
-
-    var_acum =[0.0]*homog_comp
+    nr_comp = len(var_ref[0])
+    var_accum = [0.0] * nr_comp
     volume = 0.0
 
     for elem in self.model_part.Elements:
+        values = elem.GetValuesOnIntegrationPoints(self.Var, self.model_part.ProcessInfo)
+        weights = elem.GetValuesOnIntegrationPoints(msr.GAUSS_WEIGHTS, self.model_part.ProcessInfo)
+        weights = [x[0] for x in weights] # to unpack received list-inside-list
+        for i, w in enumerate(weights):
+            # used in HPROM case, to ignore GP
+            if w == -1:
+                continue
+            for j in range(nr_comp):
+                var_accum[j] += values[i][j] * w
+            volume += w
+    for i in range(nr_comp):
+        var_accum[i] /= volume
+    return var_accum
 
-        var_elem = elem.GetValuesOnIntegrationPoints(self.Var,self.model_part.ProcessInfo)
-        weights= elem.GetValuesOnIntegrationPoints(msr.GAUSS_WEIGHTS,self.model_part.ProcessInfo)
-
-        for iVar in range(weights.__len__()):
-            for jVar in range(homog_comp):
-
-                var_acum[jVar] = var_acum[jVar] + var_elem[iVar][jVar]*weights[iVar][0]
-
-            volume += weights[iVar][0]
-
-    for iComp in range(homog_comp):
-        var_acum[iComp] /= volume
-
-    #print(volume)
-    #print(var_acum)
-    return var_acum
-
-class WriteElementsOutputHomogenizedVector(km.Process):
+class WriteElementsHomogenizedOutput(km.Process):
     def __init__(self, param, Model):
         self.model_part = Model[param['model_part_name'].GetString()]
         self.filename = param['filename'].GetString()
