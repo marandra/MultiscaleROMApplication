@@ -292,7 +292,8 @@ void SmallDisplacementHpromElement::Initialize()
 {
     KRATOS_TRY
 
-    mVoigtSize = 4;
+    mVoigtSize = 3;
+    //mVoigtSize = 4; // for 2D Bbar element + plasticiy
     if (GetGeometry().WorkingSpaceDimension() == 3)
     {
         mVoigtSize = 6;
@@ -389,7 +390,6 @@ void SmallDisplacementHpromElement::CalculateElementalSystem(LocalSystemComponen
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    double geometrical_integration_weight;
     Flags& ConstitutiveLawOptions = Values.GetOptions();
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -408,33 +408,17 @@ void SmallDisplacementHpromElement::CalculateElementalSystem(LocalSystemComponen
 
     for (size_t point_number = 0; point_number < integration_points.size(); point_number++)
     {
-        if (mAssignedIntegrationWeights[point_number] < 0)
+        double geometrical_integration_weight;
+        geometrical_integration_weight = mAssignedIntegrationWeights[point_number];
+
+        if (geometrical_integration_weight < 0)
         {
             continue;
         }
 
         this->CalculateKinematics(Variables, point_number);
-
         this->SetGeneralVariables(Variables, Values, point_number);
         mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
-
-        // TODO find another method for flagging.
-        // If weight is positive, we are in HPROM case, and weight is assigned.
-        // If zero we are in ROM case, and weight is as usual.
-        // Negatives were filtered out before
-        if (mAssignedIntegrationWeights[point_number] > 0.)
-        {
-            geometrical_integration_weight = mAssignedIntegrationWeights[point_number];
-        }
-        else
-        {
-            geometrical_integration_weight =
-                integration_points[point_number].Weight() * Variables.detJ;
-            geometrical_integration_weight =
-                this->CalculateIntegrationWeight(geometrical_integration_weight);
-            // TODO check the use of THICKNESS in weight computation. Check 3D
-            // case.
-        }
 
         if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX))
         {
@@ -442,7 +426,6 @@ void SmallDisplacementHpromElement::CalculateElementalSystem(LocalSystemComponen
             // config
             this->CalculateAndAddLHS(rLocalSystem, Variables, geometrical_integration_weight);
         }
-
         if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR))
         {
             // contribution to external forces
@@ -450,6 +433,7 @@ void SmallDisplacementHpromElement::CalculateElementalSystem(LocalSystemComponen
             this->CalculateAndAddRHS(rLocalSystem, Variables, VolumeForce,
                                      geometrical_integration_weight);
         }
+
     }
 }
 
@@ -1436,10 +1420,21 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 
         } // for each gauss_point
     }
+
+    else if (rVariable == GAUSS_WEIGHTS)
+    {
+        Vector& mAssignedIntegrationWeights = this->GetValue(INTEGRATION_POINT_WEIGHT);
+        for (size_t ii = 0; ii < integration_points_number; ii++)
+        {
+            rOutput[ii] = mAssignedIntegrationWeights[ii];
+        }
+    }
     else
     {
         for (unsigned int ii = 0; ii < integration_points_number; ii++)
+        {
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
+        }
     }
 
     KRATOS_CATCH("")
@@ -1459,7 +1454,13 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points_number)
         rOutput.resize(integration_points_number);
 
-    if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR)
+    for (size_t i = 0; i < integration_points_number; i++){
+        //rOutput[i] = ZeroVector(this->mVoigtSize);
+        KRATOS_WATCH("FIX ME!!!")
+        rOutput[i] = ZeroVector(6);
+    }
+
+        if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR)
     {
         // create and initialize element variables:
         GeneralVariables Variables;
@@ -1473,10 +1474,16 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-        // reading integration points
-        for (unsigned int PointNumber = 0;
-             PointNumber < mConstitutiveLawVector.size(); PointNumber++)
+        KRATOS_WATCH("DEBUG")
+        Vector& mAssignedIntegrationWeights = this->GetValue(INTEGRATION_POINT_WEIGHT);
+        for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
         {
+            KRATOS_WATCH(mAssignedIntegrationWeights[PointNumber])
+            if (mAssignedIntegrationWeights[PointNumber] < 0)
+            {
+                continue;
+            }
+
             // compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables, PointNumber);
 
@@ -1493,6 +1500,7 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
                 rOutput[PointNumber].resize(Variables.StressVector.size(), false);
 
             rOutput[PointNumber] = Variables.StressVector;
+            KRATOS_WATCH(Variables.StressVector)
         }
     }
     else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR || rVariable == ALMANSI_STRAIN_VECTOR)
