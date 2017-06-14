@@ -1,12 +1,11 @@
 {
-    "problem_data"             : {
-        "problem_name"    : "training",
-        "part_name"       : "DOMAIN",
-        "domain_size"     : 3,
-        "time_step"       : 0.01,
-        "start_time"      : 0.0,
-        "end_time"        : 1.0,
-        "echo_level"      : 0
+    "problem_data": {
+        "problem_name": "training",
+        "part_name": "DOMAIN",
+        "domain_size": 3,
+        "nr_time_steps": 250,
+        "end_time": 1.0,
+        "echo_level": 0
     },
     "solver_settings"          : {
         "solver_type"                        : "solid_mechanics_static_solver",
@@ -103,9 +102,9 @@
 	        "flag_location": "MultiscaleROMApplication"
 	        }
         },{
-        "implemented_in_file"   : "write_elements_output_homogenized_vector",
+        "implemented_in_file"   : "write_elements_homogenized_output",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
-        "process_name": "WriteElementsOutputHomogenizedVector",
+        "process_name": "WriteElementsHomogenizedOutput",
         "Parameters": {
             "model_part_name": "RVE",
 	        "filename": "homogenized_stress.dat",
