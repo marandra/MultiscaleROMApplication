@@ -1,6 +1,5 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.MultiscaleROMApplication as msr
-#import bisect
 import os
 import operator
 
@@ -56,12 +55,7 @@ class WriteElementsHomogenizedOutput(km.Process):
             pass
 
     def ExecuteInitializeSolutionStep(self):
-        #self.timestep = "-{:.3f}".format(self.model_part.ProcessInfo[km.TIME])
-        #try:
-        #    os.remove(self.filename + self.timestep)
-        #except OSError:
-        #    pass
-        self.write_results(self.filename)
+        pass
 
     def ExecuteAfterOutputStep(self):
         pass
@@ -73,11 +67,7 @@ class WriteElementsHomogenizedOutput(km.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        #t = self.Model.ProcessInfo[km.TIME]
-        #if t == self.Model.ProcessInfo[km.END_TIME] or self.__check_write_freq(t):
-        #self.write_results(self.filename + self.timestep)
-        pass
-
+        self.write_results(self.filename)
 
     def ExecuteFinalize(self):
         pass
