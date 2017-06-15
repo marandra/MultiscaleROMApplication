@@ -45,9 +45,9 @@
             "lookuptable_mult": [0.0, 1.0]
             }
     },{
-        "implemented_in_file": "write_elements_output_homogenized_vector",
+        "implemented_in_file": "write_elements_homogenized_output",
         "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
-        "process_name": "WriteElementsOutputHomogenizedVector",
+        "process_name": "WriteElementsHomogenizedOutput",
         "Parameters": {
             "model_part_name": "RVE",
 	        "filename": "homogenized_stress.dat",
