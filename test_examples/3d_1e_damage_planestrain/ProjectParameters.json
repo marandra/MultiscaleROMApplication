@@ -29,8 +29,8 @@
             "scaling": true,
             "verbosity": 0
             },
-        "problem_domain_sub_model_part_list": ["RVE"],
-        "processes_sub_model_part_list": ["PINNED", "FREE_Y", "DISP"],
+	"problem_domain_sub_model_part_list": ["RVE"],
+        "processes_sub_model_part_list": ["RVE", "PINNED", "FREE_Y", "DISP"],
         "rotation_dofs": false
         },
     "constraints_process_list": [{
@@ -99,7 +99,18 @@
 	    "node": 4,
 	    "filename": "displacement-reaction.dat"
 	    }
-        }],
+        },{
+        "implemented_in_file": "write_elements_homogenized_output",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "process_name": "WriteElementsHomogenizedOutput",
+        "Parameters": {
+            "model_part_name": "RVE",
+                "filename": "homogenized_stress.dat",
+            "variable_name": "CAUCHY_STRESS_VECTOR"
+                }
+        }
+
+    ],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
