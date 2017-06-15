@@ -6,8 +6,7 @@ from KratosMultiphysics.MultiscaleROMApplication import *
 
 def AssignMaterial(Properties):
 
-    #mat = SmallDisplacementElastoPlasticJ23DLaw()
-    mat = SmallDisplacementIsotropicDamage3DLaw()
+    mat = LinearIsotropicDamage3DLaw()
 
     Properties[1].SetValue(CONSTITUTIVE_LAW, mat.Clone())
         

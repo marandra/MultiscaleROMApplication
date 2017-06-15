@@ -8,25 +8,28 @@ Begin Properties 1
     DENSITY 1.
     YOUNG_MODULUS   21000.0
     POISSON_RATIO   0.3
-    ISOTROPIC_DAMAGE_MODULUS 0.015
+    ISOTROPIC_DAMAGE_MODULUS 0.001 
     YIELD_STRESS 5.5
     INFINITY_YIELD_STRESS 1000.0
 End Properties
 
 Begin Nodes
-    1               0               1               1
-    2               0               1               0
-    3               0               0               1
-    4               1               1               1
-    5               0               0               0
-    6               1               1               0
-    7               1               0               1
-    8               1               0               0
+    1    0.00000e+00    0.00000e+00    0.00000e+00
+    2    0.50000e+00    0.00000e+00    0.00000e+00
+    3    1.00000e+00    0.00000e+00    0.00000e+00
+    4    1.00000e+00    0.50000e+00    0.00000e+00
+    5    1.00000e+00    1.00000e+00    0.00000e+00
+    6    0.50000e+00    1.00000e+00    0.00000e+00
+    7    0.00000e+00    1.00000e+00    0.00000e+00
+    8    0.00000e+00    0.50000e+00    0.00000e+00
+    9    0.60000e+00    0.70000e+00    0.00000e+00  //note displaced node
 End Nodes
 
-//Begin Elements SmallDisplacementBbarElement3D8N
-Begin Elements SmallDisplacementElement3D8N
-1 1 7 4 6 8 3 1 2 5
+Begin Elements SmallDisplacementStdElement2D4N
+         1          1          1         2         9         8    
+         2          1          2         3         4         9    
+         3          1          9         4         5         6    
+         4          1          8         9         6         7   
 End Elements
                                                                                 
 Begin SubModelPart RVE
@@ -39,9 +42,13 @@ Begin SubModelPart RVE
          6
          7
          8
+         9
     End SubModelPartNodes
     Begin SubModelPartElements
          1
+         2
+         3
+         4
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
@@ -49,8 +56,17 @@ End SubModelPart
 
 Begin SubModelPart PINNED
     Begin SubModelPartNodes
+         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart FIXED_Y_DISP_X
+    Begin SubModelPartNodes
          3
-         5
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -60,19 +76,6 @@ End SubModelPart
 
 Begin SubModelPart FREE_Y
     Begin SubModelPartNodes
-         1
-         2
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-
-Begin SubModelPart DISP
-    Begin SubModelPartNodes
-         4
-         6
          7
          8
     End SubModelPartNodes
@@ -82,3 +85,14 @@ Begin SubModelPart DISP
     End SubModelPartConditions
 End SubModelPart
 
+Begin SubModelPart DISP
+    Begin SubModelPartNodes
+         3
+         4
+         5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
