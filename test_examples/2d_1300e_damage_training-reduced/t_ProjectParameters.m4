@@ -1,56 +1,54 @@
 {
-    "problem_data"             : {
-        "problem_name"    : "training",
-        "part_name"       : "DOMAIN",
-        "domain_size"     : 2,
-        "time_step"       : 0.01,
-        "start_time"      : 0.0,
-        "end_time"        : 1.0,
-        "echo_level"      : 0
+    "problem_data": {
+        "problem_name": "training",
+        "part_name": "DOMAIN",
+        "domain_size": 2,
+        "nr_time_steps": 250,
+        "end_time": 1.0,
+        "echo_level": 0
     },
-    "solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_static_solver",
-        "echo_level"                         : 1,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
-        "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "model"
+    "solver_settings": {
+        "solver_type": "solid_mechanics_static_solver",
+        "echo_level": 1,
+        "solution_type": "Static",
+        "analysis_type": "Non-Linear",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "model"
         },
-        "line_search"                        : false,
-        "convergence_criterion"              : "Residual_criterion",
-        "displacement_relative_tolerance"    : 1e-9,
-        "displacement_absolute_tolerance"    : 1e-12,
-        "residual_relative_tolerance"        : 1e-9,
-        "residual_absolute_tolerance"        : 1e-12,
-        "max_iteration"                      : 10,
-        "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
-            "scaling"     : false,
-            "verbosity"   : 0
+        "line_search": false,
+        "convergence_criterion": "Residual_criterion",
+        "displacement_relative_tolerance": 1e-9,
+        "displacement_absolute_tolerance": 1e-12,
+        "residual_relative_tolerance": 1e-9,
+        "residual_absolute_tolerance": 1e-12,
+        "max_iteration": 10,
+        "linear_solver_settings": {
+            "solver_type": "Super_LU",
+            "scaling": false,
+            "verbosity": 0
         },
-        "problem_domain_sub_model_part_list" : ["RVE"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC","RVE"],
-        "rotation_dofs"                      : false
+        "problem_domain_sub_model_part_list": ["RVE"],
+        "processes_sub_model_part_list": ["DISPLACEMENT_BC","RVE"],
+        "rotation_dofs": false
     },
-    "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_BC",
-            "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
-            "value"           : [0.0,0.0,0.0]
+    "constraints_process_list": [{
+        "implemented_in_file": "impose_vector_value_by_components_process",
+        "implemented_in_module": "KratosMultiphysics",
+        "process_name": "ImposeVectorValueByComponentsProcess",
+        "Parameters": {
+            "mesh_id": 0,
+            "model_part_name": "DISPLACEMENT_BC",
+            "variable_name": "DISPLACEMENT",
+            "is_fixed_x": true,
+            "is_fixed_y": true,
+            "is_fixed_z": true,
+            "value": [0.0,0.0,0.0]
         }
     }],
-    "loads_process_list"       : [{
-        "implemented_in_file"   : "impose_initial_strain_process",
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+    "loads_process_list": [{
+        "implemented_in_file": "impose_initial_strain_process",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "ImposeInitialStrainProcess",
         "Parameters": {
             "model_part_name": "RVE",
@@ -59,9 +57,9 @@
             "lookuptable_time": [0.0, 1.0],
             "lookuptable_mult": [0.0, 1.0]
             }
-        },{                                                                     
-        "implemented_in_file"   : "write_elements_output",               
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+    },{
+        "implemented_in_file": "write_elements_output",               
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutput",                            
         "Parameters": {                                                         
             "model_part_name": "RVE",                                           
@@ -70,9 +68,8 @@
 	        "write_mode": "binary"
             }                                                                   
         },{                                                                     
-        "implemented_in_file"   : "write_elements_output",               
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
-        "help": "",                                                             
+        "implemented_in_file": "write_elements_output",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutput",                            
         "Parameters": {                                                         
             "model_part_name": "RVE",                                           
@@ -82,8 +79,8 @@
 	        "write_mode": "binary"
             }                                                                   
         },{
-        "implemented_in_file"   : "write_elements_output",
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+        "implemented_in_file": "write_elements_output",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
@@ -93,8 +90,8 @@
 	        "variable_location": "MultiscaleROMApplication"
 	        }
         },{
-        "implemented_in_file"   : "write_flag_timesteps",
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+        "implemented_in_file": "write_flag_timesteps",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteGlobalOutputScalarApplication",
         "Parameters": {
             "model_part_name": "RVE",
@@ -103,8 +100,8 @@
 	        "flag_location": "MultiscaleROMApplication"
 	        }
         },{
-        "implemented_in_file"   : "write_elements_output_homogenized_vector",
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
+        "implemented_in_file": "write_elements_output_homogenized_vector",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutputHomogenizedVector",
         "Parameters": {
             "model_part_name": "RVE",
@@ -112,15 +109,15 @@
             "variable_name": "CAUCHY_STRESS_VECTOR"
 	        }
         }],
-    "output_configuration"     : {},
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
+    "output_configuration": {},
+    "restart_options": {
+        "SaveRestart": false,
+        "RestartFrequency": 0,
+        "LoadRestart": false,
+        "Restart_Step": 0
     },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    "constraints_data": {
+        "incremental_load": false,
+        "incremental_displacement": false
     }
 }
