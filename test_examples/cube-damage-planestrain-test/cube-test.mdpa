@@ -24,8 +24,7 @@ Begin Nodes
     8               1               0               0
 End Nodes
 
-//Begin Elements SmallDisplacementBbarElement3D8N
-Begin Elements SmallDisplacementElement3D8N
+Begin Elements SmallDisplacementStdElement3D8N
 1 1 7 4 6 8 3 1 2 5
 End Elements
                                                                                 
