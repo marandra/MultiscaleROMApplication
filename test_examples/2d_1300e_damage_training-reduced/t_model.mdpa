@@ -18,8 +18,8 @@ Begin Properties 2
     DENSITY 0.0
     YOUNG_MODULUS 210
     POISSON_RATIO 0.2
-    YIELD_STRESS 100000
-    INFINITY_YIELD_STRESS 100000
+    YIELD_STRESS 4.5e10
+    INFINITY_YIELD_STRESS 4.5e10
     ISOTROPIC_DAMAGE_MODULUS 0.01
 End Properties
 
@@ -5388,53 +5388,53 @@ Begin SubModelPart RVE
 End SubModelPart
 Begin SubModelPart DISPLACEMENT_BC
     Begin SubModelPartNodes
-   1
-   2
-   3
-   5
-   6
-  10
-  11
-  16
-  17
-  23
-  24
-  35
-  36
-  50
-  51
-  76
-  77
- 111
- 112
- 146
- 147
- 181
- 182
- 220
- 221
- 261
- 262
- 302
- 303
- 346
- 347
- 383
- 384
- 429
- 430
- 495
- 496
- 570
- 571
- 656
- 657
- 743
- 744
- 834
- 835
- 935
- 936
+1   
+2   
+3   
+5   
+6   
+10  
+11  
+16  
+17  
+23  
+24  
+35  
+36  
+50  
+51  
+76  
+77  
+111 
+112 
+146 
+147 
+181 
+182 
+220 
+221 
+261 
+262 
+302 
+303 
+346 
+347 
+383 
+384 
+429 
+430 
+495 
+496 
+570 
+571 
+656 
+657 
+743 
+744 
+834 
+835 
+935 
+936 
 1044
 1045
 1127
