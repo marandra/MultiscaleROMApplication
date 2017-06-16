@@ -16,13 +16,13 @@ def analysis(parameters, processes, solver, model_part):
 
     conf = configparser.ConfigParser()
     conf.read("reduced_bases.cfg")
-    nr_modes = 10
+    nr_modes = 6
     strain_bases_filename = conf['Parameters']['strain_bases_filename']
     roq_weights_filename = conf['Parameters']['roq_weights_filename']
 
     # TODO this should be gotten automatically
     ngausspoints = 4
-    voigtsize = 4
+    voigtsize = 3
     # TODO this initialization should be done in scheme
     modes_weights = km.Vector(nr_modes)
     for i in range(nr_modes):
@@ -38,6 +38,8 @@ def analysis(parameters, processes, solver, model_part):
                 for j, value in enumerate(line):
                     BE[i, j] = float(value)
             elem.SetValue(msr.REDUCED_MODES_MATRIX, BE)
+            #print(BE, flush=True)
+            #sys.exit()
     # TODO move this to a process
     with open(roq_weights_filename, "r") as fo:
         for elem in model_part.Elements:
