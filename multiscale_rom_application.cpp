@@ -16,7 +16,7 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication() :
           0,
           Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacementHpromElement2D4N(
+      mSmallDisplacementHpromJ2Element2D4N(
           0,
           Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
@@ -28,7 +28,7 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication() :
           0,
           Element::GeometryType::Pointer(
               new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-      mSmallDisplacementHpromElement3D8N(
+      mSmallDisplacementHpromJ2Element3D8N(
           0,
           Element::GeometryType::Pointer(
               new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
@@ -82,10 +82,10 @@ void KratosMultiscaleROMApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement2D4N", mSmallDisplacementStdElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement2D4N", mSmallDisplacementHpromElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromJ2Element2D4N", mSmallDisplacementHpromJ2Element2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement3D8N", mSmallDisplacementStdElement3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement3D8N", mSmallDisplacementBbarElement3D8N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement3D8N", mSmallDisplacementHpromElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromJ2Element3D8N", mSmallDisplacementHpromJ2Element3D8N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFbarElement2D4N", mUpdatedLagrangianFbarElement2D4N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianFbarElement2D4N", mTotalLagrangianFbarElement2D4N)
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N)

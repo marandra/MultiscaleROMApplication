@@ -1,4 +1,4 @@
-#include "custom_elements/small_displacement_hprom_element.hpp"
+#include "custom_elements/small_displacement_hprom_J2_element.hpp"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "multiscale_rom_application_variables.h"
@@ -11,17 +11,17 @@ KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromElement, COMPUTE_LHS_MATRIX, 1);
 KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2);
 KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3);
 
-SmallDisplacementHpromElement::SmallDisplacementHpromElement() : Element()
+SmallDisplacementHpromJ2Element::SmallDisplacementHpromJ2Element() : Element()
 {
 }
 
-SmallDisplacementHpromElement::SmallDisplacementHpromElement(IndexType NewId,
+SmallDisplacementHpromJ2Element::SmallDisplacementHpromJ2Element(IndexType NewId,
                                                              GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
 }
 
-SmallDisplacementHpromElement::SmallDisplacementHpromElement(IndexType NewId,
+SmallDisplacementHpromJ2Element::SmallDisplacementHpromJ2Element(IndexType NewId,
                                                              GeometryType::Pointer pGeometry,
                                                              PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
@@ -29,14 +29,14 @@ SmallDisplacementHpromElement::SmallDisplacementHpromElement(IndexType NewId,
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
-SmallDisplacementHpromElement::SmallDisplacementHpromElement(SmallDisplacementHpromElement const& rOther)
+SmallDisplacementHpromJ2Element::SmallDisplacementHpromJ2Element(SmallDisplacementHpromJ2Element const& rOther)
     : Element(rOther),
       mThisIntegrationMethod(rOther.mThisIntegrationMethod),
       mConstitutiveLawVector(rOther.mConstitutiveLawVector)
 {
 }
 
-SmallDisplacementHpromElement& SmallDisplacementHpromElement::operator=(SmallDisplacementHpromElement const& rOther)
+SmallDisplacementHpromJ2Element& SmallDisplacementHpromJ2Element::operator=(SmallDisplacementHpromJ2Element const& rOther)
 {
     Element::operator=(rOther);
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
@@ -49,18 +49,18 @@ SmallDisplacementHpromElement& SmallDisplacementHpromElement::operator=(SmallDis
     return *this;
 }
 
-Element::Pointer SmallDisplacementHpromElement::Create(IndexType NewId,
+Element::Pointer SmallDisplacementHpromJ2Element::Create(IndexType NewId,
                                                        NodesArrayType const& rThisNodes,
                                                        PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallDisplacementHpromElement(
+    return Element::Pointer(new SmallDisplacementHpromJ2Element(
         NewId, GetGeometry().Create(rThisNodes), pProperties));
 }
 
-Element::Pointer SmallDisplacementHpromElement::Clone(IndexType NewId,
+Element::Pointer SmallDisplacementHpromJ2Element::Clone(IndexType NewId,
                                                       NodesArrayType const& rThisNodes) const
 {
-    SmallDisplacementHpromElement NewElement(
+    SmallDisplacementHpromJ2Element NewElement(
         NewId, GetGeometry().Create(rThisNodes), pGetProperties());
 
     NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
@@ -84,23 +84,23 @@ Element::Pointer SmallDisplacementHpromElement::Clone(IndexType NewId,
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer(new SmallDisplacementHpromElement(NewElement));
+    return Element::Pointer(new SmallDisplacementHpromJ2Element(NewElement));
 }
 
-SmallDisplacementHpromElement::~SmallDisplacementHpromElement()
+SmallDisplacementHpromJ2Element::~SmallDisplacementHpromJ2Element()
 {
 }
 
 // GETTING METHODS
 
-SmallDisplacementHpromElement::IntegrationMethod SmallDisplacementHpromElement::GetIntegrationMethod() const
+SmallDisplacementHpromJ2Element::IntegrationMethod SmallDisplacementHpromJ2Element::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }
 
 // TODO check if this funcion es required in this case
 /*
-void SmallDisplacementHpromElement::GetDofList(
+void SmallDisplacementHpromJ2Element::GetDofList(
     DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo) {
   rElementalDofList.resize(0);
   const size_t dimension = GetGeometry().WorkingSpaceDimension();
@@ -114,7 +114,7 @@ void SmallDisplacementHpromElement::GetDofList(
 }
 */
 
-void SmallDisplacementHpromElement::EquationIdVector(EquationIdVectorType& rResult,
+void SmallDisplacementHpromJ2Element::EquationIdVector(EquationIdVectorType& rResult,
                                                      ProcessInfo& rCurrentProcessInfo)
 {
     // TODO mNumberOfModes is not initialized yet
@@ -128,7 +128,7 @@ void SmallDisplacementHpromElement::EquationIdVector(EquationIdVectorType& rResu
         rResult[i] = static_cast<unsigned long>(i);
 }
 
-void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::SetValueOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     for (unsigned int PointNumber = 0;
@@ -139,7 +139,7 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
     }
 }
 
-void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::SetValueOnIntegrationPoints(
     const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     for (unsigned int PointNumber = 0;
@@ -150,7 +150,7 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
     }
 }
 
-void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::SetValueOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     for (unsigned int PointNumber = 0;
@@ -161,7 +161,7 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
     }
 }
 
-void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::SetValueOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -188,7 +188,7 @@ void SmallDisplacementHpromElement::SetValueOnIntegrationPoints(
 
 //************************************************************************************
 
-void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::GetValueOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == VON_MISES_STRESS)
@@ -211,7 +211,7 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     }
 }
 
-void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::GetValueOnIntegrationPoints(
     const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     const size_t& integration_points_number = mConstitutiveLawVector.size();
@@ -241,7 +241,7 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     }
 }
 
-void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::GetValueOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     const size_t& integration_points_number = mConstitutiveLawVector.size();
@@ -267,7 +267,7 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
     }
 }
 
-void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::GetValueOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -288,7 +288,7 @@ void SmallDisplacementHpromElement::GetValueOnIntegrationPoints(
 
 // STARTING - ENDING  METHODS
 
-void SmallDisplacementHpromElement::Initialize()
+void SmallDisplacementHpromJ2Element::Initialize()
 {
     KRATOS_TRY
 
@@ -304,7 +304,7 @@ void SmallDisplacementHpromElement::Initialize()
     KRATOS_CATCH("")
 }
 
-void SmallDisplacementHpromElement::SetGeneralVariables(GeneralVariables& rVariables,
+void SmallDisplacementHpromJ2Element::SetGeneralVariables(GeneralVariables& rVariables,
                                                         ConstitutiveLaw::Parameters& rValues,
                                                         const size_t& rPointNumber)
 {
@@ -325,7 +325,7 @@ void SmallDisplacementHpromElement::SetGeneralVariables(GeneralVariables& rVaria
     rValues.SetDeformationGradientF(rVariables.F);
 }
 
-void SmallDisplacementHpromElement::InitializeGeneralVariables(GeneralVariables& rVariables,
+void SmallDisplacementHpromJ2Element::InitializeGeneralVariables(GeneralVariables& rVariables,
                                                                const ProcessInfo& rCurrentProcessInfo)
 {
     const size_t number_of_nodes = GetGeometry().size();
@@ -361,13 +361,13 @@ void SmallDisplacementHpromElement::InitializeGeneralVariables(GeneralVariables&
                                           rVariables.DeltaPosition);
 }
 
-void SmallDisplacementHpromElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+void SmallDisplacementHpromJ2Element::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                                                              VectorType& rRightHandSideVector,
                                                              Flags& rCalculationFlags)
 {
     const size_t MatSize = mNumberOfModes;
 
-    if (rCalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX))
+    if (rCalculationFlags.Is(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX))
     {
         if (rLeftHandSideMatrix.size1() != MatSize)
             rLeftHandSideMatrix.resize(MatSize, MatSize, false);
@@ -375,7 +375,7 @@ void SmallDisplacementHpromElement::InitializeSystemMatrices(MatrixType& rLeftHa
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize);
     }
 
-    if (rCalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR))
+    if (rCalculationFlags.Is(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR))
     {
         if (rRightHandSideVector.size() != MatSize)
             rRightHandSideVector.resize(MatSize, false);
@@ -384,7 +384,7 @@ void SmallDisplacementHpromElement::InitializeSystemMatrices(MatrixType& rLeftHa
     }
 }
 
-void SmallDisplacementHpromElement::CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+void SmallDisplacementHpromJ2Element::CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
                                                              ProcessInfo& rCurrentProcessInfo)
 {
     GeneralVariables Variables;
@@ -420,13 +420,13 @@ void SmallDisplacementHpromElement::CalculateElementalSystem(LocalSystemComponen
         this->SetGeneralVariables(Variables, Values, point_number);
         mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
 
-        if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX))
+        if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX))
         {
             // contributions to stiffness matrix calculated on the reference
             // config
             this->CalculateAndAddLHS(rLocalSystem, Variables, geometrical_integration_weight);
         }
-        if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR))
+        if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR))
         {
             // contribution to external forces
             VolumeForce = this->CalculateVolumeForce(VolumeForce, Variables);
@@ -442,13 +442,13 @@ void SmallDisplacementHpromElement::CalculateElementalSystem(LocalSystemComponen
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+void SmallDisplacementHpromJ2Element::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                                        GeneralVariables& rVariables,
                                                        double& rIntegrationWeight)
 {
     // contributions of the stiffness matrix calculated on the reference
     // configuration
-    if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS))
+    if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX_WITH_COMPONENTS))
     {
         std::vector<MatrixType>& rLeftHandSideMatrices =
             rLocalSystem.GetLeftHandSideMatrices();
@@ -487,13 +487,13 @@ void SmallDisplacementHpromElement::CalculateAndAddLHS(LocalSystemComponents& rL
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+void SmallDisplacementHpromJ2Element::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                                        GeneralVariables& rVariables,
                                                        Vector& rVolumeForce,
                                                        double& rIntegrationWeight)
 {
     // contribution of the internal and external forces
-    if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS))
+    if (rLocalSystem.CalculationFlags.Is(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR_WITH_COMPONENTS))
     {
         std::vector<VectorType>& rRightHandSideVectors =
             rLocalSystem.GetRightHandSideVectors();
@@ -551,7 +551,7 @@ void SmallDisplacementHpromElement::CalculateAndAddRHS(LocalSystemComponents& rL
 //************************************************************************************
 //************************************************************************************
 
-double& SmallDisplacementHpromElement::CalculateIntegrationWeight(double& rIntegrationWeight)
+double& SmallDisplacementHpromJ2Element::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
     const size_t dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -564,14 +564,14 @@ double& SmallDisplacementHpromElement::CalculateIntegrationWeight(double& rInteg
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void SmallDisplacementHpromJ2Element::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                            ProcessInfo& rCurrentProcessInfo)
 {
     // create local system components
     LocalSystemComponents LocalSystem;
 
     // calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -590,7 +590,7 @@ void SmallDisplacementHpromElement::CalculateRightHandSide(VectorType& rRightHan
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateRightHandSide(
+void SmallDisplacementHpromJ2Element::CalculateRightHandSide(
     std::vector<VectorType>& rRightHandSideVectors,
     const std::vector<Variable<VectorType>>& rRHSVariables,
     ProcessInfo& rCurrentProcessInfo)
@@ -599,8 +599,8 @@ void SmallDisplacementHpromElement::CalculateRightHandSide(
     LocalSystemComponents LocalSystem;
 
     // calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -627,14 +627,14 @@ void SmallDisplacementHpromElement::CalculateRightHandSide(
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void SmallDisplacementHpromJ2Element::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                           ProcessInfo& rCurrentProcessInfo)
 {
     // create local system components
     LocalSystemComponents LocalSystem;
 
     // calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
@@ -653,7 +653,7 @@ void SmallDisplacementHpromElement::CalculateLeftHandSide(MatrixType& rLeftHandS
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void SmallDisplacementHpromJ2Element::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                          VectorType& rRightHandSideVector,
                                                          ProcessInfo& rCurrentProcessInfo)
 {
@@ -661,8 +661,8 @@ void SmallDisplacementHpromElement::CalculateLocalSystem(MatrixType& rLeftHandSi
     LocalSystemComponents LocalSystem;
 
     // calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR);
 
     // Initialize sizes for the system components:
     this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector,
@@ -679,7 +679,7 @@ void SmallDisplacementHpromElement::CalculateLocalSystem(MatrixType& rLeftHandSi
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateLocalSystem(
+void SmallDisplacementHpromJ2Element::CalculateLocalSystem(
     std::vector<MatrixType>& rLeftHandSideMatrices,
     const std::vector<Variable<MatrixType>>& rLHSVariables,
     std::vector<VectorType>& rRightHandSideVectors,
@@ -690,8 +690,8 @@ void SmallDisplacementHpromElement::CalculateLocalSystem(
     LocalSystemComponents LocalSystem;
 
     // calculation flags
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
 
     // Initialize sizes for the system components:
     if (rLHSVariables.size() != rLeftHandSideMatrices.size())
@@ -700,7 +700,7 @@ void SmallDisplacementHpromElement::CalculateLocalSystem(
     if (rRHSVariables.size() != rRightHandSideVectors.size())
         rRightHandSideVectors.resize(rRHSVariables.size());
 
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX);
     for (unsigned int i = 0; i < rLeftHandSideMatrices.size(); i++)
     {
         // Note: rRightHandSideVectors.size() > 0
@@ -708,8 +708,8 @@ void SmallDisplacementHpromElement::CalculateLocalSystem(
             rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags);
     }
 
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX, false);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX, false);
 
     for (unsigned int i = 0; i < rRightHandSideVectors.size(); i++)
     {
@@ -717,7 +717,7 @@ void SmallDisplacementHpromElement::CalculateLocalSystem(
         this->InitializeSystemMatrices(
             rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags);
     }
-    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromElement::COMPUTE_LHS_MATRIX, true);
+    LocalSystem.CalculationFlags.Set(SmallDisplacementHpromJ2Element::COMPUTE_LHS_MATRIX, true);
 
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
@@ -733,7 +733,7 @@ void SmallDisplacementHpromElement::CalculateLocalSystem(
 ////************************************************************************************
 ////************************************************************************************
 
-void SmallDisplacementHpromElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromJ2Element::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType::IntegrationPointsArrayType& integration_points =
         GetGeometry().IntegrationPoints(mThisIntegrationMethod);
@@ -780,7 +780,7 @@ void SmallDisplacementHpromElement::InitializeSolutionStep(ProcessInfo& rCurrent
 
 ////************************************************************************************
 ////************************************************************************************
-void SmallDisplacementHpromElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromJ2Element::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     mModesWeights = rCurrentProcessInfo[REDUCED_MODES_WEIGHTS];
     ClearNodalForces();
@@ -789,14 +789,14 @@ void SmallDisplacementHpromElement::InitializeNonLinearIteration(ProcessInfo& rC
 ////************************************************************************************
 ////************************************************************************************
 
-void SmallDisplacementHpromElement::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromJ2Element::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 ////************************************************************************************
 ////************************************************************************************
 
-void SmallDisplacementHpromElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementHpromJ2Element::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     // create and initialize element variables:
     GeneralVariables Variables;
@@ -831,7 +831,7 @@ void SmallDisplacementHpromElement::FinalizeSolutionStep(ProcessInfo& rCurrentPr
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::InitializeMaterial()
+void SmallDisplacementHpromJ2Element::InitializeMaterial()
 {
     KRATOS_TRY
 
@@ -899,7 +899,7 @@ void SmallDisplacementHpromElement::InitializeMaterial()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::ResetConstitutiveLaw()
+void SmallDisplacementHpromJ2Element::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
@@ -917,7 +917,7 @@ void SmallDisplacementHpromElement::ResetConstitutiveLaw()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+void SmallDisplacementHpromJ2Element::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
                                                                   GeneralVariables& rVariables,
                                                                   Vector& rVolumeForce,
                                                                   double& rIntegrationWeight)
@@ -942,7 +942,7 @@ void SmallDisplacementHpromElement::CalculateAndAddExternalForces(VectorType& rR
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateAndAddInternalForces(
+void SmallDisplacementHpromJ2Element::CalculateAndAddInternalForces(
     VectorType& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
@@ -959,7 +959,7 @@ void SmallDisplacementHpromElement::CalculateAndAddInternalForces(
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+void SmallDisplacementHpromJ2Element::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                                         GeneralVariables& rVariables,
                                                         double& rIntegrationWeight)
 {
@@ -976,7 +976,7 @@ void SmallDisplacementHpromElement::CalculateAndAddKuum(MatrixType& rLeftHandSid
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::ClearNodalForces()
+void SmallDisplacementHpromJ2Element::ClearNodalForces()
 {
     KRATOS_TRY
 
@@ -1004,7 +1004,7 @@ void SmallDisplacementHpromElement::ClearNodalForces()
 //***********************************************************************************
 //***********************************************************************************
 
-void SmallDisplacementHpromElement::AddExplicitContribution(
+void SmallDisplacementHpromJ2Element::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     Variable<array_1d<double, 3>>& rDestinationVariable,
@@ -1077,7 +1077,7 @@ void SmallDisplacementHpromElement::AddExplicitContribution(
 
 //************* COMPUTING  METHODS
 
-void SmallDisplacementHpromElement::CalculateKinematics(GeneralVariables& rVariables,
+void SmallDisplacementHpromJ2Element::CalculateKinematics(GeneralVariables& rVariables,
                                                         const size_t& rPointNumber)
 {
     KRATOS_TRY
@@ -1117,7 +1117,7 @@ void SmallDisplacementHpromElement::CalculateKinematics(GeneralVariables& rVaria
 // POSITION*************************************
 //************************************************************************************
 
-Matrix& SmallDisplacementHpromElement::CalculateDeltaPosition(Matrix& rDeltaPosition)
+Matrix& SmallDisplacementHpromJ2Element::CalculateDeltaPosition(Matrix& rDeltaPosition)
 {
     KRATOS_TRY
 
@@ -1162,7 +1162,7 @@ Matrix& SmallDisplacementHpromElement::CalculateDeltaPosition(Matrix& rDeltaPosi
     KRATOS_CATCH("")
 }
 
-void SmallDisplacementHpromElement::CalculateInfinitesimalStrain(const Matrix& rB, Vector& rStrainVector)
+void SmallDisplacementHpromJ2Element::CalculateInfinitesimalStrain(const Matrix& rB, Vector& rStrainVector)
 {
     KRATOS_TRY
 
@@ -1190,7 +1190,7 @@ void SmallDisplacementHpromElement::CalculateInfinitesimalStrain(const Matrix& r
 
 //************************************************************************************
 //************************************************************************************
-void SmallDisplacementHpromElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
+void SmallDisplacementHpromJ2Element::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
 {
     KRATOS_TRY
     const size_t number_of_nodes = GetGeometry().PointsNumber();
@@ -1243,7 +1243,7 @@ void SmallDisplacementHpromElement::CalculateDeformationMatrix(Matrix& rB, const
 // MASS****************************
 //************************************************************************************
 
-double& SmallDisplacementHpromElement::CalculateTotalMass(double& rTotalMass,
+double& SmallDisplacementHpromJ2Element::CalculateTotalMass(double& rTotalMass,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1286,7 +1286,7 @@ double& SmallDisplacementHpromElement::CalculateTotalMass(double& rTotalMass,
 // ACCELERATION*******************
 //************************************************************************************
 
-Vector& SmallDisplacementHpromElement::CalculateVolumeForce(Vector& rVolumeForce,
+Vector& SmallDisplacementHpromJ2Element::CalculateVolumeForce(Vector& rVolumeForce,
                                                             GeneralVariables& rVariables)
 {
     KRATOS_TRY
@@ -1323,7 +1323,7 @@ Vector& SmallDisplacementHpromElement::CalculateVolumeForce(Vector& rVolumeForce
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1443,7 +1443,7 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1536,7 +1536,7 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
+void SmallDisplacementHpromJ2Element::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1676,7 +1676,7 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
 }
 
 // DECIMAL CORRECTION OF STRAINS
-void SmallDisplacementHpromElement::DecimalCorrection(Vector& rVector)
+void SmallDisplacementHpromJ2Element::DecimalCorrection(Vector& rVector)
 {
     KRATOS_TRY
     for (unsigned int i = 0; i < rVector.size(); i++)
@@ -1698,7 +1698,7 @@ void SmallDisplacementHpromElement::DecimalCorrection(Vector& rVector)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int SmallDisplacementHpromElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int SmallDisplacementHpromJ2Element::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1825,7 +1825,7 @@ int SmallDisplacementHpromElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("");
 }
 
-void SmallDisplacementHpromElement::save(Serializer& rSerializer) const
+void SmallDisplacementHpromJ2Element::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     int IntMethod = int(mThisIntegrationMethod);
@@ -1833,7 +1833,7 @@ void SmallDisplacementHpromElement::save(Serializer& rSerializer) const
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
 }
 
-void SmallDisplacementHpromElement::load(Serializer& rSerializer)
+void SmallDisplacementHpromJ2Element::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     int IntMethod;

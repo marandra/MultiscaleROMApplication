@@ -7,14 +7,14 @@
 
 namespace Kratos
 {
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementHpromElement : public Element
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementHpromJ2Element : public Element
 {
 public:
     typedef ConstitutiveLaw ConstitutiveLawType;
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementHpromElement);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementHpromJ2Element);
 
 protected:
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_RHS_VECTOR);
@@ -191,19 +191,19 @@ protected:
 
 public:
     /// Empty constructor needed for serialization
-    SmallDisplacementHpromElement();
+    SmallDisplacementHpromJ2Element();
     /// Default constructors
-    SmallDisplacementHpromElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacementHpromJ2Element(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SmallDisplacementHpromElement(IndexType NewId,
+    SmallDisplacementHpromJ2Element(IndexType NewId,
                                   GeometryType::Pointer pGeometry,
                                   PropertiesType::Pointer pProperties);
     /// Copy constructor
-    SmallDisplacementHpromElement(SmallDisplacementHpromElement const& rOther);
-    virtual ~SmallDisplacementHpromElement();
+    SmallDisplacementHpromJ2Element(SmallDisplacementHpromJ2Element const& rOther);
+    virtual ~SmallDisplacementHpromJ2Element();
 
     /// Assignment operator.
-    SmallDisplacementHpromElement& operator=(SmallDisplacementHpromElement const& rOther);
+    SmallDisplacementHpromJ2Element& operator=(SmallDisplacementHpromJ2Element const& rOther);
 
     ///@}
     ///@name Operations
@@ -647,6 +647,6 @@ private:
     friend class Serializer;
     virtual void save(Serializer& rSerializer) const;
     virtual void load(Serializer& rSerializer);
-}; // Class SmallDisplacementHpromElement
+}; // Class SmallDisplacementHpromJ2Element
 } // namespace Kratos.
 #endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined
