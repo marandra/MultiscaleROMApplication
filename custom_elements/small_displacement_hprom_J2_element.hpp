@@ -196,8 +196,8 @@ public:
     SmallDisplacementHpromJ2Element(IndexType NewId, GeometryType::Pointer pGeometry);
 
     SmallDisplacementHpromJ2Element(IndexType NewId,
-                                  GeometryType::Pointer pGeometry,
-                                  PropertiesType::Pointer pProperties);
+                                    GeometryType::Pointer pGeometry,
+                                    PropertiesType::Pointer pProperties);
     /// Copy constructor
     SmallDisplacementHpromJ2Element(SmallDisplacementHpromJ2Element const& rOther);
     virtual ~SmallDisplacementHpromJ2Element();
