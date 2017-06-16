@@ -16,7 +16,7 @@ def analysis(parameters, processes, solver, model_part):
 
     conf = configparser.ConfigParser()
     conf.read("reduced_bases.cfg")
-    nr_modes = 6
+    nr_modes = 15
     strain_bases_filename = conf['Parameters']['strain_bases_filename']
     roq_weights_filename = conf['Parameters']['roq_weights_filename']
 

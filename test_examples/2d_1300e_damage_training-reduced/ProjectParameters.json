@@ -40,7 +40,7 @@
         "Parameters": {
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-            "initial_strain": [0.001, 0.0, 0.0, 0.0],
+            "initial_strain": [0.001, 0.0, 0.0],
             "lookuptable_time": [0.0, 1.0],
             "lookuptable_mult": [0.0, 1.0]
             }
