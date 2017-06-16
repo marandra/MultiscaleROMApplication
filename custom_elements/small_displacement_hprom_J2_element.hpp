@@ -1,5 +1,5 @@
-#if !defined(KRATOS_SMALL_DISPLACEMENT_HPROM_ELEMENT_H_INCLUDED)
-#define KRATOS_SMALL_DISPLACEMENT_HPROM_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_HPROM_J2_ELEMENT_H_INCLUDED)
+#define KRATOS_SMALL_DISPLACEMENT_HPROM_J2_ELEMENT_H_INCLUDED
 
 #include "custom_utilities/comparison_utilities.hpp"
 #include "includes/element.h"
@@ -649,4 +649,4 @@ private:
     virtual void load(Serializer& rSerializer);
 }; // Class SmallDisplacementHpromJ2Element
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_SMALL_DISPLACEMENT_HPROM_J2_ELEMENT_H_INCLUDED  defined
