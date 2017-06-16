@@ -18,10 +18,10 @@
         },
         "line_search": false,
         "convergence_criterion": "Residual_criterion",
-        "displacement_relative_tolerance": 1e-9,
-        "displacement_absolute_tolerance": 1e-12,
-        "residual_relative_tolerance": 1e-9,
-        "residual_absolute_tolerance": 1e-12,
+        "displacement_relative_tolerance": 1e-13,
+        "displacement_absolute_tolerance": 1e-13,
+        "residual_relative_tolerance": 1e-13,
+        "residual_absolute_tolerance": 1e-13,
         "max_iteration": 10,
         "linear_solver_settings": {
             "solver_type": "Super_LU",
@@ -40,7 +40,7 @@
         "Parameters": {
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-            "initial_strain": [0.001, 0.0, 0.0, 0.0],
+            "initial_strain": [0.001, 0.0, 0.0],
             "lookuptable_time": [0.0, 1.0],
             "lookuptable_mult": [0.0, 1.0]
             }

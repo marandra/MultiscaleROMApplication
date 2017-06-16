@@ -21,6 +21,7 @@
 #include "custom_elements/small_displacement_std_element.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/small_displacement_hprom_element.hpp"
+#include "custom_elements/small_displacement_hprom_J2_element.hpp"
 #include "custom_elements/total_lagrangian_fbar_element.hpp"
 #include "custom_elements/updated_lagrangian_fbar_element.hpp"
 #include "multiscale_rom_application_variables.h"
@@ -65,9 +66,11 @@ private:
     const SmallDisplacementStdElement mSmallDisplacementStdElement2D4N;
   const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;
     const SmallDisplacementHpromElement mSmallDisplacementHpromElement2D4N;
+    const SmallDisplacementHpromJ2Element mSmallDisplacementHpromJ2Element2D4N;
     const SmallDisplacementStdElement mSmallDisplacementStdElement3D8N;
   const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D8N;
     const SmallDisplacementHpromElement mSmallDisplacementHpromElement3D8N;
+    const SmallDisplacementHpromJ2Element mSmallDisplacementHpromJ2Element3D8N;
     const UpdatedLagrangianFbarElement mUpdatedLagrangianFbarElement2D4N;
     const TotalLagrangianFbarElement mTotalLagrangianFbarElement2D4N;
     const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
