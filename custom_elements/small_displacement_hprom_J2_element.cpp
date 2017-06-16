@@ -6,10 +6,10 @@
 
 namespace Kratos
 {
-KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromElement, COMPUTE_RHS_VECTOR, 0);
-KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromElement, COMPUTE_LHS_MATRIX, 1);
-KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2);
-KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3);
+KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromJ2Element, COMPUTE_RHS_VECTOR, 0);
+KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromJ2Element, COMPUTE_LHS_MATRIX, 1);
+KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromJ2Element, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2);
+KRATOS_CREATE_LOCAL_FLAG(SmallDisplacementHpromJ2Element, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3);
 
 SmallDisplacementHpromJ2Element::SmallDisplacementHpromJ2Element() : Element()
 {
