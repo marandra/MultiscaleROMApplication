@@ -45,7 +45,7 @@ class WriteElementsOutputScalar(km.Process):
             ofile.write("{}\n".format(self.timestep_counter))
 
     def ExecuteInitialize(self):
-        self.timestep_counter = -1
+        self.timestep_counter = 0
         self.inelastic_flag = False
         try:
             os.remove(self.filename)
@@ -65,6 +65,7 @@ class WriteElementsOutputScalar(km.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
+        print ("adentro {}".format(self.timestep_counter), flush=True)
         if not self.inelastic_flag:
             for elem in self.model_part.Elements:
                 flag = elem.GetValuesOnIntegrationPoints(self.var, self.model_part.ProcessInfo)
