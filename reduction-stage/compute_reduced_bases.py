@@ -210,7 +210,7 @@ if __name__ == '__main__':
     nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
     nr_strain_components = int(conf['Parameters']['nr_strain_components'])
-    nr_energy_reduced_modes = int(conf['Parameters']['nr_energy_reduced_modes'])
+    nr_max_energy_reduced_modes = int(conf['Parameters']['nr_max_energy_reduced_modes'])
     trajectory_filename = conf['Parameters']['trajectory_filename']
     energy_filename = conf['Parameters']['energy_filename']
     strain_filename = conf['Parameters']['strain_filename']
@@ -352,10 +352,10 @@ if __name__ == '__main__':
     with open(strain_bases_filename, 'wb') as ofile:
         np.savetxt(ofile, Us, fmt='%.17f')
 
-    if nr_energy_reduced_modes > Ue.shape[1]:
+    if nr_max_energy_reduced_modes > Ue.shape[1]:
         sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
 
-    Ue_red = Ue[:, 0:nr_energy_reduced_modes]
+    Ue_red = Ue[:, 0:nr_max_energy_reduced_modes]
 
     with open(energy_bases_filename, 'wb') as ofile:
        np.savetxt(ofile, Ue_red, fmt='%.17f')
@@ -363,8 +363,9 @@ if __name__ == '__main__':
     logger.info("COMPUTING REDUCED ORDER QUADRATURE (ROQ)")
     factorLEQ = 1.0
     tol = 1e-10
-    nGP = nr_energy_reduced_modes
+    nGP = nr_max_energy_reduced_modes
     [w, z] = ComputeROQ(Ue_red, gauss_weights, factorLEQ, nGP, tol)
+
     roq_weigths = np.empty([nr_elements, nr_integration_points])
     for i in range(nr_elements):
         for j in range(nr_integration_points):
@@ -374,5 +375,8 @@ if __name__ == '__main__':
                 roq_weigths[i][j] = -1
             else:
                 roq_weigths[i][j] = w[d[0]]
+
     with open(roq_weights_filename, 'wb') as ofile:
-        np.savetxt(ofile, roq_weigths, fmt='%.17f')
+        print("NOTE: FIX PRECISION")
+        #np.savetxt(ofile, roq_weigths, fmt='%.17f')
+        np.savetxt(ofile, roq_weigths, fmt='%.7e')

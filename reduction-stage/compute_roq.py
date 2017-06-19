@@ -23,36 +23,32 @@ energy_bases_filename = conf['Parameters']['energy_bases_filename']
 trajectory_filename = conf['Parameters']['trajectory_filename']
 roq_weights_filename = conf['Parameters']['roq_weights_filename']
 
-trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
-integration_weights_files = glob.glob("{}_?/{}".format(trajectory_filename, integration_weights_filename))
-
 logger.info("REDUCED ORDER QUADRATURE")
 
-integration_weights = np.loadtxt(integration_weights_files[0])
+trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
+integration_weights_file = "{}/{}".format(trajectory_paths[0], integration_weights_filename)
+integration_weights = np.loadtxt(integration_weights_file)
 energy_modes = np.loadtxt(energy_bases_filename)
+
 if nr_energy_reduced_modes > energy_modes.shape[1]:
     sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
-energy_modes_red = energy_modes[:, 0:nr_energy_reduced_modes]
+energy_modes_reduced = energy_modes[:, 0:nr_energy_reduced_modes]
 
+#  subset of modes, or define a value (number of modes) as an input
+# TODO: Define a criteron to choose a
 factorLEQ = 1.0
 tol = 1e-10
 nGP = energy_modes.shape[1] #In case of use the same number of points as energy modes.
+[w, z] = ComputeROQ(energy_modes_reduced, integration_weights, factorLEQ, nGP, tol)
 
-# TODO: Define a criteron to choose a
-#  subset of modes, or define a value (number of modes) as an input
-[w,z] = ComputeROQ(energy_modes_red, integration_weights, factorLEQ, nGP, tol)
+# print matrix with new weigths
+roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
+for x, igg in enumerate(z):
+    e = int(igg / 4)
+    ig = igg % 4
+    roq_weigths[e][ig] = w[x]
 
-# Print matrix with new weigths
-roq_weigths = np.empty([nr_elements, nr_integration_points])
-for i in range(nr_elements):
-    for j in range(nr_integration_points):
-        i_elem = nr_integration_points * i + j
-        d = np.where(z==i_elem)[0]
-        if not d:
-            roq_weigths[i][j] = -1.0
-        else:
-            roq_weigths[i][j] = w[d[0]]
-
-with open(roq_weights_filename,'wb') as of:
-    np.savetxt(of, roq_weigths, fmt='%.17f')
-
+with open(roq_weights_filename,'wb') as ofile:
+    print("NOTE: FIX NUMBER FORMAT")
+    #np.savetxt(ofile, roq_weigths, fmt='%.17f')
+    np.savetxt(ofile, roq_weigths, fmt='%.7e')
