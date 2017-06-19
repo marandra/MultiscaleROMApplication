@@ -225,23 +225,17 @@ if __name__ == '__main__':
     tolerance_svd_inelastic_energy = float(conf['Parameters']['tolerance_svd_inelastic_energy'])
 
     # get files
-    integration_weights_files = glob.glob("{}_?/{}".format(trajectory_filename, integration_weights_filename))
-    elastic_snapshots_files = glob.glob("{}_?/{}".format(trajectory_filename, nr_elastic_snapshots_filename))
-    trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
-
     # TODO : for the future, take into account loadin/unloading trajectory cases
-    elastic_mode_traj = []
-    for filename in elastic_snapshots_files:
-        with open(filename, "r") as f:
-            elastic_mode_traj.append(int(f.readline().strip()))
-    nr_elastic_snapshots = min(elastic_mode_traj)
-    logger.info("Nr of elastic snapshots: {}".format(nr_elastic_snapshots))
-
+    integration_weights_files = glob.glob("{}_?/{}".format(trajectory_filename, integration_weights_filename))
+    trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
     energy_elastic_files = []
     energy_inelast_files = []
     strain_elastic_files = []
     strain_inelast_files = []
     for path in trajectory_paths:
+        with open("{}/{}".format(path, nr_elastic_snapshots_filename), "r") as f:
+            nr_elastic_snapshots = int(f.readline().strip())
+        logger.info("Nr of elastic snapshots: {}".format(nr_elastic_snapshots))
         energy_elastic_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[:nr_elastic_snapshots])
         energy_inelast_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[nr_elastic_snapshots:])
         strain_elastic_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[:nr_elastic_snapshots])
