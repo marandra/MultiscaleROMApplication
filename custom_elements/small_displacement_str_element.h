@@ -98,8 +98,14 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     virtual void CalculateOnIntegrationPoints(
-        const Variable<double >& rVariable,
-        std::vector< double >& rOutput,
+            const Variable<double >& rVariable,
+            std::vector< double >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector< Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
