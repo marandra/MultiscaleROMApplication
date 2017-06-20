@@ -8,52 +8,46 @@
 namespace Kratos
 {
 KratosMultiscaleROMApplication::KratosMultiscaleROMApplication() :
-        mSmallDisplacementStdElement2D4N(
-                0,
+      mSmallDisplacementStrElement2D4N( 0,
                 Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
                         Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementBbarElement2D4N(
-          0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacementHpromElement2D4N(
-          0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacementHpromJ2Element2D4N(
-          0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
-        mSmallDisplacementStdElement3D8N(
-                0,
+      mSmallDisplacementStrElement3D8N( 0,
                 Element::GeometryType::Pointer(
                         new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-      mSmallDisplacementBbarElement3D8N(
-          0,
-          Element::GeometryType::Pointer(
-              new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-      mSmallDisplacementHpromElement3D8N(
-          0,
-          Element::GeometryType::Pointer(
-              new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-      mSmallDisplacementHpromJ2Element3D8N(
-          0,
-          Element::GeometryType::Pointer(
-              new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-      mUpdatedLagrangianFbarElement2D4N(
-          0,
+      mSmallDisplacementStdElement2D4N( 0,
+                Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+                        Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementStdElement3D8N( 0,
+                Element::GeometryType::Pointer(
+                        new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementBbarElement2D4N( 0,
           Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
-      mTotalLagrangianFbarElement2D4N(
-          0,
+      mSmallDisplacementBbarElement3D8N( 0,
+          Element::GeometryType::Pointer(
+              new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementHpromElement2D4N( 0,
           Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
-      mMinimalKineticCondition2D3N(
-          0,
+      mSmallDisplacementHpromElement3D8N( 0,
+          Element::GeometryType::Pointer(
+              new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementHpromJ2Element2D4N( 0,
+          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementHpromJ2Element3D8N( 0,
+          Element::GeometryType::Pointer(
+              new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+      mUpdatedLagrangianFbarElement2D4N( 0,
+          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mTotalLagrangianFbarElement2D4N( 0,
+          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mMinimalKineticCondition2D3N( 0,
           Condition::GeometryType::Pointer(
               new Line2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
-      mMinimalKineticCondition3D4N(
-          0,
+      mMinimalKineticCondition3D4N( 0,
           Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(
               Condition::GeometryType::PointsArrayType(4))))
 {
@@ -88,13 +82,15 @@ void KratosMultiscaleROMApplication::Register()
     KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_VECTOR)
 
 
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrElement2D4N", mSmallDisplacementStrElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrElement3D8N", mSmallDisplacementStrElement3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement2D4N", mSmallDisplacementStdElement2D4N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement2D4N", mSmallDisplacementHpromElement2D4N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromJ2Element2D4N", mSmallDisplacementHpromJ2Element2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement3D8N", mSmallDisplacementStdElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement3D8N", mSmallDisplacementBbarElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement2D4N", mSmallDisplacementHpromElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement3D8N", mSmallDisplacementHpromElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromJ2Element2D4N", mSmallDisplacementHpromJ2Element2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromJ2Element3D8N", mSmallDisplacementHpromJ2Element3D8N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFbarElement2D4N", mUpdatedLagrangianFbarElement2D4N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianFbarElement2D4N", mTotalLagrangianFbarElement2D4N)
