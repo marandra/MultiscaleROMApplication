@@ -9,18 +9,13 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_SMALL_DISPLACEMENT_STR_ELEMENT_H_INCLUDED )
 #define  KRATOS_SMALL_DISPLACEMENT_STR_ELEMENT_H_INCLUDED
 
-
-
 // System includes
-
 
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -103,46 +98,10 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     virtual void CalculateOnIntegrationPoints(
-        const Variable<Matrix >& rVariable, 
-        std::vector< Matrix >& rOutput, 
+        const Variable<double >& rVariable,
+        std::vector< double >& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-
-    
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //std::string Info() const;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    //      virtual String Info() const;
-
-    /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
 
 protected:
     ///@name Protected static Member Variables
@@ -158,104 +117,8 @@ protected:
     {
     }
 
-    /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
-     */
-    virtual void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        ) override;
-    
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
-
-    void CalculateBodyForces(
-        Vector& BodyForce,
-        const ProcessInfo& CurrentProcessInfo
-    );
-
-    void InitializeVariables();
-
-    void CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
-        VectorType& mResidualVector,
-        const double weight
-    );
-
-    void CalculateStrain(
-        const Matrix& C,
-        Vector& StrainVector
-        );
-
-    /**
-     * Calculation of the Deformation Matrix B
-     * @param B: The deformation matrix
-     * @param DN_DX: The derivatives of the shape functions
-     */
-    virtual void CalculateB(
-        Matrix& rB,
-        const Matrix& DN_DX,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
-        );
-    
-    /**
-     * Calculation of the equivalent deformation gradient
-     * @param StrainVector: The strain tensor (Voigt notation)
-     * @return The deformation gradient F
-     */
-    virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
-    
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -286,4 +149,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_KINEMATIC_LINEAR_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_STR_ELEMENT_H_INCLUDED defined

@@ -18,7 +18,7 @@
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
-#include "custom_elements/small_displacement_str_element.hpp"
+#include "custom_elements/small_displacement_str_element.h"
 #include "custom_elements/small_displacement_std_element.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/small_displacement_hprom_element.hpp"

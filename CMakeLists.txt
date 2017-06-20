@@ -4,6 +4,7 @@ message("**** configuring KratosMultiscaleROMApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
@@ -34,7 +35,7 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMultiscaleROMApplication SHARED ${KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES})
-target_link_libraries(KratosMultiscaleROMApplication KratosCore KratosSolidMechanicsApplication)
+target_link_libraries(KratosMultiscaleROMApplication KratosCore KratosSolidMechanicsApplication KratosStructuralMechanicsApplication)
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES PREFIX "")
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES COMPILE_DEFINITIONS "MULTISCALE_ROM_APPLICATION=EXPORT,API")
 install(TARGETS KratosMultiscaleROMApplication DESTINATION libs )
