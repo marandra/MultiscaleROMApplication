@@ -2192,25 +2192,15 @@ void SmallDisplacementStdElement::CalculateOnIntegrationPoints( const Variable<d
    
       for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
       {
-             
-        //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
-        //to take in account previous step writing
-        //if( mFinalizedStep ){
-          //this->GetHistoricalVariables(Variables,PointNumber);
-        //}
-        //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
                   
         double StrainEnergy = 0.0;
-            
         //compute stresses and constitutive parameters
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-        mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY,StrainEnergy);
+        mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY, StrainEnergy);
 
-        rOutput[PointNumber] = Variables.detJ * integration_points[PointNumber].Weight() * Thickness * StrainEnergy;  // 1/2 * sigma * epsilon
-        //rOutput[PointNumber] = Variables.detJ * integration_points[PointNumber].Weight() * Thickness * StrainEnergy;  // 1/2 * sigma * epsilon
-           
+        rOutput[PointNumber] = StrainEnergy;
       } // for each gauss_point
       
       
