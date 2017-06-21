@@ -26,8 +26,7 @@ roq_weights_filename = conf['Parameters']['roq_weights_filename']
 logger.info("REDUCED ORDER QUADRATURE")
 
 trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
-integration_weights_file = "{}/{}".format(trajectory_paths[0], integration_weights_filename)
-integration_weights = np.loadtxt(integration_weights_file)
+integration_weights = np.loadtxt(integration_weights_filename)
 energy_modes = np.loadtxt(energy_bases_filename)
 
 if nr_energy_reduced_modes > energy_modes.shape[1]:
@@ -49,6 +48,4 @@ for x, igg in enumerate(z):
     roq_weigths[e][ig] = w[x]
 
 with open(roq_weights_filename,'wb') as ofile:
-    print("NOTE: FIX NUMBER FORMAT")
-    #np.savetxt(ofile, roq_weigths, fmt='%.17f')
-    np.savetxt(ofile, roq_weigths, fmt='%.7e')
+    np.savetxt(ofile, roq_weigths, fmt='%.17f')

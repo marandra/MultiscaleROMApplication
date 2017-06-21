@@ -226,7 +226,6 @@ if __name__ == '__main__':
 
     # get files
     # TODO : for the future, take into account loadin/unloading trajectory cases
-    integration_weights_files = glob.glob("{}_?/{}".format(trajectory_filename, integration_weights_filename))
     trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
     energy_elastic_files = []
     energy_inelast_files = []
@@ -345,7 +344,7 @@ if __name__ == '__main__':
 
     # reading the gauss weights for computing the ROQ
     nr_dofs = nr_elements * nr_integration_points
-    gauss_weights = np.loadtxt(integration_weights_files[0])
+    gauss_weights = np.loadtxt(integration_weights_filename)
 
     # TODO: change the print format of the matrix in order to avoid wrong tabulation because of the minus (-) sign.
     logger.info("Printing data to files")
@@ -366,17 +365,12 @@ if __name__ == '__main__':
     nGP = nr_max_energy_reduced_modes
     [w, z] = ComputeROQ(Ue_red, gauss_weights, factorLEQ, nGP, tol)
 
-    roq_weigths = np.empty([nr_elements, nr_integration_points])
-    for i in range(nr_elements):
-        for j in range(nr_integration_points):
-            i_elem = nr_integration_points * i + j
-            d = np.where(z==i_elem)[0]
-            if not d:
-                roq_weigths[i][j] = -1
-            else:
-                roq_weigths[i][j] = w[d[0]]
+    roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
+    for x, igg in enumerate(z):
+        e = int(igg / 4)
+        ig = igg % 4
+        roq_weigths[e][ig] = w[x]
 
+    # TODO check if "wb" is being overwritten by np.savetxt
     with open(roq_weights_filename, 'wb') as ofile:
-        print("NOTE: FIX PRECISION")
-        #np.savetxt(ofile, roq_weigths, fmt='%.17f')
-        np.savetxt(ofile, roq_weigths, fmt='%.7e')
+        np.savetxt(ofile, roq_weigths, fmt='%.17f')
