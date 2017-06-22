@@ -192,19 +192,10 @@ def ComputeROQ(Modes, weights, factorLEQ, nGP, tol):
     return(w, z)
 
 
-#######################################
-# Main
-#######################################
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-if __name__ == '__main__':
-    handler = logging.FileHandler(sys.argv[1].rsplit('.', 1)[0] + '.log')
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
-
+def computed_complete_set():
     # get parameters
     conf = configparser.ConfigParser()
-    conf.read(sys.argv[1])
+    conf.read(config_filename)
     snapshot_file_format = conf['Parameters']['snapshot_file_format']
     #bases_file_format = conf['Parameters']['bases_file_format']
     nr_elements = int(conf['Parameters']['nr_elements'])
@@ -374,3 +365,78 @@ if __name__ == '__main__':
     # TODO check if "wb" is being overwritten by np.savetxt
     with open(roq_weights_filename, 'wb') as ofile:
         np.savetxt(ofile, roq_weigths, fmt='%.17f')
+
+def compute_reduced_set():
+    # get parameters
+    conf = configparser.ConfigParser()
+    conf.read(config_filename)
+    nr_elements = int(conf['Parameters']['nr_elements'])
+    nr_integration_points = int(conf['Parameters']['nr_integration_points'])
+    nr_energy_reduced_modes = int(conf['Parameters']['nr_energy_reduced_modes'])
+    integration_weights_filename = conf['Parameters']['integration_weights_filename']
+    energy_bases_filename = conf['Parameters']['energy_bases_filename']
+    trajectory_filename = conf['Parameters']['trajectory_filename']
+    roq_weights_filename = conf['Parameters']['roq_weights_filename']
+
+    logger.info("REDUCED ORDER QUADRATURE")
+
+    trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
+    integration_weights = np.loadtxt(integration_weights_filename)
+    energy_modes = np.loadtxt(energy_bases_filename)
+
+    if nr_energy_reduced_modes > energy_modes.shape[1]:
+        sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
+    energy_modes_reduced = energy_modes[:, 0:nr_energy_reduced_modes]
+
+    #  subset of modes, or define a value (number of modes) as an input
+    # TODO: Define a criteron to choose a
+    factorLEQ = 1.0
+    tol = 1e-10
+    nGP = energy_modes.shape[1] #In case of use the same number of points as energy modes.
+    [w, z] = ComputeROQ(energy_modes_reduced, integration_weights, factorLEQ, nGP, tol)
+
+    # print matrix with new weigths
+    roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
+    for x, igg in enumerate(z):
+        e = int(igg / 4)
+        ig = igg % 4
+        roq_weigths[e][ig] = w[x]
+
+    with open(roq_weights_filename,'wb') as ofile:
+        np.savetxt(ofile, roq_weigths, fmt='%.17f')
+
+def create_rom_weights():
+    fo = open("gauss_weights_rom", 'w')
+    with open(sys.argv[1], 'r') as fi:
+        for j in range(27000):
+            for i in range(8):
+                line = fi.readline().strip()
+                fo.write('{}  '.format(line))
+            fo.write('\n')
+
+#######################################
+# Main
+#######################################
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+if __name__ == '__main__':
+
+    flag_reduced_set = False
+    argument_short ='--rom'
+    argument_long ='--hprom'
+    if len(sys.argv) == 2:
+        config_filename = sys.argv[1]
+    elif len(sys.argv) > 2 and (sys.argv[1] == argument_short or sys.argv[1] == argument_long):
+        flag_reduced_set = True
+        config_filename = sys.argv[2]
+    else:
+        sys.exit("usage: python3 {} [{}|{}] config_file\noptions: -r compute reduced set integration point using precomputed energy reduced bases".format(sys.argv[0], argument_short, argument_long))
+
+    handler = logging.FileHandler(config_filename.rsplit('.', 1)[0] + '.log')
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+
+    if flag_reduced_set:
+        compute_reduced_set()
+    else:
+        computed_complete_set()
