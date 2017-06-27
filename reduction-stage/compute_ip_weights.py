@@ -1,5 +1,6 @@
-import sys
+import time
 import configparser
+import argparse
 import glob
 import numpy as np
 import logging
@@ -192,180 +193,6 @@ def ComputeROQ(Modes, weights, factorLEQ, nGP, tol):
     return(w, z)
 
 
-def computed_complete_set():
-    # get parameters
-    conf = configparser.ConfigParser()
-    conf.read(config_filename)
-    snapshot_file_format = conf['Parameters']['snapshot_file_format']
-    #bases_file_format = conf['Parameters']['bases_file_format']
-    nr_elements = int(conf['Parameters']['nr_elements'])
-    nr_integration_points = int(conf['Parameters']['nr_integration_points'])
-    nr_strain_components = int(conf['Parameters']['nr_strain_components'])
-    nr_max_energy_reduced_modes = int(conf['Parameters']['nr_max_energy_reduced_modes'])
-    trajectory_filename = conf['Parameters']['trajectory_filename']
-    energy_filename = conf['Parameters']['energy_filename']
-    strain_filename = conf['Parameters']['strain_filename']
-    integration_weights_filename = conf['Parameters']['integration_weights_filename']
-    nr_elastic_snapshots_filename = conf['Parameters']['nr_elastic_snapshots_filename']
-    energy_bases_filename = conf['Parameters']['energy_bases_filename']
-    strain_bases_filename = conf['Parameters']['strain_bases_filename']
-    roq_weights_filename = conf['Parameters']['roq_weights_filename']
-    tolerance_svd_elastic_strain = float(conf['Parameters']['tolerance_svd_elastic_strain'])
-    tolerance_svd_elastic_energy = float(conf['Parameters']['tolerance_svd_elastic_energy'])
-    tolerance_svd_inelastic_strain = float(conf['Parameters']['tolerance_svd_inelastic_strain'])
-    tolerance_svd_inelastic_energy = float(conf['Parameters']['tolerance_svd_inelastic_energy'])
-
-    # get files
-    # TODO : for the future, take into account loadin/unloading trajectory cases
-    trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
-    energy_elastic_files = []
-    energy_inelast_files = []
-    strain_elastic_files = []
-    strain_inelast_files = []
-    for path in trajectory_paths:
-        with open("{}/{}".format(path, nr_elastic_snapshots_filename), "r") as f:
-            nr_elastic_snapshots = int(f.readline().strip())
-        logger.info("Nr of elastic snapshots: {}".format(nr_elastic_snapshots))
-        energy_elastic_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[:nr_elastic_snapshots])
-        energy_inelast_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[nr_elastic_snapshots:])
-        strain_elastic_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[:nr_elastic_snapshots])
-        strain_inelast_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[nr_elastic_snapshots:])
-
-    logger.info("STRAIN SNAPSHOTS")
-
-    logger.info("Step 01: SVD of strain elastic snapshots")
-    nr_dofs = nr_elements * nr_integration_points * nr_strain_components
-    X = np.empty([nr_dofs, len(strain_elastic_files)])
-    for i, file in enumerate(strain_elastic_files):
-        X[:, i] = np.fromfile(file, dtype=np.float32)
-    # TODO: incluir el SVD del paquete scipy, parece que es mas optimo, ver si esta instalada una version reciente de scipy en el cluster
-    [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
-    logger.info(S)
-
-    logger.info("Step 02: selection process of strain elastic modes")
-    cont = 1
-    Us_el = []
-    for iValue, singular_value in enumerate(S):
-        if singular_value > tolerance_svd_elastic_strain:
-            if cont == 1:
-                Us_el = U[:, iValue]
-            else:
-                Us_el = np.column_stack((Us_el, U[:, iValue]))
-            cont = cont + 1
-    logger.info(Us_el.shape)
-
-    logger.info("Step 03: projection of strain inelastic snapshots")
-    X = np.empty([nr_dofs, len(strain_inelast_files)])
-    for i, file in enumerate(strain_inelast_files):
-        X[:, i] = np.fromfile(file, dtype=np.float32)
-        for j in range(Us_el.shape[1]):
-            X[:,i] = X[:,i] - np.multiply(np.dot(Us_el[:,j],X[:,i]),Us_el[:,j])
-
-    logger.info("Step 04: SVD of strain inelastic modified snapshots")
-    [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
-    logger.info(S)
-
-
-    logger.info("Step 05: Selection process of strain inelastic modes")
-    cont = 1
-    Us_in = []
-    for iValue, singular_value in enumerate(S):
-        if singular_value > tolerance_svd_inelastic_strain:
-            if cont == 1:
-                Us_in = U[:, iValue]
-            else:
-                Us_in = np.column_stack((Us_in, U[:, iValue]))
-            cont = cont + 1
-    logger.info(Us_in.shape)
-
-
-    logger.info("Step 06: assembly of global matrix of strain modes")
-    Us = np.hstack([Us_el, Us_in])
-
-
-    logger.info("ENERGY SNAPSHOTS")
-
-
-    logger.info("Step 07: SVD of elastic energy snapshots")
-    nr_dofs = nr_elements * nr_integration_points
-    X = np.empty([nr_dofs, len(energy_elastic_files)])
-    for i, file in enumerate(energy_elastic_files):
-        X[:, i] = np.fromfile(file, dtype=np.float32)
-    [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
-    logger.info(S)
-
-    logger.info("Step 08: Selection process of elastic energy modes")
-    cont = 1
-    Ue_el = []
-    for iValue, sin_val in enumerate(S):
-        if sin_val > tolerance_svd_elastic_energy:
-            if cont == 1:
-                Ue_el = U[:, iValue]
-            else:
-                Ue_el = np.column_stack((Ue_el, U[:, iValue]))
-            cont = cont + 1
-    logger.info(Ue_el.shape)
-
-    logger.info("Step 09: projection of energy inelastic snapshots")
-    X = np.empty([nr_dofs, len(energy_inelast_files)])
-    for i, file in enumerate(energy_inelast_files):
-        X[:, i] = np.fromfile(file, dtype=np.float32)
-        for j in range(Ue_el.shape[1]):
-            X[:,i] = X[:,i] - np.multiply(np.dot(Ue_el[:,j],X[:,i]),Ue_el[:,j])
-
-    logger.info("Step 10: svd of inelastic energy modified snapshots")
-    [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
-    logger.info(S)
-
-
-    logger.info("Step 11: selection process of inelastic energy modes")
-    cont = 1
-    Ue_in = []
-    for iValue, sin_val in enumerate(S):
-        if sin_val > tolerance_svd_inelastic_energy:
-            if cont == 1:
-                Ue_in = U[:, iValue]
-            else:
-                Ue_in = np.column_stack((Ue_in, U[:, iValue]))
-            cont = cont + 1
-    logger.info(Ue_in.shape)
-
-    logger.info("Step 12: assembly of global matrix of energy modes")
-    Ue=np.hstack([Ue_el, Ue_in])
-
-    # reading the gauss weights for computing the ROQ
-    nr_dofs = nr_elements * nr_integration_points
-    gauss_weights = np.loadtxt(integration_weights_filename)
-
-    # TODO: change the print format of the matrix in order to avoid wrong tabulation because of the minus (-) sign.
-    logger.info("Printing data to files")
-    with open(strain_bases_filename, 'wb') as ofile:
-        np.savetxt(ofile, Us, fmt='%.17f')
-
-    if nr_max_energy_reduced_modes > Ue.shape[1]:
-        sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
-
-    Ue_red = Ue[:, 0:nr_max_energy_reduced_modes]
-
-    with open(energy_bases_filename, 'wb') as ofile:
-       np.savetxt(ofile, Ue_red, fmt='%.17f')
-
-    logger.info("COMPUTING REDUCED ORDER QUADRATURE (ROQ)")
-    factorLEQ = 1.0
-    tol = 1e-10
-    nGP = nr_max_energy_reduced_modes
-    [w, z] = ComputeROQ(Ue_red, gauss_weights, factorLEQ, nGP, tol)
-
-    roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
-    for x, igg in enumerate(z):
-        e = int(igg / 4)
-        ig = igg % 4
-        roq_weigths[e][ig] = w[x]
-
-    # TODO check if "wb" is being overwritten by np.savetxt
-    with open(roq_weights_filename, 'wb') as ofile:
-        np.savetxt(ofile, roq_weigths, fmt='%.17f')
-
 def compute_reduced_set():
     # get parameters
     conf = configparser.ConfigParser()
@@ -417,26 +244,15 @@ def create_rom_weights():
 #######################################
 # Main
 #######################################
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+parser = argparse.ArgumentParser(description="Computes Reduced Order Quadrature (ROQ) integration weights)
+parser.add_argument('config_file', help="configuration file")
+parser.add_argument('-r', '--rom', action="store_true", help="compute ROM instead of HPROM")
+args = parser.parse_args()
+#handler = logging.FileHandler(config_filename.rsplit('.', 1)[0] + '.log')
+#handler.setLevel(logging.INFO)
+#logger.addHandler(handler)
+
 if __name__ == '__main__':
-
-    flag_reduced_set = False
-    argument_short ='--rom'
-    argument_long ='--hprom'
-    if len(sys.argv) == 2:
-        config_filename = sys.argv[1]
-    elif len(sys.argv) > 2 and (sys.argv[1] == argument_short or sys.argv[1] == argument_long):
-        flag_reduced_set = True
-        config_filename = sys.argv[2]
-    else:
-        sys.exit("usage: python3 {} [{}|{}] config_file\noptions: -r compute reduced set integration point using precomputed energy reduced bases".format(sys.argv[0], argument_short, argument_long))
-
-    handler = logging.FileHandler(config_filename.rsplit('.', 1)[0] + '.log')
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
-
-    if flag_reduced_set:
-        compute_reduced_set()
-    else:
-        computed_complete_set()
+    compute_reduced_set()
