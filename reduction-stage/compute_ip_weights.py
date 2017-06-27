@@ -121,7 +121,7 @@ def ComputeJandb(Modes, weights, factorLEQ=1.0):
     return J, b, INTexact
 
 
-def ComputeROQ(Modes, weights, factorLEQ, nGP, tol):
+def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
     # computation of integration points weights
     [J, b, INTexact] = ComputeJandb(Modes, weights, factorLEQ)
     M = len(weights)
@@ -193,66 +193,61 @@ def ComputeROQ(Modes, weights, factorLEQ, nGP, tol):
     return(w, z)
 
 
-def compute_reduced_set():
-    # get parameters
-    conf = configparser.ConfigParser()
-    conf.read(config_filename)
+def write_bases(filename, U):
+    #file_format = conf['Parameters']['roq_file_format']
+    #if file_format == 'ascii':
+    #else:
+    np.savetxt(filename, U)
+    return
+
+
+def compute_reduced_set(conf):
+    nr_roq_points = int(conf['Parameters']['nr_roq_points'])
     nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
-    nr_energy_reduced_modes = int(conf['Parameters']['nr_energy_reduced_modes'])
-    integration_weights_filename = conf['Parameters']['integration_weights_filename']
     energy_bases_filename = conf['Parameters']['energy_bases_filename']
-    trajectory_filename = conf['Parameters']['trajectory_filename']
-    roq_weights_filename = conf['Parameters']['roq_weights_filename']
-
-    logger.info("REDUCED ORDER QUADRATURE")
-
-    trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
+    integration_weights_filename = conf['Parameters']['integration_weights_filename']
     integration_weights = np.loadtxt(integration_weights_filename)
     energy_modes = np.loadtxt(energy_bases_filename)
-
-    if nr_energy_reduced_modes > energy_modes.shape[1]:
-        sys.exit("Error: number of energy modes greater than the total number of computed energy modes")
-    energy_modes_reduced = energy_modes[:, 0:nr_energy_reduced_modes]
-
-    #  subset of modes, or define a value (number of modes) as an input
-    # TODO: Define a criteron to choose a
-    factorLEQ = 1.0
-    tol = 1e-10
-    nGP = energy_modes.shape[1] #In case of use the same number of points as energy modes.
-    [w, z] = ComputeROQ(energy_modes_reduced, integration_weights, factorLEQ, nGP, tol)
-
-    # print matrix with new weigths
+    [w, z] = ComputeROQ(energy_modes, integration_weights,
+                        nr_roq_points, factorLEQ=1.0, tol=1.e-10)
     roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
     for x, igg in enumerate(z):
-        e = int(igg / 4)
-        ig = igg % 4
+        e = int(igg / nr_integration_points)
+        ig = igg % nr_integration_points
         roq_weigths[e][ig] = w[x]
+    return roq_weigths
 
-    with open(roq_weights_filename,'wb') as ofile:
-        np.savetxt(ofile, roq_weigths, fmt='%.17f')
 
-def create_rom_weights():
-    fo = open("gauss_weights_rom", 'w')
-    with open(sys.argv[1], 'r') as fi:
-        for j in range(27000):
-            for i in range(8):
-                line = fi.readline().strip()
-                fo.write('{}  '.format(line))
-            fo.write('\n')
+def create_rom_weights(conf):
+    integration_weights_filename = conf['Parameters']['integration_weights_filename']
+    integration_weights = np.loadtxt(integration_weights_filename)
+    nr_elements = int(conf['Parameters']['nr_elements'])
+    return integration_weights.reshape((nr_elements, -1))
+
 
 #######################################
 # Main
 #######################################
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-parser = argparse.ArgumentParser(description="Computes Reduced Order Quadrature (ROQ) integration weights)
+parser = argparse.ArgumentParser(description="Computes Reduced Order Quadrature (ROQ) integration weights")
 parser.add_argument('config_file', help="configuration file")
 parser.add_argument('-r', '--rom', action="store_true", help="compute ROM instead of HPROM")
 args = parser.parse_args()
-#handler = logging.FileHandler(config_filename.rsplit('.', 1)[0] + '.log')
-#handler.setLevel(logging.INFO)
-#logger.addHandler(handler)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler(args.config_file.rsplit('.', 1)[0] + '.log')
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+conf = configparser.ConfigParser()
+conf.read(args.config_file)
 
 if __name__ == '__main__':
-    compute_reduced_set()
+    logger.info("Reduced Order Quadrature")
+    if args.rom:
+        logger.info("Computing ROM")
+        roq = create_rom_weights(conf)
+    else:
+        logger.info("Computing HPROM")
+        roq = compute_reduced_set(conf)
+    filename = conf['Parameters']['roq_weights_filename']
+    np.savetxt(filename, roq)
