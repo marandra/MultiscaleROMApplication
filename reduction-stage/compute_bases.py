@@ -78,15 +78,19 @@ def compute_elastic_modes(conf, files, nr_components):
 #######################################
 # Main
 #######################################
-#logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser(description="Computes energy and strain reduced bases.")
 parser.add_argument('config_file', help="configuration file")
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-e', '--only-energy', action="store_true", help="compute only energy reduced bases")
 group.add_argument('-s', '--only-strain', action="store_true", help="compute only strain reduced bases")
 args = parser.parse_args()
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+#handler = logging.FileHandler(config_filename.rsplit('.', 1)[0] + '.log')
+#handler.setLevel(logging.INFO)
+#logger.addHandler(handler)
+conf = configparser.ConfigParser()
+conf.read(args.config_file)
 flag_comp_energy = True
 flag_comp_strain =  True
 if args.only_energy:
@@ -95,8 +99,6 @@ elif args.only_strain:
     flag_comp_energy = False
 
 if __name__ == '__main__':
-    conf = configparser.ConfigParser()
-    conf.read(args.config_file)
     ene_bases_fname = conf['Parameters']['energy_bases_filename']
     str_bases_fname = conf['Parameters']['strain_bases_filename']
     bases_file_format = conf['Parameters']['bases_file_format']
