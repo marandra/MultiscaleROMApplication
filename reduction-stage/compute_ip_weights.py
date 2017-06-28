@@ -186,7 +186,13 @@ def compute_reduced_set(conf):
     energy_bases_filename = conf['Parameters']['energy_bases_filename']
     integration_weights_filename = conf['Parameters']['integration_weights_filename']
     integration_weights = np.loadtxt(integration_weights_filename)
-    energy_modes = np.load(energy_bases_filename)
+
+    bases_file_format = conf['Parameters']['bases_file_format']
+    if bases_file_format == 'ascii':
+        energy_modes = np.loadtxt(energy_bases_filename)
+    else:
+        energy_modes = np.load(energy_bases_filename)
+
     [w, z] = ComputeROQ(energy_modes, integration_weights,
                         nr_roq_points, factorLEQ=1.0, tol=1.e-10)
     roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
