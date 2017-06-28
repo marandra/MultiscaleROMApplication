@@ -122,75 +122,53 @@ def ComputeJandb(Modes, weights, factorLEQ=1.0):
 
 
 def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
-    # computation of integration points weights
-    [J, b, INTexact] = ComputeJandb(Modes, weights, factorLEQ)
-    M = len(weights)
-    y = np.arange(M)
+    [J, b] = ComputeJandb(Modes, weights, factorLEQ)[:2]
+    #M = len(weights)
+    y = np.arange(len(weights))
 
-    # Resudual vector, initial guess
+    # resudual vector, initial guess
     r = b
 
-    #sys.exit()
-
-    # Number of iterations
+    # number of iterations
     it = 0
-    mPOS=0
+    mPOS = 0
     z = []
-    Jnorm = np.sqrt(sum(np.multiply(J,J),0))
+    Jnorm = np.sqrt(sum(np.multiply(J, J), 0))
 
-    #print(J.shape)
-
-    #sys.exit()
-
-    # Point Selection Algorithm
-    while (np.linalg.norm(r) / np.linalg.norm(b) > tol and mPOS <= nGP):
-
+    # point Selection Algorithm
+    while (np.linalg.norm(r) / np.linalg.norm(b) > tol) and (mPOS <= nGP):
         # 1. Compute new point
         ObjFun = np.dot((J[:, y]).T, r)
         div = np.multiply(Jnorm[y], np.linalg.norm(r))
         ObjFun = np.divide(ObjFun, div)
         s = ObjFun.argmax()
         t = y[s]
-
         # 2. Move i from set y to set z
         z = (np.append(z, t)).astype(int)
-        y=np.delete(y, s)
-
+        y = np.delete(y, s)
         # 3. solving LS conventional problem
         x = np.linalg.lstsq(J[:, z], b)[0]
         if any(x < 0):
             # 3. Determime alpha for solving a NNLS
             [x, resnorm, residual] = lsqnonneg(J[:,z], b)
-
         # 3. Determime alpha for solving a NNLS
         #[x, resnorm, residual] = lsqnonneg(J[:,z], b)
-
         # 4. Update the residual
         r = b - np.dot(J[:,z],x)
-
         # 5. Update mPOS and k
         mPOS = len(np.where(x>0)[0])
-
-        # Iteration counter
+        #TODO: is iterator really needed? Iteration counter
         it = it + 1
-        logger.info("k = {}, mPOS = {}, error = {:.2f}%".format(it, mPOS, np.linalg.norm(r)/np.linalg.norm(b) * 100))
-
+        logger.debug("k = {}, mPOS = {}, error = {:.2f}%".format(it, mPOS, np.linalg.norm(r)/np.linalg.norm(b) * 100))
     # 6. Postprocess of points - neglecting null weights
     INDzero = np.where(x == 0)[0]
     if any(INDzero):
         z = np.delete(z, INDzero)
     w = np.multiply(x, np.sqrt(weights[z]))
-
-    logger.info("Reduced Weights")
-    logger.info(w)
-    #
-    logger.info("sum of reduced weights")
-    logger.info(np.sum(w))
-    #
-    logger.info("GP's index")
-    logger.info(z)
-
-    return(w, z)
+    logger.debug("Reduced Weights: {}".format(w))
+    logger.debug("sum of reduced weights: {}".format(np.sum(w)))
+    logger.debug("GP's index: {}".format(z))
+    return w, z
 
 
 def write_bases(filename, U):
