@@ -186,7 +186,7 @@ def compute_reduced_set(conf):
     energy_bases_filename = conf['Parameters']['energy_bases_filename']
     integration_weights_filename = conf['Parameters']['integration_weights_filename']
     integration_weights = np.loadtxt(integration_weights_filename)
-    energy_modes = np.loadtxt(energy_bases_filename)
+    energy_modes = np.load(energy_bases_filename)
     [w, z] = ComputeROQ(energy_modes, integration_weights,
                         nr_roq_points, factorLEQ=1.0, tol=1.e-10)
     roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
@@ -207,17 +207,28 @@ def create_rom_weights(conf):
 #######################################
 # Main
 #######################################
+
+# parse command line arguments
 parser = argparse.ArgumentParser(description="Computes Reduced Order Quadrature (ROQ) integration weights")
 parser.add_argument('config_file', help="configuration file")
+parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
 parser.add_argument('-r', '--rom', action="store_true", help="compute ROM instead of HPROM")
 args = parser.parse_args()
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-handler = logging.FileHandler(args.config_file.rsplit('.', 1)[0] + '.log')
-handler.setLevel(logging.DEBUG)
-logger.addHandler(handler)
+
+# parse configuration file
 conf = configparser.ConfigParser()
 conf.read(args.config_file)
+
+# configure logger
+verbosity_level = logging.INFO
+if args.verbose:
+    verbosity_level = logging.DEBUG
+logging.basicConfig(format='[%(asctime)s] %(message)s',
+                    datefmt='%H:%M:%S',level=verbosity_level)
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
 
 if __name__ == '__main__':
     logger.info("Reduced Order Quadrature")

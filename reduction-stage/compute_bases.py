@@ -78,17 +78,17 @@ def compute_elastic_modes(conf, files, nr_components):
 #######################################
 # Main
 #######################################
+
+# parse command line arguments
 parser = argparse.ArgumentParser(description="Computes energy and strain reduced bases.")
 parser.add_argument('config_file', help="configuration file")
+parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-e', '--only-energy', action="store_true", help="compute only energy reduced bases")
 group.add_argument('-s', '--only-strain', action="store_true", help="compute only strain reduced bases")
 args = parser.parse_args()
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-#handler = logging.FileHandler(config_filename.rsplit('.', 1)[0] + '.log')
-#handler.setLevel(logging.INFO)
-#logger.addHandler(handler)
+
+# parse configuration file
 conf = configparser.ConfigParser()
 conf.read(args.config_file)
 flag_comp_energy = True
@@ -97,6 +97,18 @@ if args.only_energy:
     flag_comp_strain =  False
 elif args.only_strain:
     flag_comp_energy = False
+
+# configure logger
+verbosity_level = logging.INFO
+if args.verbose:
+    verbosity_level = logging.DEBUG
+logging.basicConfig(format='[%(asctime)s] %(message)s',
+                    datefmt='%H:%M:%S', level=verbosity_level)
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
+handler.setLevel(logging.DEBUG)
+handler.setFormatter('[%(asctime)s] %(message)s')
+logger.addHandler(handler)
 
 if __name__ == '__main__':
     ene_bases_fname = conf['Parameters']['energy_bases_filename']
