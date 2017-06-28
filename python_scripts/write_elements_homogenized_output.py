@@ -22,7 +22,6 @@ def homogenization_function(self):
         values = elem.GetValuesOnIntegrationPoints(self.Var, self.model_part.ProcessInfo)
         weights = elem.GetValuesOnIntegrationPoints(km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo)
         weights = [x[0] for x in weights] # to unpack received list-inside-list
-        print("DEBUG WEIGHTS {}".format(weights))
         for i, w in enumerate(weights):
             # used in HPROM case, to ignore GP
             if w == -1:
