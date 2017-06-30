@@ -225,11 +225,11 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     Vector& epsilon = rValues.GetStrainVector();
     Vector& sigma_bar = rValues.GetStressVector();
     Vector sigma_bar_pos;
-    Matrix& constitutiveMatrix = rValues.GetConstitutiveMatrix();
+    Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
     double H = matprops[ISOTROPIC_DAMAGE_MODULUS];
     double dpointcoeff;
     double d, q;
-    // Uncoment in case of solve ONLY_TRACTION surface for 3D cases
+    // Uncomment in case of solve ONLY_TRACTION surface for 3D cases
     // double sigma_xx, sigma_yy, sigma_zz, sigma_xz, sigma_yz, sigma_xy;
     // double hyp, sigma_1, sigma_2, sigma_3, angle, cos_a, sin_a;
     bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
@@ -239,9 +239,11 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
         noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
     }
 
-    CalculateConstitutiveMatrix(matprops, constitutiveMatrix);
-    sigma_bar = prod(constitutiveMatrix, epsilon);
-    sigma_bar_pos = prod(constitutiveMatrix, epsilon);
+    CalculateConstitutiveMatrix(matprops, constitutive_matrix);
+    sigma_bar = prod(constitutive_matrix, epsilon);
+    sigma_bar_pos = prod(constitutive_matrix, epsilon);
+    //TODO: for use with strain energy computation (see below)
+    Matrix constitutive_elastic_matrix = constitutive_matrix;
 
     // for tension-only fluency law:
     // originally sigma and sigma_positive are the same (as it is in the
@@ -291,7 +293,7 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
         r = r_prev;
         q = CalculateQ(r, matprops);
         d = 1. - q / r;
-        constitutiveMatrix *= (1 - d);
+        constitutive_matrix *= (1 - d);
         sigma_bar *= (1 - d);
     }
     else
@@ -301,13 +303,13 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
         q = CalculateQ(r, matprops);
         d = 1. - q / r;
         dpointcoeff = (q - H * r) / (r * r * r);
-        constitutiveMatrix *= (1. - d);
-        constitutiveMatrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
+        constitutive_matrix *= (1. - d);
+        constitutive_matrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
         sigma_bar *= (1. - d);
     }
 
     //TODO add check of flag here (COMPUTE_STRAIN_ENERGY)
-    mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutiveMatrix, epsilon)));
+    mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutive_elastic_matrix, epsilon)));
 }
 
 void LinearIsotropicDamage3DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)

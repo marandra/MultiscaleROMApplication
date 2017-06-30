@@ -202,7 +202,7 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
     Vector& epsilon = rValues.GetStrainVector();
     Vector& sigma_bar = rValues.GetStressVector();
     Vector sigma_bar_pos;
-    Matrix& constitutiveMatrix = rValues.GetConstitutiveMatrix();
+    Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
     double H = matprops[ISOTROPIC_DAMAGE_MODULUS];
     double dpointcoeff;
     double d, q;
@@ -215,9 +215,11 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
         noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
     }
 
-    CalculateConstitutiveMatrix(matprops, constitutiveMatrix);
-    sigma_bar = prod(constitutiveMatrix, epsilon);
-    sigma_bar_pos = prod(constitutiveMatrix, epsilon);
+    CalculateConstitutiveMatrix(matprops, constitutive_matrix);
+    sigma_bar = prod(constitutive_matrix, epsilon);
+    sigma_bar_pos = prod(constitutive_matrix, epsilon);
+    //TODO: for use with strain energy computation (see below)
+    Matrix constitutive_elastic_matrix = constitutive_matrix;
 
     // for tension-only fluency law:
     // originally sigma and sigma_positive are the same (as it is in the
@@ -257,7 +259,7 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
         r = r_prev;
         q = CalculateQ(r, matprops);
         d = 1. - q / r;
-        constitutiveMatrix *= (1 - d);
+        constitutive_matrix *= (1 - d);
         sigma_bar *= (1 - d);
     }
     else
@@ -268,12 +270,12 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
         q = CalculateQ(r, matprops);
         d = 1. - q / r;
         dpointcoeff = (q - H * r) / (r * r * r);
-        constitutiveMatrix *= (1. - d);
-        constitutiveMatrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
+        constitutive_matrix *= (1. - d);
+        constitutive_matrix -= dpointcoeff * outer_prod(sigma_bar_pos, sigma_bar);
         sigma_bar *= (1. - d);
     }
-  //TODO compute mStrainEnergy here/
-    mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutiveMatrix, epsilon)));
+    //TODO: Add e.g. COMPUTE_STRAIN_ENERGY flag
+    mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutive_elastic_matrix, epsilon)));
 }
 
 void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
