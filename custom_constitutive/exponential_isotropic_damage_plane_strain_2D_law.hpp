@@ -389,6 +389,7 @@ protected:
     double r;
     double r_prev;
     double tau_epsilon;
+    double mStrainEnergy;
     // boost::numeric::ublas::matrix<double>& constitutiveMatrix();
     ///@}
 
