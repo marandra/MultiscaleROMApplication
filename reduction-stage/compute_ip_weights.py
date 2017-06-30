@@ -189,9 +189,9 @@ def compute_reduced_set(conf):
 
     bases_file_format = conf['Parameters']['bases_file_format']
     if bases_file_format == 'ascii':
-        energy_modes = np.loadtxt(energy_bases_filename)
+        energy_modes = np.loadtxt(energy_bases_filename)[:,:nr_roq_points]
     else:
-        energy_modes = np.load(energy_bases_filename)
+        energy_modes = np.load(energy_bases_filename)[:,:nr_roq_points]
 
     [w, z] = ComputeROQ(energy_modes, integration_weights,
                         nr_roq_points, factorLEQ=1.0, tol=1.e-10)
