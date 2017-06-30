@@ -57,21 +57,21 @@ def compute_inelastic_modes(conf, files, Ue, nr_components):
     return Ur
 
 
-def compute_elastic_modes(conf, files, nr_components):
+def compute_elastic_modes(conf, files, nr_modes, nr_components):
     logger.info("  SVD of elastic snapshots")
     nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
-    nr_strain_components = int(conf['Parameters']['nr_strain_components'])
-    nr_modes = 2 * nr_strain_components
     nr_dofs = nr_elements * nr_integration_points * nr_components
     X = np.empty([nr_dofs, len(files)])
     for i, file in enumerate(files):
         X[:, i] = np.fromfile(file, dtype=np.float32)
     [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
     Ur = U[:,:nr_modes]
-    logger.debug("  - singular values of selected modes: {}".format(S[:nr_modes]))
-    logger.info("  - nr of modes: {}".format(Ur.shape[1]))
-    logger.info("  - size of mode: {}".format(Ur.shape[0]))
+    logger.debug("  - singular value of selected modes:")
+    logger.debug("    {}".format(S[:nr_modes]))
+    logger.debug("    following singular values (excluded):")
+    logger.debug("    {}".format(S[nr_modes: 2 * nr_modes]))
+    logger.info("  - nr and size of modes: {}, {}".format(Ur.shape[1], Ur.shape[0]))
     return Ur
 
 
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     if flag_comp_energy:
         t0 = time.time()
         logger.info("Generating energy bases")
-        Ue = compute_elastic_modes(conf, ene_e_files, nr_components=1)
+        Ue = compute_elastic_modes(conf, ene_e_files, 6, nr_components=1)
         Ui = compute_inelastic_modes(conf, ene_i_files, Ue, nr_components=1)
         U = np.hstack([Ue, Ui])
         t1 = time.time()
@@ -132,7 +132,7 @@ if __name__ == '__main__':
         t0 = time.time()
         logger.info("Generation strain bases")
         nr_strain_components = int(conf['Parameters']['nr_strain_components'])
-        Ue = compute_elastic_modes(conf, str_e_files, nr_components=nr_strain_components)
+        Ue = compute_elastic_modes(conf, str_e_files, 3, nr_components=nr_strain_components)
         Ui = compute_inelastic_modes(conf, str_i_files, Ue, nr_components=nr_strain_components)
         U = np.hstack([Ue, Ui])
         t1 = time.time()
