@@ -1464,7 +1464,7 @@ void SmallDisplacementHpromElement::CalculateOnIntegrationPoints(
         } // for each gauss_point
     }
 
-    else if (rVariable == GAUSS_WEIGHTS)
+    else if (rVariable == INTEGRATION_WEIGHT)
     {
         Vector& mAssignedIntegrationWeights = this->GetValue(INTEGRATION_POINT_WEIGHT);
         for (size_t ii = 0; ii < integration_points_number; ii++)
