@@ -84,10 +84,9 @@
         "process_name": "WriteElementsOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
-	        "filename": "gauss_weights",
-            "variable_name": "GAUSS_WEIGHTS",
-	        "write_frequency": "last_timestep",
-	        "variable_location": "MultiscaleROMApplication"
+            "filename": "integration_weight",
+            "variable_name": "INTEGRATION_WEIGHT",
+            "write_frequency": "last_timestep"
 	        }
         },{
         "implemented_in_file": "write_flag_timesteps",
