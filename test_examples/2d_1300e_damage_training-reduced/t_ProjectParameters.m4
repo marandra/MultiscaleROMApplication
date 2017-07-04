@@ -57,7 +57,7 @@
             "lookuptable_time": [0.0, 1.0],
             "lookuptable_mult": [0.0, 1.0]
             }
-    },{
+        },{
         "implemented_in_file": "write_elements_output",               
         "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutput",                            

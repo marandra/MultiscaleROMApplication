@@ -9,6 +9,8 @@ import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
 import configparser
 import sys
+import numpy as np
+
 
 def analysis(parameters, processes, solver, model_part):
     for process in processes:
@@ -16,28 +18,37 @@ def analysis(parameters, processes, solver, model_part):
 
     conf = configparser.ConfigParser()
     conf.read("reduced_bases.cfg")
-    nr_modes = 10
+    nr_modes = 90
     strain_bases_filename = conf['Parameters']['strain_bases_filename']
     roq_weights_filename = conf['Parameters']['roq_weights_filename']
+    ngausspoints = int(conf['Parameters']['nr_integration_points'])
+    voigtsize = int(conf['Parameters']['nr_strain_components'])
 
-    # TODO this should be gotten automatically
-    ngausspoints = 8
-    voigtsize = 6
     # TODO this initialization should be done in scheme
     modes_weights = km.Vector(nr_modes)
     for i in range(nr_modes):
         modes_weights[i] = 0.0
     model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS] = modes_weights
     model_part.ProcessInfo[msr.NUMBER_REDUCED_MODES] = nr_modes
+
     # TODO move this to a process
-    with open(strain_bases_filename, "r") as fo:
-        for elem in model_part.Elements:
-            BE = km.Matrix(ngausspoints * voigtsize, nr_modes)
-            for i in range(ngausspoints * voigtsize):
-                line = fo.readline().strip().split()[:nr_modes]
-                for j, value in enumerate(line):
-                    BE[i, j] = float(value)
+    strain_bases = np.load(strain_bases_filename)[:,:nr_modes]
+    nr_dofs = ngausspoints * voigtsize
+    index = 0
+    for e, elem in enumerate(model_part.Elements):
+            BE = km.Matrix(nr_dofs, nr_modes)
+            for d in range(nr_dofs):
+                for m in range(nr_modes):
+                    BE[d, m] = strain_bases[index, m]
+                index = index + 1
             elem.SetValue(msr.REDUCED_MODES_MATRIX, BE)
+    #for elem in model_part.Elements:
+    #        BE = km.Matrix(ngausspoints * voigtsize, nr_modes)
+    #        for i in range(ngausspoints * voigtsize):
+    #            line = fo.readline().strip().split()[:nr_modes]
+    #            for j, value in enumerate(line):
+    #                BE[i, j] = float(value)
+    #        elem.SetValue(msr.REDUCED_MODES_MATRIX, BE)
     # TODO move this to a process
     with open(roq_weights_filename, "r") as fo:
         for elem in model_part.Elements:

@@ -1,4 +1,4 @@
-IS=0.02
+IS=0.001
 m4 -DM4VAR_INITIALSTRAIN="[$IS, 0.0, 0.0, 0.0, 0.0, 0.0]" t_ProjectParameters.m4 > ProjectParameters_0.json
 m4 -DM4VAR_INITIALSTRAIN="[0.0, $IS, 0.0, 0.0, 0.0, 0.0]" t_ProjectParameters.m4 > ProjectParameters_1.json
 m4 -DM4VAR_INITIALSTRAIN="[0.0, 0.0, $IS, 0.0, 0.0, 0.0]" t_ProjectParameters.m4 > ProjectParameters_2.json
