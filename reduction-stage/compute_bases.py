@@ -3,6 +3,7 @@ import configparser
 import argparse
 import glob
 import numpy as np
+import scipy.sparse.linalg as sp
 import logging
 
 
@@ -39,7 +40,7 @@ def make_list_of_files(conf):
 
 
 def compute_inelastic_modes(conf, files, Ue, nr_components):
-    logger.info("  Projection of inelastic snapshots")
+    logger.info("Projection of inelastic snapshots")
     nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
     nr_modes = int(conf['Parameters']['max_nr_reduced_modes'])
@@ -50,11 +51,12 @@ def compute_inelastic_modes(conf, files, Ue, nr_components):
         for j in range(Ue.shape[1]):
             X[:,i] = X[:,i] - np.multiply(np.dot(Ue[:, j], X[:, i]), Ue[:, j])
     logger.info("  SVD of inelastic snapshots")
-    U = np.linalg.svd(X, full_matrices=False)[0]
-    Ur = U[:,:nr_modes]
-    logger.info("  - nr of modes: {}".format(Ur.shape[1]))
-    logger.info("  - size of mode: {}".format(Ur.shape[0]))
-    return Ur
+    #U = np.linalg.svd(X, full_matrices=False)[0]
+    #Ur = U[:,:nr_modes]
+    U = sp.svds(X, k=nr_modes)[0]
+    logger.info("  - nr of modes: {}".format(U.shape[1]))
+    logger.info("  - size of mode: {}".format(U.shape[0]))
+    return U
 
 
 def compute_elastic_modes(conf, files, nr_modes, nr_components):
@@ -65,14 +67,15 @@ def compute_elastic_modes(conf, files, nr_modes, nr_components):
     X = np.empty([nr_dofs, len(files)])
     for i, file in enumerate(files):
         X[:, i] = np.fromfile(file, dtype=np.float32)
-    [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
-    Ur = U[:,:nr_modes]
+    #[U, S] = np.linalg.svd(X, full_matrices=False)[:2]
+    [U, S] = sp.svds(X, k=nr_modes + 2)[:2]
+    U = U[:,:nr_modes]
     logger.debug("  - singular value of selected modes:")
     logger.debug("    {}".format(S[:nr_modes]))
-    logger.debug("    following singular values (excluded):")
-    logger.debug("    {}".format(S[nr_modes: 2 * nr_modes]))
-    logger.info("  - nr and size of modes: {}, {}".format(Ur.shape[1], Ur.shape[0]))
-    return Ur
+    logger.debug("    validation: following singular values (excluded):")
+    logger.debug("    {}".format(S[nr_modes: nr_modes + 2]))
+    logger.info("  - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
+    return U
 
 
 #######################################
@@ -107,7 +110,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s',
 logger = logging.getLogger(__name__)
 handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
 handler.setLevel(logging.DEBUG)
-handler.setFormatter('[%(asctime)s] %(message)s')
+handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
 logger.addHandler(handler)
 
 if __name__ == '__main__':
