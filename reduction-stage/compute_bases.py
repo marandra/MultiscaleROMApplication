@@ -56,7 +56,7 @@ def compute_inelastic_modes(conf, files, Ue, nr_components):
     if args.iterative:
         logger.info("    iterative SVD")
         U = sp.svds(X, k=nr_modes)[0]
-    else:::
+    else:
     logger.info("    - nr of modes: {}".format(U.shape[1]))
     logger.info("    - size of mode: {}".format(U.shape[0]))
     logger.info("") 
