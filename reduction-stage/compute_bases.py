@@ -50,31 +50,39 @@ def compute_inelastic_modes(conf, files, Ue, nr_components):
         X[:, i] = np.fromfile(file, dtype=np.float32)
         for j in range(Ue.shape[1]):
             X[:,i] = X[:,i] - np.multiply(np.dot(Ue[:, j], X[:, i]), Ue[:, j])
-    logger.info("  SVD of inelastic snapshots")
+    logger.info("    SVD of inelastic snapshots")
     #U = np.linalg.svd(X, full_matrices=False)[0]
     #Ur = U[:,:nr_modes]
-    U = sp.svds(X, k=nr_modes)[0]
-    logger.info("  - nr of modes: {}".format(U.shape[1]))
-    logger.info("  - size of mode: {}".format(U.shape[0]))
+    if args.iterative:
+        logger.info("    iterative SVD")
+        U = sp.svds(X, k=nr_modes)[0]
+    else:::
+    logger.info("    - nr of modes: {}".format(U.shape[1]))
+    logger.info("    - size of mode: {}".format(U.shape[0]))
+    logger.info("") 
     return U
 
 
 def compute_elastic_modes(conf, files, nr_modes, nr_components):
-    logger.info("  SVD of elastic snapshots")
+    logger.info("    SVD of elastic snapshots")
     nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
     nr_dofs = nr_elements * nr_integration_points * nr_components
     X = np.empty([nr_dofs, len(files)])
     for i, file in enumerate(files):
         X[:, i] = np.fromfile(file, dtype=np.float32)
-    #[U, S] = np.linalg.svd(X, full_matrices=False)[:2]
-    [U, S] = sp.svds(X, k=nr_modes + 2)[:2]
+    if args.iterative:
+        logger.info("    iterative SVD")
+        [U, S] = sp.svds(X, k=nr_modes + 4)[:2]
+    else:
+        [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
     U = U[:,:nr_modes]
-    logger.debug("  - singular value of selected modes:")
-    logger.debug("    {}".format(S[:nr_modes]))
-    logger.debug("    validation: following singular values (excluded):")
-    logger.debug("    {}".format(S[nr_modes: nr_modes + 2]))
-    logger.info("  - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
+    logger.info("    - singular value of selected modes:")
+    logger.info("      {}".format(S[:nr_modes]))
+    logger.info("      validation: following singular values (excluded):")
+    logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
+    logger.info("    - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
+    logger.info("") 
     return U
 
 
@@ -86,6 +94,7 @@ def compute_elastic_modes(conf, files, nr_modes, nr_components):
 parser = argparse.ArgumentParser(description="Computes energy and strain reduced bases.")
 parser.add_argument('config_file', help="configuration file")
 parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
+parser.add_argument('-i', '--iterative', action="store_true", help="performs iterative svd (svds algorithm)")
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-e', '--only-energy', action="store_true", help="compute only energy reduced bases")
 group.add_argument('-s', '--only-strain', action="store_true", help="compute only strain reduced bases")
@@ -108,7 +117,7 @@ if args.verbose:
 logging.basicConfig(format='[%(asctime)s] %(message)s',
                     datefmt='%H:%M:%S', level=verbosity_level)
 logger = logging.getLogger(__name__)
-handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
+handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0], mode='w')
 handler.setLevel(logging.DEBUG)
 handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
 logger.addHandler(handler)
@@ -121,7 +130,7 @@ if __name__ == '__main__':
 
     if flag_comp_energy:
         t0 = time.time()
-        logger.info("Generating energy bases")
+        logger.info("Generating bases ENERGY")
         nr_elastic_modes = int(conf['Parameters']['nr_elastic_modes_energy'])
         Ue = compute_elastic_modes(conf, ene_e_files, nr_elastic_modes, nr_components=1)
         Ui = compute_inelastic_modes(conf, ene_i_files, Ue, nr_components=1)
@@ -134,7 +143,7 @@ if __name__ == '__main__':
 
     if flag_comp_strain:
         t0 = time.time()
-        logger.info("Generation strain bases")
+        logger.info("Generation bases STRAIN")
         nr_strain_components = int(conf['Parameters']['nr_strain_components'])
         nr_elastic_modes = int(conf['Parameters']['nr_elastic_modes_strain'])
         Ue = compute_elastic_modes(conf, str_e_files, nr_elastic_modes, nr_components=nr_strain_components)
