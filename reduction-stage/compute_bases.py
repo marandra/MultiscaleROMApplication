@@ -5,6 +5,7 @@ import glob
 import numpy as np
 import scipy.sparse.linalg as sp
 import logging
+import pprint as pp
 
 
 def write_bases(filename, U):
@@ -55,7 +56,7 @@ def compute_inelastic_modes(conf, files, Ue, nr_components):
             X[:,i] = X[:,i] - np.multiply(np.dot(Ue[:, j], X[:, i]), Ue[:, j])
         if not counter % total:
             logger.debug("    {}/{} snapshots processed".format(counter, total))
-        counter++
+        counter = counter + 1
     logger.info("")
     # Computing SVD inelastic snapshots
     logger.info("    SVD of inelastic snapshots")
@@ -90,7 +91,10 @@ def compute_elastic_modes(conf, files, nr_modes, nr_components):
     logger.info("      validation: following singular values (excluded):")
     logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
     logger.info("    - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
-    logger.info("") 
+    logger.info("")
+    logger.debug("    - all singular values:")
+    logger.debug("      {}".format(S))
+    logger.debug("")
     return U
 
 
@@ -136,7 +140,9 @@ if __name__ == '__main__':
     bases_file_format = conf['Parameters']['bases_file_format']
     ene_e_files, ene_i_files, str_e_files, str_i_files = make_list_of_files(conf)
 
-    logger.debug(conf)
+    logger.debug('Config parameters"')
+    logger.debug(pp.pprint(conf.items('Parameters')))
+    logger.debug('')
 
     if flag_comp_energy:
         t0 = time.time()
