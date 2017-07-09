@@ -42,33 +42,40 @@ def make_list_of_files(conf):
 
 def compute_inelastic_modes(conf, files, Ue, nr_components):
     # Removing elastic components
-    logger.info("Projection of inelastic snapshots")
+    logger.info("    Projection of inelastic snapshots")
     nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
     nr_modes = int(conf['Parameters']['max_nr_reduced_modes'])
     nr_dofs = nr_elements * nr_integration_points * nr_components
     X = np.empty([nr_dofs, len(files)])
     counter = 0
-    total = len(files) / 10
+    total = len(files)
+    batch_size = int(total / 10 + .5)
     for i, file in enumerate(files):
         X[:, i] = np.fromfile(file, dtype=np.float32)
         for j in range(Ue.shape[1]):
             X[:,i] = X[:,i] - np.multiply(np.dot(Ue[:, j], X[:, i]), Ue[:, j])
-        if not counter % total:
+        if not counter % batch_size:
             logger.debug("    {}/{} snapshots processed".format(counter, total))
         counter = counter + 1
+    logger.debug("    {}/{} snapshots processed".format(counter, total))
     logger.info("")
     # Computing SVD inelastic snapshots
     logger.info("    SVD of inelastic snapshots")
     if args.iterative:
         logger.info("    iterative SVD")
-        U = sp.svds(X, k=nr_modes)[0]
+        [U, S] = sp.svds(X, k=nr_modes)[:2]
     else:
-        U = np.linalg.svd(X, full_matrices=False)[0]
+        [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
         U = U[:,:nr_modes]
-    logger.info("    - nr of modes: {}".format(U.shape[1]))
-    logger.info("    - size of mode: {}".format(U.shape[0]))
+    logger.info("    - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
     logger.info("") 
+    # change default print option temporary, as we want to have all the values printed
+    np.set_printoptions(threshold=np.inf)
+    logger.debug("    - all singular values:")
+    logger.debug("      {}".format(S))
+    logger.debug("")
+    np.set_printoptions(threshold=1000)
     return U
 
 
