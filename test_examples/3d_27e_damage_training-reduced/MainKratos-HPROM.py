@@ -18,7 +18,7 @@ def analysis(parameters, processes, solver, model_part):
 
     conf = configparser.ConfigParser()
     conf.read("reduced_bases.cfg")
-    nr_modes = 90
+    nr_modes = 13
     strain_bases_filename = conf['Parameters']['strain_bases_filename']
     roq_weights_filename = conf['Parameters']['roq_weights_filename']
     ngausspoints = int(conf['Parameters']['nr_integration_points'])
@@ -79,8 +79,8 @@ def analysis(parameters, processes, solver, model_part):
             for process in processes:
                 process.ExecuteAfterOutputStep()
             # TODO there sould be a process to handle the output of weights
-            #print("OUTPUT MODES WEIGHTS:")
-            #print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
+            print("OUTPUT MODES WEIGHTS:")
+            print(model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS])
             #for mode in model_part.ProcessInfo[msr.REDUCED_MODES_WEIGHTS]:
                 #print(mode)
                 #fo.write("{:17.15f} ".format(mode))
