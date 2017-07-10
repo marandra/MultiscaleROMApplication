@@ -23,7 +23,7 @@ def make_list_of_files(conf):
     nr_e_snap_filename = conf['Parameters']['nr_elastic_snapshots_filename']
     energy_filename = conf['Parameters']['energy_filename']
     strain_filename = conf['Parameters']['strain_filename']
-    trajectory_paths = sorted(glob.glob("{}_?".format(trajectory_filename)))
+    trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
     ene_e_files = []
     ene_i_files = []
     str_e_files = []
@@ -40,12 +40,11 @@ def make_list_of_files(conf):
     return ene_e_files, ene_i_files, str_e_files, str_i_files
 
 
-def compute_inelastic_modes(conf, files, Ue, nr_components):
+def compute_inelastic_modes(conf, files, nr_modes, Ue, nr_components):
     # Removing elastic components
     logger.info("    Projection of inelastic snapshots")
     nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
-    nr_modes = int(conf['Parameters']['max_nr_reduced_modes'])
     nr_dofs = nr_elements * nr_integration_points * nr_components
     X = np.empty([nr_dofs, len(files)])
     counter = 0
@@ -64,13 +63,20 @@ def compute_inelastic_modes(conf, files, Ue, nr_components):
     logger.info("    SVD of inelastic snapshots")
     if args.iterative:
         logger.info("    iterative SVD")
-        [U, S] = sp.svds(X, k=nr_modes)[:2]
+        [U, S] = sp.svds(X, k=nr_modes + 4)[:2]
+        # to order values in decreasing order (svds returns them in increasing order)
+        S[:nr_modes] = S[:nr_modes][::-1]
+        U = U[:, :nr_modes][:,::-1]
     else:
         [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
         U = U[:,:nr_modes]
+    logger.info("    - singular value of selected modes:")
+    logger.info("      {}".format(S[:nr_modes]))
+    logger.info("      validation: following singular values (excluded):")
+    logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
     logger.info("    - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
     logger.info("") 
-    # change default print option temporary, as we want to have all the values printed
+    # temp change default print option, as we want to have all the values printed out
     np.set_printoptions(threshold=np.inf)
     logger.debug("    - all singular values:")
     logger.debug("      {}".format(S))
@@ -90,18 +96,24 @@ def compute_elastic_modes(conf, files, nr_modes, nr_components):
     if args.iterative:
         logger.info("    iterative SVD")
         [U, S] = sp.svds(X, k=nr_modes + 4)[:2]
+        # to order values in decreasing order (svds returns them in increasing order)
+        S[:nr_modes] = S[:nr_modes][::-1]
+        U = U[:, :nr_modes][:,::-1]
     else:
         [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
-    U = U[:,:nr_modes]
+        U = U[:,:nr_modes]
     logger.info("    - singular value of selected modes:")
     logger.info("      {}".format(S[:nr_modes]))
     logger.info("      validation: following singular values (excluded):")
     logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
     logger.info("    - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
     logger.info("")
+    np.set_printoptions(threshold=np.inf)
+    logger.debug("    - all singular values:")
     logger.debug("    - all singular values:")
     logger.debug("      {}".format(S))
     logger.debug("")
+    np.set_printoptions(threshold=1000)
     return U
 
 
@@ -148,6 +160,7 @@ if __name__ == '__main__':
     ene_e_files, ene_i_files, str_e_files, str_i_files = make_list_of_files(conf)
 
     logger.debug('Config parameters"')
+    # TODO: not working properly
     logger.debug(pp.pprint(conf.items('Parameters')))
     logger.debug('')
 
@@ -156,7 +169,8 @@ if __name__ == '__main__':
         logger.info("Generating bases ENERGY")
         nr_elastic_modes = int(conf['Parameters']['nr_elastic_modes_energy'])
         Ue = compute_elastic_modes(conf, ene_e_files, nr_elastic_modes, nr_components=1)
-        Ui = compute_inelastic_modes(conf, ene_i_files, Ue, nr_components=1)
+        nr_inelastic_modes = int(conf['Parameters']['nr_inelastic_modes_energy'])
+        Ui = compute_inelastic_modes(conf, ene_i_files, nr_inelastic_modes, Ue, nr_components=1)
         U = np.hstack([Ue, Ui])
         t1 = time.time()
         write_bases(ene_bases_fname, U)
@@ -170,7 +184,8 @@ if __name__ == '__main__':
         nr_strain_components = int(conf['Parameters']['nr_strain_components'])
         nr_elastic_modes = int(conf['Parameters']['nr_elastic_modes_strain'])
         Ue = compute_elastic_modes(conf, str_e_files, nr_elastic_modes, nr_components=nr_strain_components)
-        Ui = compute_inelastic_modes(conf, str_i_files, Ue, nr_components=nr_strain_components)
+        nr_inelastic_modes = int(conf['Parameters']['nr_inelastic_modes_strain'])
+        Ui = compute_inelastic_modes(conf, str_i_files, nr_inelastic_modes, Ue, nr_components=nr_strain_components)
         U = np.hstack([Ue, Ui])
         t1 = time.time()
         write_bases(str_bases_fname, U)
