@@ -167,7 +167,7 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
     w = np.multiply(x, np.sqrt(weights[z]))
     logger.debug("Reduced Weights: {}".format(w))
     logger.debug("sum of reduced weights: {}".format(np.sum(w)))
-    logger.debug("GP's index: {}".format(z))
+    logger.debug("GP's index (elems and ip starting from zero): {}".format(z))
     return w, z
 
 
@@ -196,11 +196,13 @@ def compute_reduced_set(conf):
     [w, z] = ComputeROQ(energy_modes, integration_weights,
                         nr_roq_points, factorLEQ=1.0, tol=1.e-10)
     roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
+    roq_list = []
     for x, igg in enumerate(z):
         e = int(igg / nr_integration_points)
         ig = igg % nr_integration_points
         roq_weigths[e][ig] = w[x]
-    return roq_weigths
+        roq_list.append([e, ig, w[x]])
+    return roq_weigths, roq_list
 
 
 def create_rom_weights(conf):
@@ -243,6 +245,7 @@ if __name__ == '__main__':
         roq = create_rom_weights(conf)
     else:
         logger.info("Computing HPROM")
-        roq = compute_reduced_set(conf)
+        roq_mask, roq_list = compute_reduced_set(conf)
     filename = conf['Parameters']['roq_weights_filename']
-    np.savetxt(filename, roq)
+    np.savetxt(filename, roq_mask)
+    np.savetxt("roq_list.dat", roq_list)
