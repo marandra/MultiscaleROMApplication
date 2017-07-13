@@ -1,8 +1,6 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as km
 import read_materials_process
-#import KratosMultiphysics.MultiscaleROMApplication as msr
 import numpy as np
 import json
 import time as timer
@@ -28,7 +26,6 @@ def kratos_to_numpy_vector(K, n):
 def _call_cl(epsilon, cl, geom, process_info, properties):
 
     N = km.Vector(3)
-    #cl.InitializeMaterial(properties, geom, N)
     cl.Check(properties, geom, process_info)
     cl_options = km.Flags()
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRAIN, False)
@@ -64,13 +61,6 @@ def _call_cl(epsilon, cl, geom, process_info, properties):
     cl_params.SetElementGeometry(geom)
 
     cl.CalculateMaterialResponseCauchy(cl_params)
-    #print("The Material Response Cauchy")
-    #print( "stress = ", cl_params.GetStressVector() )
-    #print( "strain = ", cl_params.GetStrainVector() )
-    #print( "C      = ", cl_params.GetConstitutiveMatrix() )
-    #print("")
-
-    cl.FinalizeSolutionStep(properties, geom, N, process_info)
 
     CM = cl_params.GetConstitutiveMatrix()
     stress = cl_params.GetStressVector()
@@ -83,34 +73,41 @@ def _call_cl(epsilon, cl, geom, process_info, properties):
             CM_np[i, j] = CM[i, j]
 
     return stress_np, CM_np
-    #return  cl_params.GetStressVector(), cl_params.GetConstitutiveMatrix()
 
 
-def initialize(iw_list, CL_list, B_list, props_list, model_part, geom):
+def initialize(CL_list, props_list, model_part, geom):
     print("Initializing CLs")
     for i, cl in enumerate(CL_list):
         cl.InitializeMaterial(model_part.Properties[props_list[i]], geom, km.Vector(3))
     print("")
 
+
+def finalize_solution_step(CL_list, props_list, model_part, geom):
+    print("Finalizing CLs")
+    for i, cl in enumerate(CL_list):
+        cl.FinalizeSolutionStep(model_part.Properties[props_list[i]], geom,
+                km.Vector(3), model_part.ProcessInfo)
+    print("")
+
+
 def calculate_residual(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom):
     nr_points = len(B_list)
-    #nr_comps = len(B_list[0])
+    nr_comps = len(B_list[0])
     nr_modes = len(B_list[0][0])
     An = np.zeros((nr_modes, nr_modes))
     bn = np.zeros(nr_modes)
+    homog_stress = np.zeros(nr_comps)
     for i in range(nr_points):
         Bn = np.array(B_list[i])
         epsilon = epsilon_h + np.dot(Bn, x)
         sigma_n, C_n = _call_cl(epsilon, CL_list[i], geom, model_part.ProcessInfo, model_part.Properties[props_list[i]])
-        #Cn = kratos_to_numpy_matrix(C, nr_comps, nr_comps)
-        #print(C_n)
-        #print(np.dot(Bn.transpose(), np.dot(Cn, Bn)))
-        #print("")
-        #sigma_n = kratos_to_numpy_vector(sigma, nr_comps)
         w = iw_list[i]
         An += w * np.dot(Bn.transpose(), np.dot(C_n, Bn))
         bn += w * np.dot(Bn.transpose(), sigma_n)
-    return An, bn
+
+        homog_stress += w * sigma_n
+
+    return An, bn, homog_stress
 
 
 def solve(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom):
@@ -118,27 +115,22 @@ def solve(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom):
     nr_comps = len(B_list[0])
     nr_modes = len(B_list[0][0])
 
-    it = 0
-    tol = 1e-9
-    A, res = calculate_residual(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom)
+    A, res, homog_stress = calculate_residual(x, epsilon_h, iw_list, CL_list,
+            B_list, props_list, model_part, geom)
+    it = 1
     norm_res = 1
-    #print("iteration = {}".format(it))
-    #print(A)
-    #print(x)
-    #print(res)
-    print("norm res: {:.3e}".format(norm_res))
-    it += 1
-    while(norm_res > tol and it < 10):
-        #print("iteration = {}".format(it))
-        x -= np.linalg.solve(A, res)
-        A, res = calculate_residual(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom)
+    while(norm_res > 1e-9 and it < 10):
+        Dx = -np.linalg.solve(A, res)
+        x += Dx
+        A, res, homog_stress = calculate_residual(x, epsilon_h, iw_list,
+                CL_list, B_list, props_list, model_part, geom)
         norm_res = np.linalg.norm(res, ord=2)
-        #print(A)
-        #print(x)
-        #print(res)
-        print("norm res: {:.3e}".format(norm_res))
+        print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
         it += 1
     print("Convergence is achieved (or not)")
+
+    return homog_stress 
+
 
 ##############################################################
 if __name__ == "__main__":
@@ -154,8 +146,6 @@ if __name__ == "__main__":
             }
             """)
     read_materials_process.Factory(settings, Model)
-    #print(model_part.Properties[1])
-    #print(model_part.Properties[2])
 
     # get integration point weights
     with open("rve.json", "r") as fi:
@@ -197,7 +187,7 @@ if __name__ == "__main__":
     node1 = model_part.CreateNewNode(1,0.0,0.0,0.0)
     geom = km.Triangle2D3(node1, node1, node1)
 
-    initialize(iw_list, CL_list, B_list, props_list, model_part, geom)
+    initialize(CL_list, props_list, model_part, geom)
     x = np.zeros(nr_modes)
 
     t0 = timer.time()
@@ -206,12 +196,17 @@ if __name__ == "__main__":
     delta_time = end_time / nr_time_steps
     time = delta_time
     tolerance = delta_time / 10.
+    homog_stress_list = []
     while(time <= end_time + tolerance):
         print("")
-        print("Current time: {:.3f} --- Elapsed time: {:.2f}s".format(time, timer.time() - t0))
+        print("Current time: {:.3f} --- Elapsed time: {:.2f}s".format(time,
+            timer.time() - t0))
         partial_initial_strain = (time / end_time) * initial_strain 
-        solve(x, partial_initial_strain, iw_list, CL_list, B_list, props_list, model_part, geom)
-        print(x)
+        homog_stress_list.append(solve(x, partial_initial_strain, iw_list,
+            CL_list, B_list, props_list, model_part, geom))
+        finalize_solution_step(CL_list, props_list, model_part, geom)
+        #print("OUTPUT MODES WEIGHT")
+        #print(x)
         time = time + delta_time
-
+    np.savetxt("homogenized_stress_hpromsolver.dat", homog_stress_list)
     print("Computing time = {:.2f}s".format(timer.time() - t0))
