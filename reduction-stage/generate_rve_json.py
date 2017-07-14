@@ -14,7 +14,7 @@ if __name__ == "__main__":
     voigtsize = int(conf['Parameters']['nr_strain_components'])
 
     nr_dofs = nr_ip * voigtsize
-    nr_modes = 4
+    nr_modes = 10
 
     strain_bases = np.load(strain_bases_filename, mmap_mode='r')
     strain_bases = strain_bases[:,:nr_modes]
