@@ -1,5 +1,5 @@
-#if !defined(KRATOS_RVE_LAW_H_INCLUDED)
-#define KRATOS_RVE_LAW_H_INCLUDED
+#if !defined(KRATOS_RVE_IDENTIFIER_LAW_H_INCLUDED)
+#define KRATOS_RVE_IDENTIFIER_LAW_H_INCLUDED
 
 // System includes
 
@@ -8,14 +8,13 @@
 // Project includes
 #include "includes/constitutive_law.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
-template <class TStrategyType>
 class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw
 {
 protected:
-    typename TStrategyType::Pointer mpSolvingStrategy;
 
 public:
     /**
@@ -38,15 +37,7 @@ public:
     /**
      * Default constructor.
      */
-    RVELaw(){};
-
-    RVELaw(typename TStrategyType::Pointer pSolvingStrategy)
-        : mpSolvingStrategy(pSolvingStrategy)
-    {
-        // check if we can correctly get the model part from the strategy
-        ModelPart& mr_model_part = mpSolvingStrategy->GetModelPart();
-        std::cout << mr_model_part << std::endl;
-    };
+    RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param);
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -71,6 +62,18 @@ public:
     /**
      * Operators
      */
+    /**
+    * This is to be called at the very beginning of the calculation
+    * (e.g. from InitializeElement) in order to initialize all relevant
+    * attributes of the constitutive law
+    * @param rMaterialProperties the Properties instance of the current element
+    * @param rElementGeometry the geometry of the current element
+    * @param rShapeFunctionsValues the shape functions values in the current
+    * integration point
+    */
+    virtual void InitializeMaterial(const Properties& rMaterialProperties,
+                                    const GeometryType& rElementGeometry,
+                                    const Vector& rShapeFunctionsValues);
 
     /**
      * Operations needed by the base class:
@@ -83,7 +86,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    std::vector<ConstitutiveLaw::Pointer> mCL_list;
+    std::vector<double> mIW_list;
+    std::vector<Matrix> mB_list;
+    std::vector<Properties::Pointer> mprop_list;
+    ModelPart::Pointer mpRVEModelPart;
     ///@}
     ///@name Private Operators
     ///@{

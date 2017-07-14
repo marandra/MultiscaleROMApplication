@@ -22,7 +22,7 @@
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/rve_identifier_law.h"
+#include "custom_constitutive/rve_law.h"
 #include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
@@ -67,8 +67,8 @@ void AddCustomConstitutiveLawsToPython()
     class_<LinearIsotropicDamage3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
         "LinearIsotropicDamage3DLaw", init<>());
 
-    class_<RVEIdentifierLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
-        "RVEIdentifierLaw", init<ModelPart::Pointer, Parameters>());
+    class_<RVELaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+        "RVELaw", init<ModelPart::Pointer, Parameters>());
 
    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

@@ -1,22 +1,72 @@
 #include "rve_law.h"
-//#include "multiscale_rom_application_variables.h"
 
 namespace Kratos
 {
-// CONSTRUCTOR
-// RVELaw::RVELaw()
-//	: ConstitutiveLaw()
-//	//, m_initialized(false)
-//	//, m_init_gradT()
-//{
-//}
-
 // CLONE
 // ConstitutiveLaw::Pointer RVELaw::Clone() const
 //{
 //	return ConstitutiveLaw::Pointer(new RVELaw());
 //}
+RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
+    : mpRVEModelPart(mpModelPart)
+{
+    auto w_list = param["w"];
+    auto B_list = param["B"];
+    auto prop_id = param["props_id"];
+    unsigned int nr_points = B_list.size();
+    unsigned int nr_comps = B_list[0].size();
+    unsigned int nr_modes = B_list[0][0].size();
 
+    for (unsigned int i = 0; i < nr_points; i++)
+    {
+        Matrix BK(nr_comps, nr_modes);
+        for (unsigned int c = 0; c < nr_comps; c++)
+        {
+            for (unsigned int m = 0; m < nr_modes; m++)
+            {
+                mB_list.push_back(BK);
+                BK(c, m) = B_list[i][c][m].GetDouble();
+            }
+        }
+        KRATOS_WATCH(BK)
+        mB_list.push_back(BK);
+
+        mIW_list.push_back(w_list[i].GetDouble());
+
+        // NOTE: here the rMaterialProperties come from the COARSE SCALE
+        // we are assuming however it also contains the materials to be used in
+        // the small scale
+        auto prop = mpRVEModelPart->pGetProperties(prop_id[i].GetInt());
+        mprop_list.push_back(prop);
+
+        ConstitutiveLaw::Pointer porigin_cl = prop->GetValue(CONSTITUTIVE_LAW);
+        ConstitutiveLaw::Pointer pcl = porigin_cl->Clone();
+        KRATOS_WATCH(*pcl)
+        mCL_list.push_back(pcl);
+    }
+}
+
+void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
+                                          const GeometryType& rElementGeometry,
+                                          const Vector& rShapeFunctionsValues)
+{
+    KRATOS_WATCH("inside initialize material")
+}
+
+
+/*
+void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+{
+  const Properties& matprops = rValues.GetMaterialProperties();
+  Vector& epsilon = rValues.GetStrainVector();
+  Vector& sigma_bar = rValues.GetStressVector();
+  Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+
+
+
+
+}
+*/
 // CL functions
 // RVELaw::SizeType HomogenizedRVEResponse2D::WorkingSpaceDimension()
 // {
@@ -138,7 +188,7 @@ namespace Kratos
 // {
 //	double nu = material_prop[POISSON_RATIO];
 //	r_prev = std::sqrt(1 - nu * nu) * material_prop[YIELD_STRESS] /
-//std::sqrt(material_prop[YOUNG_MODULUS]);
+// std::sqrt(material_prop[YOUNG_MODULUS]);
 //	tau_e = 0.;
 // }
 //
@@ -237,7 +287,7 @@ namespace Kratos
 //	    //std::cout << "DEBUG r " << r_prev << std::endl;
 //	    //std::cout << "DEBUG C_sec " << constitutiveMatrix << std::endl;
 //	    //std::cout << "DEBUG curve " << tau_e << " " << r << " " << q << " " <<
-//std::endl;
+// std::endl;
 
 // }
 //
@@ -272,7 +322,7 @@ namespace Kratos
 //	double H = material_prop[ISOTROPIC_DAMAGE_MODULUS];
 //	double nu = material_prop[POISSON_RATIO];
 //	double r0 = std::sqrt(1 - nu * nu) * material_prop[YIELD_STRESS] /
-//std::sqrt(material_prop[YOUNG_MODULUS]);
+// std::sqrt(material_prop[YOUNG_MODULUS]);
 // 	double q_inf = std::sqrt(1 - nu * nu) * material_prop[INFINITY_YIELD_STRESS]
 // / std::sqrt(material_prop[YOUNG_MODULUS]);
 //     double q;
