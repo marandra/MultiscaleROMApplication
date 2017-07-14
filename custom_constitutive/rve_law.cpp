@@ -2,11 +2,6 @@
 
 namespace Kratos
 {
-// CLONE
-// ConstitutiveLaw::Pointer RVELaw::Clone() const
-//{
-//	return ConstitutiveLaw::Pointer(new RVELaw());
-//}
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
 {
@@ -30,17 +25,14 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         }
         KRATOS_WATCH(BK)
         mB_list.push_back(BK);
-
         mIW_list.push_back(w_list[i].GetDouble());
 
-        // NOTE: here the rMaterialProperties come from the COARSE SCALE
-        // we are assuming however it also contains the materials to be used in
-        // the small scale
+        // NOTE: here the rMaterialProperties come from the MACROSCALE.
+        // We are assuming, however, that it also contains the materials
+        // to be used in the microscale
         auto prop = mpRVEModelPart->pGetProperties(prop_id[i].GetInt());
         mprop_list.push_back(prop);
-
-        ConstitutiveLaw::Pointer porigin_cl = prop->GetValue(CONSTITUTIVE_LAW);
-        ConstitutiveLaw::Pointer pcl = porigin_cl->Clone();
+        ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
         KRATOS_WATCH(*pcl)
         mCL_list.push_back(pcl);
     }
@@ -54,18 +46,98 @@ void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
 }
 
 
-/*
-void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
   const Properties& matprops = rValues.GetMaterialProperties();
-  Vector& epsilon = rValues.GetStrainVector();
+  Vector& epsilon_h = rValues.GetStrainVector();
   Vector& sigma_bar = rValues.GetStressVector();
   Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
 
+  KRATOS_WATCH("inside calculate material response")
 
+    unsigned int nr_points = mB_list.size();
+    unsigned int nr_comps = mB_list[0].size();
+    unsigned int nr_modes = mB_list[0][0].size();
 
+    A, res, homog_stress = CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
+    it = 1
+    norm_res = 1
+    while(norm_res > 1e-9 and it < 10):
+        Dx = -np.linalg.solve(A, res)
+        x += Dx
+        A, res, homog_stress = calculate_residual(x, epsilon_h, iw_list,
+                CL_list, B_list, props_list, model_part, geom)
+        norm_res = np.linalg.norm(res, ord=2)
+        print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
+        it += 1
+    print("Convergence is achieved (or not)")
 
 }
+
+void CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
+{
+  //mIW_list[i];
+  //mCL_list[i];
+  unsigned int nr_points = mB_list.size();
+  unsigned int nr_comps = mB_list[0].size();
+  unsigned int nr_modes = mB_list[0][0].size();
+
+  Matrix A = ZeroMatrix(nr_modes, nr_comps);
+  Vector b = ZeroVector(nr_modes);
+
+  for (unsigned int i = 0; i < nr_points; i++)
+  {
+    Matrix B = mB_list[i];
+    Vector epsilon = epsilon_h + prod(B, x);
+
+    Vector N = ZeroVector(3);
+    Matrix F(3,3) = ZeroMatrix(3, 3);
+    F(0,0) = 1.0 + epsilon(0);   F(0,1) = 0.5 * epsilon(3); F(0,2) = 0.5 * epsilon(5w);
+    F(1,0) = 0.5 * epsilon(3);   F(1,1) = 1.0 + epsilon(1); F(1,2) = 0.5 * epsilon(4w);
+    F(2,0) = 0.5 * epsilon(5);   F(2,1) = 0.5 * epsilon(4); F(2,2) = 1.0 + epsilon(2w);
+    //TODO compute det(F)
+    detF = 1.;
+
+    Matrix DN_DX(3,2);
+    constitutive_matrix = km.Matrix(cl.GetStrainSize(), cl.GetStrainSize())
+    stress_vector = km.Vector(cl.GetStrainSize())
+    strain_vector = km.Vector(cl.GetStrainSize())
+    for i in range(cl.GetStrainSize()):
+    stress_vector[i] = 0.
+    strain_vector[i] = epsilon[i]
+
+#setting the parameters - note that a constitutive law may not need them all!
+    cl_params = km.ConstitutiveLawParameters()
+    cl_params.SetOptions(cl_options)
+    cl_params.SetDeformationGradientF(F)
+    cl_params.SetDeterminantF(detF)
+    cl_params.SetStrainVector(strain_vector)
+    cl_params.SetStressVector(stress_vector)
+    cl_params.SetConstitutiveMatrix(constitutive_matrix)
+    cl_params.SetShapeFunctionsValues(N)
+    cl_params.SetShapeFunctionsDerivatives(DN_DX)
+    cl_params.SetProcessInfo(process_info)
+    cl_params.SetMaterialProperties(properties)
+    cl_params.SetElementGeometry(geom)
+
+    cl.CalculateMaterialResponseCauchy(cl_params)
+
+    CM = cl_params.GetConstitutiveMatrix()
+    stress = cl_params.GetStressVector()
+    size = cl.GetStrainSize()
+    CM_np = np.empty((size, size))
+    stress_np = np.empty(size)
+    for i in range(size):
+    stress_np[i] = stress[i]
+    for j in range(size):
+    CM_np[i, j] = CM[i, j]
+
+    return stress_np, CM_np
+
+
+  }
+}
+
 */
 // CL functions
 // RVELaw::SizeType HomogenizedRVEResponse2D::WorkingSpaceDimension()
