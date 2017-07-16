@@ -75,6 +75,7 @@ public:
                                     const GeometryType& rElementGeometry,
                                     const Vector& rShapeFunctionsValues);
 
+    void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues);
     /**
      * Operations needed by the base class:
      */

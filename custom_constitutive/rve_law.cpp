@@ -1,4 +1,5 @@
 #include "rve_law.h"
+#include "custom_utilities/qr_utility.h"
 
 namespace Kratos
 {
@@ -53,24 +54,31 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
   Vector& sigma_bar = rValues.GetStressVector();
   Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
 
+  Vector& res = ZeroVector(rValues.GetStrainSize());
+  Matrix& A = ZeroMatrix(rValues.GetStrainSize, rValues.GetStrainSize);
+  //row_major, col_mayor:order of the input matrix. Should be col_major for the best performance.
+  QR<double, row_major> QR_decomposition;        // QR decomposition object
   KRATOS_WATCH("inside calculate material response")
 
     unsigned int nr_points = mB_list.size();
     unsigned int nr_comps = mB_list[0].size();
     unsigned int nr_modes = mB_list[0][0].size();
 
-    A, res, homog_stress = CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
-    it = 1
-    norm_res = 1
+    //A, res, homog_stress = CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
+    int it = 1;
+    double norm_res = 1.;
     while(norm_res > 1e-9 and it < 10):
-        Dx = -np.linalg.solve(A, res)
-        x += Dx
+        Matrix Dx() ;
+        QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0,0));
+        QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
+        x -= Dx;
         A, res, homog_stress = calculate_residual(x, epsilon_h, iw_list,
-                CL_list, B_list, props_list, model_part, geom)
+                CL_list, B_list, props_list, model_part, geom);
         norm_res = np.linalg.norm(res, ord=2)
         print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
-        it += 1
+        it += 1;
     print("Convergence is achieved (or not)")
+
 
 }
 
