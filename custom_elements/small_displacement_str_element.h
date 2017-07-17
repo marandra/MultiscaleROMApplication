@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/kinematic_linear.h"
+#include "custom_elements/small_displacement.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -52,7 +52,7 @@ namespace Kratos
  */
 
 class SmallDisplacementStrElement
-    : public KinematicLinear
+    : public SmallDisplacement
 {
 public:
     ///@name Type Definitions
@@ -108,7 +108,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	SmallDisplacementStrElement() : KinematicLinear()
+	SmallDisplacementStrElement() : SmallDisplacement()
     {
     }
 

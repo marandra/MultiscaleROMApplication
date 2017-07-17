@@ -24,7 +24,7 @@
 namespace Kratos
 {
     SmallDisplacementStrElement::SmallDisplacementStrElement( IndexType NewId, GeometryType::Pointer pGeometry )
-            : KinematicLinear( NewId, pGeometry )
+            : SmallDisplacement( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -33,7 +33,7 @@ namespace Kratos
     //************************************************************************************
 
     SmallDisplacementStrElement::SmallDisplacementStrElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-            : KinematicLinear( NewId, pGeometry, pProperties )
+            : SmallDisplacement( NewId, pGeometry, pProperties )
     {
     }
 
@@ -52,7 +52,7 @@ namespace Kratos
     void SmallDisplacementStrElement::save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Name", "SmallDisplacementStrElement" );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, KinematicLinear );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacement );
     }
     
     //************************************************************************************
@@ -60,7 +60,7 @@ namespace Kratos
     
     void SmallDisplacementStrElement::load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, KinematicLinear );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacement );
     }
 
 } // Namespace Kratos
