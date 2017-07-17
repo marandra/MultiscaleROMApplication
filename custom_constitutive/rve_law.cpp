@@ -46,7 +46,7 @@ void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
     KRATOS_WATCH("inside initialize material")
 }
 
-
+/*
 void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
   const Properties& matprops = rValues.GetMaterialProperties();
@@ -67,21 +67,28 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     //A, res, homog_stress = CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
     int it = 1;
     double norm_res = 1.;
-    while(norm_res > 1e-9 and it < 10):
-        Matrix Dx() ;
-        QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0,0));
-        QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
-        x -= Dx;
-        A, res, homog_stress = calculate_residual(x, epsilon_h, iw_list,
-                CL_list, B_list, props_list, model_part, geom);
-        norm_res = np.linalg.norm(res, ord=2)
-        print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
-        it += 1;
+    while(norm_res > 1e-9 and it < 10) {
+      Vector& Dx();
+      QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
+      QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
+      x -= Dx;
+      A, res, homog_stress = calculate_residual(x,
+                                                epsilon_h,
+                                                iw_list,
+                                                CL_list,
+                                                B_list,
+                                                props_list,
+                                                model_part,
+                                                geom);
+      norm_res = np.linalg.norm(res, ord = 2)
+      print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
+      it += 1;
+    }
     print("Convergence is achieved (or not)")
-
-
 }
+*/
 
+/*
 void CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
 {
   //mIW_list[i];
@@ -145,8 +152,9 @@ void CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list,
 
   }
 }
-
 */
+
+
 // CL functions
 // RVELaw::SizeType HomogenizedRVEResponse2D::WorkingSpaceDimension()
 // {
