@@ -1,6 +1,5 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.MultiscaleROMApplication as msr
-#import bisect
 import os
 import struct
 
@@ -11,20 +10,20 @@ def Factory(settings, Model):
 
 def TotalDisplacement(node, initial_strain):
     # compute regular displacements
-    comp_x =  initial_strain[0]*node.X0    + (initial_strain[3]/2)*node.Y0 + (initial_strain[5]/2)*node.Z0
-    comp_y = (initial_strain[3]/2)*node.X0 + initial_strain[1]*node.Y0     + (initial_strain[4]/2)*node.Z0
-    comp_z = (initial_strain[5]/2)*node.X0 + (initial_strain[4]/2)*node.Y0 + initial_strain[3]*node.Z0
+    comp_x =  initial_strain[0] * node.X0 + 0.5 * initial_strain[3] * node.Y0 + 0.5 * initial_strain[5] * node.Z0
+    comp_y = 0.5 * initial_strain[3] * node.X0 + initial_strain[1] * node.Y0 + initial_strain[4] * node.Z0
+    comp_z = 0.5 * initial_strain[5] * node.X0 + 0.5 * initial_strain[4] * node.Y0 + initial_strain[3] * node.Z0
 
     displ = node.GetSolutionStepValue(km.DISPLACEMENT)
     total_dis_X = comp_x + displ[0]
     total_dis_Y = comp_y + displ[1]
     total_dis_Z = comp_z + displ[2]
 
-    #print(node.Id)
     # Total displacement
-    total_displ = [node.Id,total_dis_X,total_dis_Y,total_dis_Z]
-    #print(total_dis)
+    total_displ = [node.Id, total_dis_X, total_dis_Y, total_dis_Z]
+
     return total_displ
+
 
 class ComputeTotalDisplacementProcess(km.Process):
 
@@ -46,7 +45,6 @@ class ComputeTotalDisplacementProcess(km.Process):
 
     def write_results(self, filename):
         def write_results_binary():
-            #pass
             with open(filename, 'wb') as ofile:
                 initial_strain = self.model_part.ProcessInfo[msr.INITIAL_STRAIN_VECTOR]
                 for node in self.model_part.Nodes:
