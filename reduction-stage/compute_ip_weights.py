@@ -209,7 +209,17 @@ def create_rom_weights(conf):
     integration_weights_filename = conf['Parameters']['integration_weights_filename']
     integration_weights = np.loadtxt(integration_weights_filename)
     nr_elements = int(conf['Parameters']['nr_elements'])
-    return integration_weights.reshape((nr_elements, -1))
+    nr_integration_points = int(conf['Parameters']['nr_integration_points'])
+
+    roq_list = []
+    for x, ipw in enumerate(integration_weights):
+        e = int(x / nr_integration_points)
+        ip = x % nr_integration_points
+        roq_list.append([e, ip, ipw])
+
+    roq_weights = integration_weights.reshape((nr_elements, -1))
+
+    return roq_weights, roq_list
 
 
 #######################################
@@ -242,10 +252,12 @@ if __name__ == '__main__':
     logger.info("Reduced Order Quadrature")
     if args.rom:
         logger.info("Computing ROM")
-        roq = create_rom_weights(conf)
+        roq_mask, roq_list = create_rom_weights(conf)
     else:
         logger.info("Computing HPROM")
         roq_mask, roq_list = compute_reduced_set(conf)
     filename = conf['Parameters']['roq_weights_filename']
+    print(np.shape(roq_mask))
+    print(np.shape(roq_list))
     np.savetxt(filename, roq_mask)
     np.savetxt("roq_list.dat", roq_list)
