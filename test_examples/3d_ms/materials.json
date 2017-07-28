@@ -1,0 +1,41 @@
+{  
+	"properties": [{
+		"model_part_name": "CUBE",
+		"properties_id": 1,
+		"Material": {
+			"name": "homogeneous_material",
+			"constitutive_law": {
+				"name": "KratosMultiphysics.MultiscaleROMApplication.LinearIsotropicDamage3DLaw"
+			},
+			"Variables": {
+				"IDENTIFIER": "homogeneous",
+				"YOUNG_MODULUS": 21000.0,
+				"POISSON_RATIO": 0.3,
+				"YIELD_STRESS": 5.5,
+                "KratosMultiphysics.MultiscaleROMApplication.INFINITY_YIELD_STRESS": 100000,
+                "KratosMultiphysics.MultiscaleROMApplication.ISOTROPIC_DAMAGE_MODULUS": 0.01,
+                "KratosMultiphysics.MultiscaleROMApplication.FLOW_RULE_IS_TRACTION_ONLY": false
+				},
+            "Tables":  {}
+			}
+	}, {
+		"model_part_name": "CUBE",
+		"properties_id": 2,
+		"Material": {
+			"name": "complex_material",
+			"constitutive_law": {
+				"name": "KratosMultiphysics.MultiscaleROMApplication.RVELaw"
+			},
+			"Variables": {
+				"IDENTIFIER": "complex",
+				"YOUNG_MODULUS": 21000.0,
+				"POISSON_RATIO": 0.3,
+				"YIELD_STRESS": 5.5,
+                "KratosMultiphysics.MultiscaleROMApplication.INFINITY_YIELD_STRESS": 100000,
+                "KratosMultiphysics.MultiscaleROMApplication.ISOTROPIC_DAMAGE_MODULUS": 0.01,
+                "KratosMultiphysics.MultiscaleROMApplication.FLOW_RULE_IS_TRACTION_ONLY": false
+			},
+            "Tables":  {}
+        }
+	}]
+}
