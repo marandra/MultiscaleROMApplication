@@ -97,6 +97,7 @@ public:
      * @param rOutput: The values obtained int the integration points
      * @param rCurrentProcessInfo: the current process info instance
      */
+void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
 protected:
     ///@name Protected static Member Variables
