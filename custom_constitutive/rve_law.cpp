@@ -8,11 +8,10 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
 {
     auto w_list = param["w"];
     auto B_list = param["B"];
-    auto prop_id = param["props_id"];
+    auto prop_id_list = param["props_id"];
     unsigned int nr_points = B_list.size();
     unsigned int nr_comps = B_list[0].size();
     unsigned int nr_modes = B_list[0][0].size();
-
     for (unsigned int i = 0; i < nr_points; i++)
     {
         Matrix BK(nr_comps, nr_modes);
@@ -20,96 +19,129 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         {
             for (unsigned int m = 0; m < nr_modes; m++)
             {
-                mB_list.push_back(BK);
                 BK(c, m) = B_list[i][c][m].GetDouble();
             }
         }
-        KRATOS_WATCH(BK)
-        mB_list.push_back(BK);
-        mIW_list.push_back(w_list[i].GetDouble());
-
-        // NOTE: here the rMaterialProperties come from the MACROSCALE.
-        // We are assuming, however, that it also contains the materials
-        // to be used in the microscale
-        auto prop = mpRVEModelPart->pGetProperties(prop_id[i].GetInt());
-        mprop_list.push_back(prop);
+        Properties::Pointer prop = mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
         ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
-        KRATOS_WATCH(*pcl)
-        mCL_list.push_back(pcl);
+        mB_vec.push_back(BK);
+        mIW_vec.push_back(w_list[i].GetDouble());
+        mCL_vec.push_back(pcl);
+        mPropId_vec.push_back(prop_id_list[i].GetInt());
     }
+}
+
+// constructor used by Clone()
+RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
+               std::vector<Matrix> B_list,
+               std::vector<double> IW_list,
+               std::vector<ConstitutiveLaw::Pointer> CL_list,
+               std::vector<int> prop_id_list)
+    : mpRVEModelPart(mpModelPart), mB_vec(B_list), mIW_vec(IW_list),
+      mCL_vec(CL_list), mPropId_vec(prop_id_list)
+{
+    KRATOS_WATCH("Inside Clone Constructor");
+    KRATOS_WATCH(mB_vec[0]);
+    KRATOS_WATCH(mIW_vec[0]);
+    KRATOS_WATCH(mCL_vec[0]);
+    KRATOS_WATCH(mPropId_vec[0]);
+}
+
+// Destructor
+RVELaw::~RVELaw() {}
+
+ConstitutiveLaw::Pointer RVELaw::Clone() const
+{
+    RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(mpRVEModelPart,
+                                                        mB_vec, mIW_vec,
+                                                        mCL_vec, mPropId_vec);
+    return pnewCL;
 }
 
 void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
-                                          const GeometryType& rElementGeometry,
-                                          const Vector& rShapeFunctionsValues)
+                                const GeometryType& rElementGeometry,
+                                const Vector& rShapeFunctionsValues)
 {
     KRATOS_WATCH("inside initialize material")
+    typedef std::vector<ConstitutiveLaw::Pointer>::size_type t_vsize;
+    for (t_vsize i = 0; i < mCL_vec.size(); i++)
+    {
+        KRATOS_WATCH("initialized CL")
+        mCL_vec[i]->InitializeMaterial(mPropId_vec[i], rElementGeometry,
+                                       rShapeFunctionsValues);
+    }
 }
 
-/*
 void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
-  const Properties& matprops = rValues.GetMaterialProperties();
-  Vector& epsilon_h = rValues.GetStrainVector();
-  Vector& sigma_bar = rValues.GetStressVector();
-  Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+    KRATOS_WATCH("inside calculate material response")
 
-  Vector& res = ZeroVector(rValues.GetStrainSize());
-  Matrix& A = ZeroMatrix(rValues.GetStrainSize, rValues.GetStrainSize);
-  //row_major, col_mayor:order of the input matrix. Should be col_major for the best performance.
-  QR<double, row_major> QR_decomposition;        // QR decomposition object
-  KRATOS_WATCH("inside calculate material response")
+    /*
+    unsigned long nr_points = mB_vec.size();
+    unsigned long nr_comps = mB_vec[0].size();
+    unsigned long nr_modes = mB_vec[0][0].size();
 
-    unsigned int nr_points = mB_list.size();
-    unsigned int nr_comps = mB_list[0].size();
-    unsigned int nr_modes = mB_list[0][0].size();
+    const Properties& mat_props = rValues.GetMaterialProperties();
+    Vector& strain = rValues.GetStrainVector();
+    Vector& stress_bar = rValues.GetStressVector();
+    Matrix& constit_matrix = rValues.GetConstitutiveMatrix();
+    unsigned long size = strain.size();
+    Vector res = ZeroVector(size);
+    res = ZeroVector(size);
+    strain.size() Matrix& A;
+    A = ZeroMatrix(rValues.GetStrainSize, rValues.GetStrainSize);
 
-    //A, res, homog_stress = CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
+    // row_major, col_mayor:order of the input matrix.
+    // Should be col_major for the best performance.
+    QR<double, row_major> QR_decomposition; // QR decomposition object
+
+    // A, res, homog_stress = CalculateResidual(x, strain, stress_bar,
+constit_matrix, props_list, model_part, geom)
     int it = 1;
-    double norm_res = 1.;
-    while(norm_res > 1e-9 and it < 10) {
-      Vector& Dx();
-      QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
-      QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
-      x -= Dx;
-      A, res, homog_stress = calculate_residual(x,
-                                                epsilon_h,
-                                                iw_list,
-                                                CL_list,
-                                                B_list,
-                                                props_list,
-                                                model_part,
-                                                geom);
-      norm_res = np.linalg.norm(res, ord = 2)
-      print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
-      it += 1;
-    }
-    print("Convergence is achieved (or not)")
+double norm_res = 1.;
+while (norm_res > 1e-9 and it < 10)
+{
+    Vector& Dx();
+    QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
+    QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
+    x -= Dx;
+    A, res,
+        homog_stress = calculate_residual(x, strain, iw_list, CL_list, B_list,
+                                          props_list, model_part, geom);
+    norm_res = np.linalg.norm(res, ord = 2)
+                   print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
+                       it += 1;
 }
+print("Convergence is achieved (or not)")
 */
+     }
 
 /*
-void CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list, model_part, geom)
+void CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list,
+model_part, geom)
 {
-  //mIW_list[i];
-  //mCL_list[i];
-  unsigned int nr_points = mB_list.size();
-  unsigned int nr_comps = mB_list[0].size();
-  unsigned int nr_modes = mB_list[0][0].size();
+  //mIW_vec[i];
+  //mCL_vect[i];
+  unsigned int nr_points = mB_vec.size();
+  unsigned int nr_comps = mB_vec[0].size();
+  unsigned int nr_modes = mB_vec[0][0].size();
 
   Matrix A = ZeroMatrix(nr_modes, nr_comps);
   Vector b = ZeroVector(nr_modes);
 
   for (unsigned int i = 0; i < nr_points; i++)
   {
-    Matrix B = mB_list[i];
+    Matrix B = mB_vec[i];
     Vector epsilon = epsilon_h + prod(B, x);
 
     Vector N = ZeroVector(3);
     Matrix F(3,3) = ZeroMatrix(3, 3);
-    F(0,0) = 1.0 + epsilon(0);   F(0,1) = 0.5 * epsilon(3); F(0,2) = 0.5 * epsilon(5w);
-    F(1,0) = 0.5 * epsilon(3);   F(1,1) = 1.0 + epsilon(1); F(1,2) = 0.5 * epsilon(4w);
-    F(2,0) = 0.5 * epsilon(5);   F(2,1) = 0.5 * epsilon(4); F(2,2) = 1.0 + epsilon(2w);
+    F(0,0) = 1.0 + epsilon(0);   F(0,1) = 0.5 * epsilon(3); F(0,2) = 0.5 *
+epsilon(5w);
+    F(1,0) = 0.5 * epsilon(3);   F(1,1) = 1.0 + epsilon(1); F(1,2) = 0.5 *
+epsilon(4w);
+    F(2,0) = 0.5 * epsilon(5);   F(2,1) = 0.5 * epsilon(4); F(2,2) = 1.0 +
+epsilon(2w);
     //TODO compute det(F)
     detF = 1.;
 
@@ -153,7 +185,6 @@ void CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list,
   }
 }
 */
-
 
 // CL functions
 // RVELaw::SizeType HomogenizedRVEResponse2D::WorkingSpaceDimension()
