@@ -109,14 +109,42 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     // constit_matrix, props_list, model_part, geomParameters& rValues)
     // A, res, homog_stress = CalculateResidual(x, strain, stress_bar,
     // constit_matrix, props_list, model_part, geomParameters& rValues)
-    /*
+    auto tmp_nr_modes = 2;
+    A(0,0) = 1.; A(0,1) = 2.;
+    A(1,0) = 3.; A(1,1) = 4.;
+    res(0) = 1.; res(1) = 2.;
+    double aux_qr_A[tmp_nr_modes][tmp_nr_modes];
+    double aux_qr_res[tmp_nr_modes];
+    double aux_qr_Dx[tmp_nr_modes];
+    for (auto ii = 0; ii < tmp_nr_modes; ii++){
+        for (auto jj = 0; jj < tmp_nr_modes; jj++){
+            aux_qr_A[ii][jj] = A(ii, jj);
+        }
+        aux_qr_res[ii] = res(ii);
+    }
+    KRATOS_WATCH(A);
+    KRATOS_WATCH(aux_qr_A[0][0]);
+    KRATOS_WATCH(aux_qr_A[0][1]);
+    KRATOS_WATCH(aux_qr_A[1][0]);
+    KRATOS_WATCH(aux_qr_A[1][1]);
+    KRATOS_WATCH(aux_qr_res[0]);
+    KRATOS_WATCH(aux_qr_res[1]);
+    QR_decomposition.compute(tmp_nr_modes, tmp_nr_modes, &(aux_qr_A[0][0]));
+    KRATOS_WATCH(aux_qr_A[0][0]);
+    KRATOS_WATCH(aux_qr_A[0][1]);
+    KRATOS_WATCH(aux_qr_A[1][0]);
+    KRATOS_WATCH(aux_qr_A[1][1]);
+    QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
+    KRATOS_WATCH(aux_qr_Dx[0]);
+    KRATOS_WATCH(aux_qr_Dx[1]);
+
+   /*
     int it = 1;
     double norm_res = 1.;
     while (norm_res > 1e-9 and it < 10)
     {
         Vector& Dx();
-        //QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
-        QR_decomposition.compute(nr_modes, nr_modes, &A);
+        QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
         QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
     x -= Dx;
     A, res,
@@ -125,10 +153,9 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     norm_res = np.linalg.norm(res, ord = 2)
                    print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
                        it += 1;
-}
-print("Convergence is achieved (or not)")
+    }
 */
-     }
+}
 
 void RVELaw::CalculateResidual(Matrix &A, Vector &b, Vector &res, Parameters& rValues)
 {
@@ -136,71 +163,41 @@ void RVELaw::CalculateResidual(Matrix &A, Vector &b, Vector &res, Parameters& rV
   const auto nr_modes = mB_vec[0].size2();
   const auto nr_comps = GetStrainSize();
   const auto dim = WorkingSpaceDimension();
-
+/*
   Vector & strain_macro = rValues.GetStrainVector();
-  const Properties& mat_props = rValues.GetMaterialProperties();
-  Vector & stress_bar = rValues.GetStressVector();
+  Vector & stress = rValues.GetStressVector();
   Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
   KRATOS_WATCH(strain_macro);
+  const Properties& mat_props = rValues.GetMaterialProperties();
 
   for (auto i = 0; i < nr_points; i++)
   {
     Matrix B = mB_vec[i];
-    Vector epsilon = strain_macro + prod(B, res);
+    Vector strain = strain_macro + prod(B, res);
 
     //TODO make this properly
     Vector N = ZeroVector(dim);
     Matrix F(dim,dim) = ZeroMatrix(dim, dim);
-    F(0,0) = 1.0 + epsilon(0);
-    F(0,1) = 0.5 * epsilon(3);
-    F(0,2) = 0.5 * epsilon(5);
-    F(1,0) = 0.5 * epsilon(3);
-    F(1,1) = 1.0 + epsilon(1);
-    F(1,2) = 0.5 * epsilon(4);
-    F(2,0) = 0.5 * epsilon(5);
-    F(2,1) = 0.5 * epsilon(4);
-    F(2,2) = 1.0 + epsilon(2);
+    F(0,0) = 1.0 + strain(0);
+    F(0,1) = 0.5 * strain(3);
+    F(0,2) = 0.5 * strain(5);
+    F(1,0) = 0.5 * strain(3);
+    F(1,1) = 1.0 + strain(1);
+    F(1,2) = 0.5 * strain(4);
+    F(2,0) = 0.5 * strain(5);
+    F(2,1) = 0.5 * strain(4);
+    F(2,2) = 1.0 + strain(2);
     //TODO compute det(F)
     double detF = 1.;
 
     Matrix DN_DX(3,2);
-    constitutive_matrix = km.Matrix(cl.GetStrainSize(), cl.GetStrainSize())
-    stress_vector = km.Vector(cl.GetStrainSize())
-    strain_vector = km.Vector(cl.GetStrainSize())
-    for i in range(cl.GetStrainSize()):
-    stress_vector[i] = 0.
-    strain_vector[i] = epsilon[i]
 
-#setting the parameters - note that a constitutive law may not need them all!
-    cl_params = km.ConstitutiveLawParameters()
-    cl_params.SetOptions(cl_options)
-    cl_params.SetDeformationGradientF(F)
-    cl_params.SetDeterminantF(detF)
-    cl_params.SetStrainVector(strain_vector)
-    cl_params.SetStressVector(stress_vector)
-    cl_params.SetConstitutiveMatrix(constitutive_matrix)
-    cl_params.SetShapeFunctionsValues(N)
-    cl_params.SetShapeFunctionsDerivatives(DN_DX)
-    cl_params.SetProcessInfo(process_info)
-    cl_params.SetMaterialProperties(properties)
-    cl_params.SetElementGeometry(geom)
+    mCL_vec[i].CalculateMaterialResponseCauchy(rValues);
 
-    cl.CalculateMaterialResponseCauchy(cl_params)
-
-    CM = cl_params.GetConstitutiveMatrix()
-    stress = cl_params.GetStressVector()
-    size = cl.GetStrainSize()
-    CM_np = np.empty((size, size))
-    stress_np = np.empty(size)
-    for i in range(size):
-    stress_np[i] = stress[i]
-    for j in range(size):
-    CM_np[i, j] = CM[i, j]
-
-    return stress_np, CM_np
-
-
+    constit_matrix = rValues.GetConstitutiveMatrix();
+    stress = rValues.GetStressVector();
   }
+*/
 }
 
 // bool RVELaw::Has(const Variable<double>& rThisVariable)
