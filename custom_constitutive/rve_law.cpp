@@ -76,34 +76,48 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     KRATOS_WATCH("inside calculate material response")
 
-    /*
-    unsigned long nr_points = mB_vec.size();
-    unsigned long nr_comps = mB_vec[0].size();
-    unsigned long nr_modes = mB_vec[0][0].size();
+    const auto nr_points = mB_vec.size();
+    const auto nr_modes = mB_vec[0].size2();
+    const auto nr_comps = GetStrainSize(); //TODO check == mB_vec[0].size1()
+    KRATOS_WATCH(nr_points);
+    KRATOS_WATCH(nr_modes);
+    KRATOS_WATCH(nr_comps);
 
     const Properties& mat_props = rValues.GetMaterialProperties();
-    Vector& strain = rValues.GetStrainVector();
-    Vector& stress_bar = rValues.GetStressVector();
-    Matrix& constit_matrix = rValues.GetConstitutiveMatrix();
-    unsigned long size = strain.size();
-    Vector res = ZeroVector(size);
-    res = ZeroVector(size);
-    strain.size() Matrix& A;
-    A = ZeroMatrix(rValues.GetStrainSize, rValues.GetStrainSize);
+    Vector & strain = rValues.GetStrainVector();
+    Vector & stress_bar = rValues.GetStressVector();
+    Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
+    KRATOS_WATCH(strain);
+    KRATOS_WATCH(stress_bar);
+    KRATOS_WATCH(constit_matrix);
+    Vector x = ZeroVector(nr_modes);
+    Vector res = ZeroVector(nr_modes);
+    Matrix A = ZeroMatrix(nr_modes, nr_modes);
+    KRATOS_WATCH(res);
+    KRATOS_WATCH(A);
 
     // row_major, col_mayor:order of the input matrix.
     // Should be col_major for the best performance.
-    QR<double, row_major> QR_decomposition; // QR decomposition object
-
+    //enum storage_order {
+    //    row_major,
+    //    col_major
+    //};
+    QR<double, storage_order::row_major> QR_decomposition; // QR decomposition object
+    KRATOS_WATCH(storage_order::row_major);
+    KRATOS_WATCH(storage_order::col_major);
+    CalculateResidual(A, res, x, rValues);
+    // constit_matrix, props_list, model_part, geomParameters& rValues)
     // A, res, homog_stress = CalculateResidual(x, strain, stress_bar,
-constit_matrix, props_list, model_part, geom)
+    // constit_matrix, props_list, model_part, geomParameters& rValues)
+    /*
     int it = 1;
-double norm_res = 1.;
-while (norm_res > 1e-9 and it < 10)
-{
-    Vector& Dx();
-    QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
-    QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
+    double norm_res = 1.;
+    while (norm_res > 1e-9 and it < 10)
+    {
+        Vector& Dx();
+        //QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
+        QR_decomposition.compute(nr_modes, nr_modes, &A);
+        QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
     x -= Dx;
     A, res,
         homog_stress = calculate_residual(x, strain, iw_list, CL_list, B_list,
@@ -116,34 +130,38 @@ print("Convergence is achieved (or not)")
 */
      }
 
-/*
-void CalculateResidual(x, epsilon_h, sigma_bar, constitutive_matrix, props_list,
-model_part, geom)
+void RVELaw::CalculateResidual(Matrix &A, Vector &b, Vector &res, Parameters& rValues)
 {
-  //mIW_vec[i];
-  //mCL_vect[i];
-  unsigned int nr_points = mB_vec.size();
-  unsigned int nr_comps = mB_vec[0].size();
-  unsigned int nr_modes = mB_vec[0][0].size();
+  const auto nr_points = mB_vec.size();
+  const auto nr_modes = mB_vec[0].size2();
+  const auto nr_comps = GetStrainSize();
+  const auto dim = WorkingSpaceDimension();
 
-  Matrix A = ZeroMatrix(nr_modes, nr_comps);
-  Vector b = ZeroVector(nr_modes);
+  Vector & strain_macro = rValues.GetStrainVector();
+  const Properties& mat_props = rValues.GetMaterialProperties();
+  Vector & stress_bar = rValues.GetStressVector();
+  Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
+  KRATOS_WATCH(strain_macro);
 
-  for (unsigned int i = 0; i < nr_points; i++)
+  for (auto i = 0; i < nr_points; i++)
   {
     Matrix B = mB_vec[i];
-    Vector epsilon = epsilon_h + prod(B, x);
+    Vector epsilon = strain_macro + prod(B, res);
 
-    Vector N = ZeroVector(3);
-    Matrix F(3,3) = ZeroMatrix(3, 3);
-    F(0,0) = 1.0 + epsilon(0);   F(0,1) = 0.5 * epsilon(3); F(0,2) = 0.5 *
-epsilon(5w);
-    F(1,0) = 0.5 * epsilon(3);   F(1,1) = 1.0 + epsilon(1); F(1,2) = 0.5 *
-epsilon(4w);
-    F(2,0) = 0.5 * epsilon(5);   F(2,1) = 0.5 * epsilon(4); F(2,2) = 1.0 +
-epsilon(2w);
+    //TODO make this properly
+    Vector N = ZeroVector(dim);
+    Matrix F(dim,dim) = ZeroMatrix(dim, dim);
+    F(0,0) = 1.0 + epsilon(0);
+    F(0,1) = 0.5 * epsilon(3);
+    F(0,2) = 0.5 * epsilon(5);
+    F(1,0) = 0.5 * epsilon(3);
+    F(1,1) = 1.0 + epsilon(1);
+    F(1,2) = 0.5 * epsilon(4);
+    F(2,0) = 0.5 * epsilon(5);
+    F(2,1) = 0.5 * epsilon(4);
+    F(2,2) = 1.0 + epsilon(2);
     //TODO compute det(F)
-    detF = 1.;
+    double detF = 1.;
 
     Matrix DN_DX(3,2);
     constitutive_matrix = km.Matrix(cl.GetStrainSize(), cl.GetStrainSize())
@@ -184,19 +202,7 @@ epsilon(2w);
 
   }
 }
-*/
 
-// CL functions
-// RVELaw::SizeType HomogenizedRVEResponse2D::WorkingSpaceDimension()
-// {
-// 	return 2;
-// }
-//
-// RVELaw::SizeType HomogenizedRVEResponse2D::GetStrainSize()
-// {
-// 	return 3;
-// }
-//
 // bool RVELaw::Has(const Variable<double>& rThisVariable)
 // {
 // 	return false;
@@ -357,59 +363,7 @@ epsilon(2w);
 // {
 // //	CalculateMaterialResponseCauchy(rValues);
 // }
-//
-// void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
-// {
-// 	// get some references
-// 	const Properties& matprops = rValues.GetMaterialProperties();
-// 	Vector& strain = rValues.GetStrainVector();
-// 	Vector& stress = rValues.GetStressVector();
-// 	Matrix& constitutiveMatrix = rValues.GetConstitutiveMatrix();
-//	double H = matprops[ISOTROPIC_DAMAGE_MODULUS];
-//	double dpointcoeff;
-//	double d, q;
 
-//         // sigma_bar = C : epsilon
-// 	    CalculateConstitutiveMatrix(matprops, constitutiveMatrix);
-//         stress = prod(constitutiveMatrix, strain);
-//         // tau_epsilon = sqrt(epsilon : sigma_bar)
-//         tau_e = std::sqrt(inner_prod(strain, stress));
-
-//	    // r = r_prev
-//	    // d = 1 - q(r) / r
-//	    // sigma = (1 - d) * sigma_bar
-//	    // C_tan = (1 - d) * C
-//         if (tau_e <= r_prev) {
-//             r = r_prev;
-//             q = CalculateQ(r, matprops);
-//             d = 1. - q / r;
-//             stress *= (1 - d);
-//             constitutiveMatrix *= (1 - d);
-//	    }
-//	    // r = tau_e
-//	    // d = 1 - q(r) / r
-//	    // sigma = (1 - d) * sigma_bar
-//	    // C_tan = (1 - d) * C - q(r)-H/r3 * sigma x sigma
-//	    else {
-//             r = tau_e;
-//             q = CalculateQ(r, matprops);
-//             d = 1. - q / r;
-//             stress *= (1. - d);
-//             dpointcoeff = (q - H * r)/(r * r * r);
-//             constitutiveMatrix *= (1. - d);
-//             constitutiveMatrix -= dpointcoeff * outer_prod(stress, stress);
-//	    }
-
-//	    //std::cout << "DEBUG strain " << strain<< std::endl;
-//	    //std::cout << "DEBUG stress " << stress<< std::endl;
-//	    //std::cout << "DEBUG tau            " << tau_e << std::endl;
-//	    //std::cout << "DEBUG r " << r_prev << std::endl;
-//	    //std::cout << "DEBUG C_sec " << constitutiveMatrix << std::endl;
-//	    //std::cout << "DEBUG curve " << tau_e << " " << r << " " << q << " " <<
-// std::endl;
-
-// }
-//
 // void RVELaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 // {
 // //	FinalizeMaterialResponseCauchy(rValues);
@@ -479,27 +433,12 @@ epsilon(2w);
 // 	rFeatures.mSpaceDimension = WorkingSpaceDimension();
 // }
 //
-// int RVELaw::Check(
-// 	const Properties& rMaterialProperties,
-// 	const GeometryType& rElementGeometry,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-// 		if(!rMaterialProperties.Has(YOUNG_MODULUS))
-// 		    KRATOS_THROW_ERROR(std::invalid_argument, "RVELaw - missing
-// YOUNG_MODULUS", "");
-// 		if(!rMaterialProperties.Has(POISSON_RATIO))
-// 		    KRATOS_THROW_ERROR(std::invalid_argument, "RVELaw - missing
-// POISSON_RATIO", "");
-// 		if(!rMaterialProperties.Has(ISOTROPIC_DAMAGE_MODULUS))
-// 		KRATOS_THROW_ERROR(std::invalid_argument, "RVELaw - missing
-// ISOTROPIC_DAMAGE_MODULUS", "");
-// 		if(!rMaterialProperties.Has(INFINITY_YIELD_STRESS))
-// 		KRATOS_THROW_ERROR(std::invalid_argument, "RVELaw - missing
-// INFINITY_YIELD_STRESS", "");
-// 		if(rMaterialProperties[INFINITY_YIELD_STRESS] < 0)
-// 		    KRATOS_THROW_ERROR(std::invalid_argument, "RVELaw -
-// INFINITY_YIELD_STRESS must be positive", "");
-// 		return 0;
-// }
+int RVELaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
+                  const ProcessInfo& rCurrentProcessInfo) {
+     if (mB_vec[0].size1() != GetStrainSize())
+         KRATOS_THROW_ERROR(std::invalid_argument, "Number of rows in modes matrix "
+                 "rows differs from number of components of constitutive law", "");
+     return 0;
+    }
 
 } /* namespace Kratos.*/

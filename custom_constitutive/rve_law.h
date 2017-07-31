@@ -5,75 +5,84 @@
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
-namespace Kratos
-{
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw
-{
-protected:
-public:
-    // Type Definitions
-    typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
-    typedef std::size_t SizeType;
+namespace Kratos {
+    class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw {
+    protected:
+    public:
+        // Type Definitions
+        typedef ProcessInfo ProcessInfoType;
+        typedef ConstitutiveLaw BaseType;
+        typedef std::size_t SizeType;
 
-    // Counted pointer of RVELaw
-    KRATOS_CLASS_POINTER_DEFINITION(RVELaw);
+        // Counted pointer of RVELaw
+        KRATOS_CLASS_POINTER_DEFINITION(RVELaw);
 
-    // default constructor, takes modelpart and parameters
-    RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param);
+        // default constructor, takes modelpart and parameters
+        RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param);
 
-    // constructor used by Clone(), takes individual data
-    RVELaw(ModelPart::Pointer mpModelPart,
-           std::vector<Matrix> B_list,
-           std::vector<double> IW_list,
-           std::vector<ConstitutiveLaw::Pointer> CL_list,
-           std::vector<int> prop_id_list);
+        // constructor used by Clone(), takes individual data
+        RVELaw(ModelPart::Pointer mpModelPart,
+               std::vector<Matrix> B_list,
+               std::vector<double> IW_list,
+               std::vector<ConstitutiveLaw::Pointer> CL_list,
+               std::vector<int> prop_id_list);
 
-    // Clone function (has to be implemented by any derived class)
-    // @return a pointer to a new instance of this constitutive law
-    ConstitutiveLaw::Pointer Clone() const override;
+        // Clone function (has to be implemented by any derived class)
+        // @return a pointer to a new instance of this constitutive law
+        ConstitutiveLaw::Pointer Clone() const override;
 
-    // Copy constructor.
-    RVELaw(const RVELaw& rOther);
+        // Copy constructor.
+        RVELaw(const RVELaw &rOther);
 
-    // Destructor
-    ~RVELaw() override;
+        // Destructor
+        ~RVELaw() override;
 
-    /**
-    * This is to be called at the very beginning of the calculation
-    * (e.g. from InitializeElement) in order to initialize all relevant
-    * attributes of the constitutive law
-    * @param rMaterialProperties the Properties instance of the current element
-    * @param rElementGeometry the geometry of the current element
-    * @param rShapeFunctionsValues the shape functions values in the current
-    * integration point
-    */
-    void InitializeMaterial(const Properties& rMaterialProperties,
-                                    const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues) override;
+        /**
+        * This is to be called at the very beginning of the calculation
+        * (e.g. from InitializeElement) in order to initialize all relevant
+        * attributes of the constitutive law
+        * @param rMaterialProperties the Properties instance of the current element
+        * @param rElementGeometry the geometry of the current element
+        * @param rShapeFunctionsValues the shape functions values in the current
+        * integration point
+        */
+        void InitializeMaterial(const Properties &rMaterialProperties,
+                                const GeometryType &rElementGeometry,
+                                const Vector &rShapeFunctionsValues) override;
 
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+        void CalculateMaterialResponseCauchy(Parameters &rValues) override;
 
-protected:
-private:
-    ModelPart::Pointer mpRVEModelPart;
-    std::vector<Matrix> mB_vec;
-    std::vector<double> mIW_vec;
-    std::vector<ConstitutiveLaw::Pointer> mCL_vec;
-    std::vector<int> mPropId_vec;
+        std::size_t GetStrainSize() override {
+            return 6;
+        };
 
-    friend class Serializer;
+        std::size_t WorkingSpaceDimension() override {
+        	return 3;
+        };
 
-    void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+        int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+                  const ProcessInfo &rCurrentProcessInfo) override;
 
-    void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    protected:
+    private:
+        ModelPart::Pointer mpRVEModelPart;
+        std::vector<Matrix> mB_vec;
+        std::vector<double> mIW_vec;
+        std::vector<ConstitutiveLaw::Pointer> mCL_vec;
+        std::vector<int> mPropId_vec;
 
-}; // Class RVELaw
+        void CalculateResidual(Matrix &A, Vector &b, Vector &res, Parameters& rValues);
+
+        friend class Serializer;
+
+        void save(Serializer &rSerializer) const {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        }
+
+        void load(Serializer &rSerializer) {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        }
+
+    }; // Class RVELaw
 } // namespace Kratos.
 #endif // KRATOS_RVE_LAW_H_INCLUDED  defined

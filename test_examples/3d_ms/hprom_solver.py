@@ -28,7 +28,6 @@ def _call_cl(epsilon, cl, geom, process_info, properties):
     N = km.Vector(3)
     cl.Check(properties, geom, process_info)
     cl_options = km.Flags()
-    cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRAIN, False)
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 
@@ -54,17 +53,17 @@ def _call_cl(epsilon, cl, geom, process_info, properties):
 
     # setting the parameters - note that a constitutive law may not need them all!
     cl_params = km.ConstitutiveLawParameters()
-    cl_params.SetOptions(cl_options)
-    cl_params.SetDeformationGradientF(F)
-    cl_params.SetDeterminantF(detF)
+    #cl_params.SetOptions(cl_options)
+    #cl_params.SetDeformationGradientF(F)
+    #cl_params.SetDeterminantF(detF)
     cl_params.SetStrainVector(strain_vector)
     cl_params.SetStressVector(stress_vector)
     cl_params.SetConstitutiveMatrix(constitutive_matrix)
-    cl_params.SetShapeFunctionsValues(N)
-    cl_params.SetShapeFunctionsDerivatives(DN_DX)
-    cl_params.SetProcessInfo(process_info)
+    #cl_params.SetShapeFunctionsValues(N)
+    #cl_params.SetShapeFunctionsDerivatives(DN_DX)
+    #cl_params.SetProcessInfo(process_info)
     cl_params.SetMaterialProperties(properties)
-    cl_params.SetElementGeometry(geom)
+    #cl_params.SetElementGeometry(geom)
 
     cl.CalculateMaterialResponseCauchy(cl_params)
 
@@ -157,13 +156,6 @@ if __name__ == "__main__":
     #        }
     #        """)
     # read_materials_process.Factory(settings, Model)
-    # initial_strain = km.Vector(6)
-    # initial_strain[0] = 0.001
-    # initial_strain[1] = 0.
-    # initial_strain[2] = 0.
-    # initial_strain[3] = 0.
-    # initial_strain[4] = 0.
-    # initial_strain[5] = 0.
 
     model_part_rve = km.ModelPart("RVE")
     node1 = model_part_rve.CreateNewNode(1,0.0,0.0,0.0)
@@ -180,7 +172,17 @@ if __name__ == "__main__":
     rve_data = km.Parameters(open("rve.json", 'r').read())
     cl = kmsr.RVELaw(model_part_rve, rve_data)
     cl_clone = cl.Clone()
+    # model_part is not used internally
     cl.InitializeMaterial(km.ModelPart("dummy").Properties[1], geom, km.Vector(3))
+
+    initial_strain = km.Vector(6)
+    initial_strain[0] = 0.001
+    initial_strain[1] = 0.
+    initial_strain[2] = 0.
+    initial_strain[3] = 0.
+    initial_strain[4] = 0.
+    initial_strain[5] = 0.
+    _call_cl(initial_strain, cl_clone, geom, model_part_rve.ProcessInfo, model_part_rve.Properties[1])
 
     print(cl)
     print(cl_clone)
