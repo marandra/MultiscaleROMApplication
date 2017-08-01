@@ -21,10 +21,8 @@ namespace Kratos {
         RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param);
 
         // constructor used by Clone(), takes individual data
-        RVELaw(ModelPart::Pointer mpModelPart,
-               std::vector<Matrix> B_list,
-               std::vector<double> IW_list,
-               std::vector<ConstitutiveLaw::Pointer> CL_list,
+        RVELaw(ModelPart::Pointer mpModelPart, std::vector<Matrix> B_list,
+               std::vector<double> IW_list, std::vector<ConstitutiveLaw::Pointer> CL_list,
                std::vector<int> prop_id_list);
 
         // Clone function (has to be implemented by any derived class)
@@ -70,8 +68,9 @@ namespace Kratos {
         std::vector<double> mIW_vec;
         std::vector<ConstitutiveLaw::Pointer> mCL_vec;
         std::vector<int> mPropId_vec;
+        Vector mModesWeights;
 
-        void CalculateResidual(Matrix &A, Vector &b, Vector &res, Parameters& rValues);
+        void CalculateResidual(Matrix &A, Vector &res, Parameters& rValues);
 
         friend class Serializer;
 

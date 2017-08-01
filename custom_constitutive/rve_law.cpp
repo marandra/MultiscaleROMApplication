@@ -3,15 +3,17 @@
 
 namespace Kratos
 {
+//Default constructor
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
 {
     auto w_list = param["w"];
     auto B_list = param["B"];
     auto prop_id_list = param["props_id"];
-    unsigned int nr_points = B_list.size();
-    unsigned int nr_comps = B_list[0].size();
-    unsigned int nr_modes = B_list[0][0].size();
+    const auto nr_points = B_list.size();
+    const auto nr_modes = B_list[0][0].size();
+    const auto nr_comps = GetStrainSize();
+
     for (unsigned int i = 0; i < nr_points; i++)
     {
         Matrix BK(nr_comps, nr_modes);
@@ -29,13 +31,12 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         mCL_vec.push_back(pcl);
         mPropId_vec.push_back(prop_id_list[i].GetInt());
     }
+    mModesWeights = ZeroVector(nr_modes);
 }
 
-// constructor used by Clone()
-RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
-               std::vector<Matrix> B_list,
-               std::vector<double> IW_list,
-               std::vector<ConstitutiveLaw::Pointer> CL_list,
+// Constructor used by Clone()
+RVELaw::RVELaw(ModelPart::Pointer mpModelPart, std::vector<Matrix> B_list,
+               std::vector<double> IW_list, std::vector<ConstitutiveLaw::Pointer> CL_list,
                std::vector<int> prop_id_list)
     : mpRVEModelPart(mpModelPart), mB_vec(B_list), mIW_vec(IW_list),
       mCL_vec(CL_list), mPropId_vec(prop_id_list)
@@ -45,11 +46,14 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
     KRATOS_WATCH(mIW_vec[0]);
     KRATOS_WATCH(mCL_vec[0]);
     KRATOS_WATCH(mPropId_vec[0]);
+    const auto nr_modes = mB_vec[0].size2();
+    mModesWeights = ZeroVector(nr_modes);
 }
 
 // Destructor
 RVELaw::~RVELaw() {}
 
+// Clone
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
     RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(mpRVEModelPart,
@@ -58,13 +62,16 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const
     return pnewCL;
 }
 
+// TODO add Copy
+
 void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const Vector& rShapeFunctionsValues)
 {
     KRATOS_WATCH("inside initialize material")
-    typedef std::vector<ConstitutiveLaw::Pointer>::size_type t_vsize;
-    for (t_vsize i = 0; i < mCL_vec.size(); i++)
+    //typedef std::vector<ConstitutiveLaw::Pointer>::size_type t_vsize;
+    //for (t_vsize i = 0; i < mCL_vec.size(); i++)
+    for (auto i = 0; i < mCL_vec.size(); i++)
     {
         KRATOS_WATCH("initialized CL")
         mCL_vec[i]->InitializeMaterial(mPropId_vec[i], rElementGeometry,
@@ -78,7 +85,7 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
-    const auto nr_comps = GetStrainSize(); //TODO check == mB_vec[0].size1()
+    const auto nr_comps = GetStrainSize();
     KRATOS_WATCH(nr_points);
     KRATOS_WATCH(nr_modes);
     KRATOS_WATCH(nr_comps);
@@ -90,11 +97,13 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     KRATOS_WATCH(strain);
     KRATOS_WATCH(stress_bar);
     KRATOS_WATCH(constit_matrix);
-    Vector x = ZeroVector(nr_modes);
     Vector res = ZeroVector(nr_modes);
     Matrix A = ZeroMatrix(nr_modes, nr_modes);
     KRATOS_WATCH(res);
     KRATOS_WATCH(A);
+    double aux_qr_A[nr_modes][nr_modes];
+    double aux_qr_res[nr_modes];
+    double aux_qr_Dx[nr_modes];
 
     // row_major, col_mayor:order of the input matrix.
     // Should be col_major for the best performance.
@@ -105,10 +114,13 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     QR<double, storage_order::row_major> QR_decomposition; // QR decomposition object
     KRATOS_WATCH(storage_order::row_major);
     KRATOS_WATCH(storage_order::col_major);
-    CalculateResidual(A, res, x, rValues);
+
+    //CalculateResidual(A, res, rValues);
     // constit_matrix, props_list, model_part, geomParameters& rValues)
     // A, res, homog_stress = CalculateResidual(x, strain, stress_bar,
     // constit_matrix, props_list, model_part, geomParameters& rValues)
+
+    /*
     auto tmp_nr_modes = 2;
     A(0,0) = 1.; A(0,1) = 2.;
     A(1,0) = 3.; A(1,1) = 4.;
@@ -122,13 +134,10 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
         }
         aux_qr_res[ii] = res(ii);
     }
-    KRATOS_WATCH(A);
     KRATOS_WATCH(aux_qr_A[0][0]);
     KRATOS_WATCH(aux_qr_A[0][1]);
     KRATOS_WATCH(aux_qr_A[1][0]);
     KRATOS_WATCH(aux_qr_A[1][1]);
-    KRATOS_WATCH(aux_qr_res[0]);
-    KRATOS_WATCH(aux_qr_res[1]);
     QR_decomposition.compute(tmp_nr_modes, tmp_nr_modes, &(aux_qr_A[0][0]));
     KRATOS_WATCH(aux_qr_A[0][0]);
     KRATOS_WATCH(aux_qr_A[0][1]);
@@ -137,27 +146,38 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
     KRATOS_WATCH(aux_qr_Dx[0]);
     KRATOS_WATCH(aux_qr_Dx[1]);
+    */
 
-   /*
+
     int it = 1;
     double norm_res = 1.;
     while (norm_res > 1e-9 and it < 10)
     {
-        Vector& Dx();
-        QR_decomposition.compute(nr_modes, nr_modes, &(*A)(0, 0));
-        QR_decomposition.solve(&(*res)(0), &(*Dx)(0));
-    x -= Dx;
-    A, res,
-        homog_stress = calculate_residual(x, strain, iw_list, CL_list, B_list,
-                                          props_list, model_part, geom);
-    norm_res = np.linalg.norm(res, ord = 2)
-                   print("RESIDUAL CRITERION :: norm res: {:.3e}".format(norm_res))
-                       it += 1;
+        // Solve
+        for (auto ii = 0; ii < nr_modes; ii++){
+            for (auto jj = 0; jj < nr_modes; jj++){
+                aux_qr_A[ii][jj] = A(ii, jj);
+            }
+            aux_qr_res[ii] = res(ii);
+        }
+        QR_decomposition.compute(nr_modes, nr_modes, &(aux_qr_A[0][0]));
+        QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
+
+        // Update
+        for (auto ii = 0; ii < nr_modes; ii++) {
+            mModesWeights[ii] -= aux_qr_Dx[ii];
+        }
+
+        //CalculateResidual(A, res, rValues);
+        norm_res = norm_2(res);
+        KRATOS_WATCH(norm_res);
+        it++;
+        break;
     }
-*/
+
 }
 
-void RVELaw::CalculateResidual(Matrix &A, Vector &b, Vector &res, Parameters& rValues)
+void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
 {
   const auto nr_points = mB_vec.size();
   const auto nr_modes = mB_vec[0].size2();
