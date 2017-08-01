@@ -7,6 +7,7 @@ namespace Kratos
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
 {
+    // TODO why can't these three be const?
     auto w_list = param["w"];
     auto B_list = param["B"];
     auto prop_id_list = param["props_id"];
@@ -14,16 +15,12 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     const auto nr_modes = B_list[0][0].size();
     const auto nr_comps = GetStrainSize();
 
-    for (unsigned int i = 0; i < nr_points; i++)
+    for (auto i = 0; i < nr_points; i++)
     {
         Matrix BK(nr_comps, nr_modes);
-        for (unsigned int c = 0; c < nr_comps; c++)
-        {
-            for (unsigned int m = 0; m < nr_modes; m++)
-            {
+        for (auto c = 0; c < nr_comps; c++)
+            for (auto m = 0; m < nr_modes; m++)
                 BK(c, m) = B_list[i][c][m].GetDouble();
-            }
-        }
         Properties::Pointer prop = mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
         ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
         mB_vec.push_back(BK);
@@ -31,6 +28,7 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         mCL_vec.push_back(pcl);
         mPropId_vec.push_back(prop_id_list[i].GetInt());
     }
+    // TODO why is ZeroVector 'const double' type, instead of 'Vector'?
     mModesWeights = ZeroVector(nr_modes);
 }
 
@@ -62,18 +60,21 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const
     return pnewCL;
 }
 
-// TODO add Copy
+// Copy
+RVELaw::RVELaw(const RVELaw& rOther)
+        : ConstitutiveLaw(rOther)
+{
+}
+
 
 void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const Vector& rShapeFunctionsValues)
 {
-    KRATOS_WATCH("inside initialize material")
-    //typedef std::vector<ConstitutiveLaw::Pointer>::size_type t_vsize;
-    //for (t_vsize i = 0; i < mCL_vec.size(); i++)
     for (auto i = 0; i < mCL_vec.size(); i++)
     {
-        KRATOS_WATCH("initialized CL")
+        KRATOS_WATCH("initialized CL - fix argument. see TODO")
+        // TODO: pass Property, not Id
         mCL_vec[i]->InitializeMaterial(mPropId_vec[i], rElementGeometry,
                                        rShapeFunctionsValues);
     }
@@ -115,7 +116,7 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     KRATOS_WATCH(storage_order::row_major);
     KRATOS_WATCH(storage_order::col_major);
 
-    //CalculateResidual(A, res, rValues);
+    CalculateResidual(A, res, rValues);
     // constit_matrix, props_list, model_part, geomParameters& rValues)
     // A, res, homog_stress = CalculateResidual(x, strain, stress_bar,
     // constit_matrix, props_list, model_part, geomParameters& rValues)
@@ -148,7 +149,6 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     KRATOS_WATCH(aux_qr_Dx[1]);
     */
 
-
     int it = 1;
     double norm_res = 1.;
     while (norm_res > 1e-9 and it < 10)
@@ -180,24 +180,27 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
 {
   const auto nr_points = mB_vec.size();
-  const auto nr_modes = mB_vec[0].size2();
-  const auto nr_comps = GetStrainSize();
-  const auto dim = WorkingSpaceDimension();
-/*
-  Vector & strain_macro = rValues.GetStrainVector();
-  Vector & stress = rValues.GetStressVector();
-  Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
+  const Vector & strain_macro = rValues.GetStrainVector();
   KRATOS_WATCH(strain_macro);
-  const Properties& mat_props = rValues.GetMaterialProperties();
+  const auto dim = WorkingSpaceDimension();
+  //const auto nr_modes = mB_vec[0].size2();
+  //const auto nr_comps = GetStrainSize();
+  //const Properties& mat_props = rValues.GetMaterialProperties();
 
   for (auto i = 0; i < nr_points; i++)
   {
-    Matrix B = mB_vec[i];
-    Vector strain = strain_macro + prod(B, res);
+    const Matrix B = mB_vec[i];
+    const Vector strain = strain_macro + prod(B, res);
 
     //TODO make this properly
+      FlagType cl_flags = Flags();
+
+    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
+    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
+
     Vector N = ZeroVector(dim);
-    Matrix F(dim,dim) = ZeroMatrix(dim, dim);
+    Matrix DN_DX(3,2);
+    Matrix F(dim, dim);
     F(0,0) = 1.0 + strain(0);
     F(0,1) = 0.5 * strain(3);
     F(0,2) = 0.5 * strain(5);
@@ -207,17 +210,56 @@ void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
     F(2,0) = 0.5 * strain(5);
     F(2,1) = 0.5 * strain(4);
     F(2,2) = 1.0 + strain(2);
-    //TODO compute det(F)
-    double detF = 1.;
+    double detF = determinant(F);
+    KRATOS_WATCH(F);
+    KRATOS_WATCH(detF);
 
-    Matrix DN_DX(3,2);
-
-    mCL_vec[i].CalculateMaterialResponseCauchy(rValues);
-
-    constit_matrix = rValues.GetConstitutiveMatrix();
-    stress = rValues.GetStressVector();
+    // Compute RVE's point's response
+    mCL_vec[i]->CalculateMaterialResponseCauchy(rValues);
+    // Get RVE's point's response
+    Vector & stress = rValues.GetStressVector();
+    Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
   }
-*/
+}
+
+
+int RVELaw::determinant_sign(const permutation_matrix<std::size_t>& pm)
+{
+    int pm_sign=1;
+    std::size_t size = pm.size();
+    for (std::size_t i = 0; i < size; ++i)
+        if (i != pm(i))
+            pm_sign *= -1.0; // swap_rows would swap a pair of rows here, so we change sign
+    return pm_sign;
+}
+
+
+double RVELaw::determinant(Matrix & orig_m) {
+    Matrix m(orig_m);
+    permutation_matrix<std::size_t> pm(m.size1());
+    double det = 1.0;
+    if (lu_factorize(m, pm)) {
+        det = 0.0;
+    } else {
+        for (int i = 0; i < m.size1(); i++)
+            det *= m(i, i); // multiply by elements on diagonal
+        det = det * determinant_sign(pm);
+    }
+    return det;
+}
+
+
+int RVELaw::Check(const Properties& rMaterialProperties,
+                  const GeometryType& rElementGeometry,
+                  const ProcessInfo& rCurrentProcessInfo)
+{
+    if (mB_vec[0].size1() != GetStrainSize())
+         KRATOS_THROW_ERROR(std::invalid_argument, "Number of rows in modes matrix "
+                 "rows differs from number of components of constitutive law", "");
+
+    //TODO: Implement call ->Check of every CL
+
+    return 0;
 }
 
 // bool RVELaw::Has(const Variable<double>& rThisVariable)
@@ -406,40 +448,7 @@ void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
 // {
 // }
 //
-// double RVELaw::CalculateQ(double r,
-// 	const Properties& material_prop) {
 
-//	double H = material_prop[ISOTROPIC_DAMAGE_MODULUS];
-//	double nu = material_prop[POISSON_RATIO];
-//	double r0 = std::sqrt(1 - nu * nu) * material_prop[YIELD_STRESS] /
-// std::sqrt(material_prop[YOUNG_MODULUS]);
-// 	double q_inf = std::sqrt(1 - nu * nu) * material_prop[INFINITY_YIELD_STRESS]
-// / std::sqrt(material_prop[YOUNG_MODULUS]);
-//     double q;
-
-//	if (r < r0)
-//	    return r;
-//	q = q_inf - (q_inf - r0) * std::exp(H * (1 - r / r0));
-//	return q;
-// }
-
-// void RVELaw::CalculateConstitutiveMatrix(
-//     const Properties& props, Matrix& D)
-// {
-// 	double E = props[YOUNG_MODULUS];
-// 	double nu = props[POISSON_RATIO];
-//	double Ebar = E / (1. - nu * nu);
-//	double nubar = nu / (1. - nu);
-
-// 	D.clear();
-//
-//     D(0, 0) = 1;     D(0, 1) = nubar; D(0, 2) = 0;
-//     D(1, 0) = nubar; D(1, 1) = 1;     D(1, 2) = 0;
-//     D(2, 0) = 0;     D(2, 1) = 0;     D(2, 2) = 0.5 * (1 - nubar);
-
-//	D *= Ebar / (1. - nubar * nubar);
-// }
-//
 // void RVELaw::GetLawFeatures(Features& rFeatures)
 // {
 // 	rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
@@ -450,12 +459,5 @@ void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
 // 	rFeatures.mSpaceDimension = WorkingSpaceDimension();
 // }
 //
-int RVELaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                  const ProcessInfo& rCurrentProcessInfo) {
-     if (mB_vec[0].size1() != GetStrainSize())
-         KRATOS_THROW_ERROR(std::invalid_argument, "Number of rows in modes matrix "
-                 "rows differs from number of components of constitutive law", "");
-     return 0;
-    }
 
 } /* namespace Kratos.*/
