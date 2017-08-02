@@ -74,8 +74,7 @@ namespace Kratos {
         void CalculateResidual(Matrix &A, Vector &res, Parameters& rValues);
 
         int determinant_sign(const permutation_matrix<std::size_t>& pm);
-        //double determinant(matrix<double>& m);
-        double determinant(Matrix & m);
+        double determinant(Matrix m);
 
         friend class Serializer;
 

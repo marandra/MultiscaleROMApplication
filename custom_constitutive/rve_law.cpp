@@ -1,3 +1,4 @@
+#include <geometries/triangle_2d_3.h>
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
 
@@ -87,21 +88,15 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
     const auto nr_comps = GetStrainSize();
-    KRATOS_WATCH(nr_points);
-    KRATOS_WATCH(nr_modes);
-    KRATOS_WATCH(nr_comps);
+    const auto dim = WorkingSpaceDimension();
 
     const Properties& mat_props = rValues.GetMaterialProperties();
-    Vector & strain = rValues.GetStrainVector();
-    Vector & stress_bar = rValues.GetStressVector();
-    Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
-    KRATOS_WATCH(strain);
-    KRATOS_WATCH(stress_bar);
-    KRATOS_WATCH(constit_matrix);
+    Vector & strain_macro = rValues.GetStrainVector();
+    Vector & stress_rve = rValues.GetStressVector();
+    Matrix & c_matrix_rve = rValues.GetConstitutiveMatrix();
+
     Vector res = ZeroVector(nr_modes);
     Matrix A = ZeroMatrix(nr_modes, nr_modes);
-    KRATOS_WATCH(res);
-    KRATOS_WATCH(A);
     double aux_qr_A[nr_modes][nr_modes];
     double aux_qr_res[nr_modes];
     double aux_qr_Dx[nr_modes];
@@ -112,23 +107,17 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     //    row_major,
     //    col_major
     //};
-    QR<double, storage_order::row_major> QR_decomposition; // QR decomposition object
-    KRATOS_WATCH(storage_order::row_major);
-    KRATOS_WATCH(storage_order::col_major);
-
-    CalculateResidual(A, res, rValues);
-    // constit_matrix, props_list, model_part, geomParameters& rValues)
-    // A, res, homog_stress = CalculateResidual(x, strain, stress_bar,
-    // constit_matrix, props_list, model_part, geomParameters& rValues)
-
+    //KRATOS_WATCH(storage_order::row_major);
+    //KRATOS_WATCH(storage_order::col_major);
+    QR<double, storage_order::row_major> QR_decomposition;
     /*
-    auto tmp_nr_modes = 2;
-    A(0,0) = 1.; A(0,1) = 2.;
-    A(1,0) = 3.; A(1,1) = 4.;
-    res(0) = 1.; res(1) = 2.;
-    double aux_qr_A[tmp_nr_modes][tmp_nr_modes];
-    double aux_qr_res[tmp_nr_modes];
-    double aux_qr_Dx[tmp_nr_modes];
+    // temporary validation od QR decomposition - solve
+    auto tmp_nr_modes = 3;
+    A.resize(3,3);
+    A(0,0) = 1.; A(0,1) = 2.; A(0,2) = 3.;
+    A(1,0) = 3.; A(1,1) = 2.; A(1,2) = 6.;
+    A(2,0) = 2.; A(2,1) = 3.; A(2,2) = 2.;
+    res(0) = 2.; res(1) = 3.; res(2) = 1.;
     for (auto ii = 0; ii < tmp_nr_modes; ii++){
         for (auto jj = 0; jj < tmp_nr_modes; jj++){
             aux_qr_A[ii][jj] = A(ii, jj);
@@ -137,18 +126,74 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     }
     KRATOS_WATCH(aux_qr_A[0][0]);
     KRATOS_WATCH(aux_qr_A[0][1]);
+    KRATOS_WATCH(aux_qr_A[0][2]);
     KRATOS_WATCH(aux_qr_A[1][0]);
     KRATOS_WATCH(aux_qr_A[1][1]);
+    KRATOS_WATCH(aux_qr_A[1][2]);
+    KRATOS_WATCH(aux_qr_A[2][0]);
+    KRATOS_WATCH(aux_qr_A[2][1]);
+    KRATOS_WATCH(aux_qr_A[2][2]);
     QR_decomposition.compute(tmp_nr_modes, tmp_nr_modes, &(aux_qr_A[0][0]));
     KRATOS_WATCH(aux_qr_A[0][0]);
     KRATOS_WATCH(aux_qr_A[0][1]);
+    KRATOS_WATCH(aux_qr_A[0][2]);
     KRATOS_WATCH(aux_qr_A[1][0]);
     KRATOS_WATCH(aux_qr_A[1][1]);
+    KRATOS_WATCH(aux_qr_A[1][2]);
+    KRATOS_WATCH(aux_qr_A[2][0]);
+    KRATOS_WATCH(aux_qr_A[2][1]);
+    KRATOS_WATCH(aux_qr_A[2][2]);
     QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
     KRATOS_WATCH(aux_qr_Dx[0]);
     KRATOS_WATCH(aux_qr_Dx[1]);
+    KRATOS_WATCH(aux_qr_Dx[2]);
     */
 
+    // Caclulate material response of every CL
+    for (auto i=0; i < nr_points; i++){
+        // create and pass individual parameters
+        Flags cl_flags;
+        cl_flags.Set(COMPUTE_STRESS, true);
+        cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+        Vector stress;
+        Matrix c_matrix;
+        Vector strain;
+        noalias(strain) = strain_macro + prod(mB_vec[i], res);
+        Vector N = ZeroVector(dim);
+        Matrix DN_DX(3,2);
+        Matrix F(dim, dim);
+        F(0,0) = 1.0 + strain(0);
+        F(0,1) = 0.5 * strain(3);
+        F(0,2) = 0.5 * strain(5);
+        F(1,0) = 0.5 * strain(3);
+        F(1,1) = 1.0 + strain(1);
+        F(1,2) = 0.5 * strain(4);
+        F(2,0) = 0.5 * strain(5);
+        F(2,1) = 0.5 * strain(4);
+        F(2,2) = 1.0 + strain(2);
+        double detF = determinant(F);
+        Parameters cl_params;
+        cl_params.SetOptions(cl_flags);
+        cl_params.SetDeformationGradientF(F);
+        cl_params.SetDeterminantF(detF);
+        cl_params.SetStrainVector(strain);
+        cl_params.SetStressVector(stress);
+        cl_params.SetConstitutiveMatrix(c_matrix);
+        cl_params.SetShapeFunctionsValues(N);
+        cl_params.SetShapeFunctionsDerivatives(DN_DX);
+        cl_params.SetProcessInfo(mpRVEModelPart->GetProcessInfo());
+        cl_params.SetMaterialProperties(mpRVEModelPart->pGetProperties(mPropId_vec[i]);
+        // TODO: see how to pass proper geom and how it is used
+        cl_params.SetElementGeometry(Triangle2D3);
+
+
+        // get response
+    }
+
+   //const auto nr_modes = mB_vec[0].size2();
+
+
+    /*
     int it = 1;
     double norm_res = 1.;
     while (norm_res > 1e-9 and it < 10)
@@ -174,7 +219,7 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
         it++;
         break;
     }
-
+    */
 }
 
 void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
@@ -183,8 +228,8 @@ void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
   const Vector & strain_macro = rValues.GetStrainVector();
   KRATOS_WATCH(strain_macro);
   const auto dim = WorkingSpaceDimension();
-  //const auto nr_modes = mB_vec[0].size2();
-  //const auto nr_comps = GetStrainSize();
+  const auto nr_comps = GetStrainSize();
+    //const auto nr_modes = mB_vec[0].size2();
   //const Properties& mat_props = rValues.GetMaterialProperties();
 
   for (auto i = 0; i < nr_points; i++)
@@ -193,11 +238,6 @@ void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
     const Vector strain = strain_macro + prod(B, res);
 
     //TODO make this properly
-      FlagType cl_flags = Flags();
-
-    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
-    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
-
     Vector N = ZeroVector(dim);
     Matrix DN_DX(3,2);
     Matrix F(dim, dim);
@@ -214,11 +254,32 @@ void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
     KRATOS_WATCH(F);
     KRATOS_WATCH(detF);
 
+      /*
+    Vector stress(nr_comps);
+    FlagType cl_flags = Flags();
+    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
+    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
+    // Prepare parameters for CL
+    Parameters cl_params;
+    cl_params.SetOptions(cl_flags);
+    cl_params.SetDeformationGradientF(F);
+    cl_params.SetDeterminantF(detF);
+    cl_params.SetStrainVector(strain);
+    cl_params.SetStressVector(stress_vector)
+    cl_params.SetConstitutiveMatrix(constitutive_matrix)
+    cl_params.SetShapeFunctionsValues(N)
+    cl_params.SetShapeFunctionsDerivatives(DN_DX)
+    cl_params.SetProcessInfo(process_info)
+    cl_params.SetMaterialProperties(properties)
+    cl_params.SetElementGeometry(geom)
+
     // Compute RVE's point's response
     mCL_vec[i]->CalculateMaterialResponseCauchy(rValues);
     // Get RVE's point's response
     Vector & stress = rValues.GetStressVector();
+      stress = rValues.GetStressVector();
     Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
+       */
   }
 }
 
@@ -234,8 +295,7 @@ int RVELaw::determinant_sign(const permutation_matrix<std::size_t>& pm)
 }
 
 
-double RVELaw::determinant(Matrix & orig_m) {
-    Matrix m(orig_m);
+double RVELaw::determinant(Matrix m) {
     permutation_matrix<std::size_t> pm(m.size1());
     double det = 1.0;
     if (lu_factorize(m, pm)) {
