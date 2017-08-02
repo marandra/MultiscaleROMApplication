@@ -1,10 +1,9 @@
-#include <geometries/triangle_2d_3.h>
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
-
+//#include <geometries/triangle_2d_3.h>
 namespace Kratos
 {
-//Default constructor
+// Default constructor
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
 {
@@ -22,7 +21,8 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         for (auto c = 0; c < nr_comps; c++)
             for (auto m = 0; m < nr_modes; m++)
                 BK(c, m) = B_list[i][c][m].GetDouble();
-        Properties::Pointer prop = mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
+        Properties::Pointer prop =
+            mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
         ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
         mB_vec.push_back(BK);
         mIW_vec.push_back(w_list[i].GetDouble());
@@ -34,11 +34,16 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
 }
 
 // Constructor used by Clone()
-RVELaw::RVELaw(ModelPart::Pointer mpModelPart, std::vector<Matrix> B_list,
-               std::vector<double> IW_list, std::vector<ConstitutiveLaw::Pointer> CL_list,
+RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
+               std::vector<Matrix> B_list,
+               std::vector<double> IW_list,
+               std::vector<ConstitutiveLaw::Pointer> CL_list,
                std::vector<int> prop_id_list)
-    : mpRVEModelPart(mpModelPart), mB_vec(B_list), mIW_vec(IW_list),
-      mCL_vec(CL_list), mPropId_vec(prop_id_list)
+    : mpRVEModelPart(mpModelPart),
+      mB_vec(B_list),
+      mIW_vec(IW_list),
+      mCL_vec(CL_list),
+      mPropId_vec(prop_id_list)
 {
     KRATOS_WATCH("Inside Clone Constructor");
     KRATOS_WATCH(mB_vec[0]);
@@ -50,34 +55,41 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, std::vector<Matrix> B_list,
 }
 
 // Destructor
-RVELaw::~RVELaw() {}
+RVELaw::~RVELaw()
+{
+}
 
 // Clone
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
-    RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(mpRVEModelPart,
-                                                        mB_vec, mIW_vec,
-                                                        mCL_vec, mPropId_vec);
+    RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(
+        mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec);
     return pnewCL;
 }
 
 // Copy
-RVELaw::RVELaw(const RVELaw& rOther)
-        : ConstitutiveLaw(rOther)
+RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 {
 }
-
 
 void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const Vector& rShapeFunctionsValues)
 {
+    KRATOS_WATCH("initialize every CL")
     for (auto i = 0; i < mCL_vec.size(); i++)
     {
-        KRATOS_WATCH("initialized CL - fix argument. see TODO")
-        // TODO: pass Property, not Id
-        mCL_vec[i]->InitializeMaterial(mPropId_vec[i], rElementGeometry,
+        const Properties& material_props =
+            mpRVEModelPart->GetProperties(mPropId_vec[i]);
+
+        // TODO We need geometry of the HF element, but we don have it.
+        // Passing empty geometry, as is individual CL is not using it.
+        const GeometryType dummy_element_geometry;
+        mCL_vec[i]->InitializeMaterial(material_props, dummy_element_geometry,
                                        rShapeFunctionsValues);
+
+        // TODO added as debug, remove it later.
+        mCL_vec[i]->PrintData(std::cout);
     }
 }
 
@@ -91,9 +103,9 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const auto dim = WorkingSpaceDimension();
 
     const Properties& mat_props = rValues.GetMaterialProperties();
-    Vector & strain_macro = rValues.GetStrainVector();
-    Vector & stress_rve = rValues.GetStressVector();
-    Matrix & c_matrix_rve = rValues.GetConstitutiveMatrix();
+    const Vector& strain_macro = rValues.GetStrainVector();
+    Vector& stress_rve = rValues.GetStressVector();
+    Matrix& c_matrix_rve = rValues.GetConstitutiveMatrix();
 
     Vector res = ZeroVector(nr_modes);
     Matrix A = ZeroMatrix(nr_modes, nr_modes);
@@ -103,12 +115,12 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
     // row_major, col_mayor:order of the input matrix.
     // Should be col_major for the best performance.
-    //enum storage_order {
+    // enum storage_order {
     //    row_major,
     //    col_major
     //};
-    //KRATOS_WATCH(storage_order::row_major);
-    //KRATOS_WATCH(storage_order::col_major);
+    // KRATOS_WATCH(storage_order::row_major);
+    // KRATOS_WATCH(storage_order::col_major);
     QR<double, storage_order::row_major> QR_decomposition;
     /*
     // temporary validation od QR decomposition - solve
@@ -149,49 +161,22 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     KRATOS_WATCH(aux_qr_Dx[2]);
     */
 
-    // Caclulate material response of every CL
-    for (auto i=0; i < nr_points; i++){
-        // create and pass individual parameters
-        Flags cl_flags;
-        cl_flags.Set(COMPUTE_STRESS, true);
-        cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
-        Vector stress;
-        Matrix c_matrix;
-        Vector strain;
-        noalias(strain) = strain_macro + prod(mB_vec[i], res);
-        Vector N = ZeroVector(dim);
-        Matrix DN_DX(3,2);
-        Matrix F(dim, dim);
-        F(0,0) = 1.0 + strain(0);
-        F(0,1) = 0.5 * strain(3);
-        F(0,2) = 0.5 * strain(5);
-        F(1,0) = 0.5 * strain(3);
-        F(1,1) = 1.0 + strain(1);
-        F(1,2) = 0.5 * strain(4);
-        F(2,0) = 0.5 * strain(5);
-        F(2,1) = 0.5 * strain(4);
-        F(2,2) = 1.0 + strain(2);
-        double detF = determinant(F);
-        Parameters cl_params;
-        cl_params.SetOptions(cl_flags);
-        cl_params.SetDeformationGradientF(F);
-        cl_params.SetDeterminantF(detF);
-        cl_params.SetStrainVector(strain);
-        cl_params.SetStressVector(stress);
-        cl_params.SetConstitutiveMatrix(c_matrix);
-        cl_params.SetShapeFunctionsValues(N);
-        cl_params.SetShapeFunctionsDerivatives(DN_DX);
-        cl_params.SetProcessInfo(mpRVEModelPart->GetProcessInfo());
-        cl_params.SetMaterialProperties(mpRVEModelPart->pGetProperties(mPropId_vec[i]);
-        // TODO: see how to pass proper geom and how it is used
-        cl_params.SetElementGeometry(Triangle2D3);
-
-
-        // get response
+    // Calculate material response of every CL
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);             // output
+        Matrix c_matrix(nr_comps, nr_comps); // output
+        Vector strain = strain_macro + prod(mB_vec[i], res);
+        // TODO(marcelo): strain should be const
+        CalculateIndividualMaterialResponse(stress, c_matrix, strain, i);
+        //TODO(marcelo): must use prod<temp_type>(...)
+        // noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), prod<temp_type>(c_matrix, mB_vec[i]));
+        Matrix Aux1(nr_comps, nr_modes);
+        A += mIW_vec[i] * Matrix(prod(trans(mB_vec[i]), prod(c_matrix, mB_vec[i], Aux1)));
+        res += mIW_vec[i] * Vector(prod(trans(mB_vec[i]), stress));
     }
 
-   //const auto nr_modes = mB_vec[0].size2();
-
+    // const auto nr_modes = mB_vec[0].size2();
 
     /*
     int it = 1;
@@ -222,102 +207,61 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     */
 }
 
-void RVELaw::CalculateResidual(Matrix &A, Vector &res, Parameters& rValues)
+void RVELaw::CalculateIndividualMaterialResponse(Vector &stress, Matrix &c_matrix, Vector &strain, std::size_t i)
 {
-  const auto nr_points = mB_vec.size();
-  const Vector & strain_macro = rValues.GetStrainVector();
-  KRATOS_WATCH(strain_macro);
-  const auto dim = WorkingSpaceDimension();
-  const auto nr_comps = GetStrainSize();
-    //const auto nr_modes = mB_vec[0].size2();
-  //const Properties& mat_props = rValues.GetMaterialProperties();
+    // create and pass individual parameters
+    const auto dim = WorkingSpaceDimension();
+    Flags cl_flags;
+    cl_flags.Set(COMPUTE_STRESS, true);
+    cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-  for (auto i = 0; i < nr_points; i++)
-  {
-    const Matrix B = mB_vec[i];
-    const Vector strain = strain_macro + prod(B, res);
-
-    //TODO make this properly
     Vector N = ZeroVector(dim);
-    Matrix DN_DX(3,2);
+    Matrix DN_DX(3, 2);
     Matrix F(dim, dim);
-    F(0,0) = 1.0 + strain(0);
-    F(0,1) = 0.5 * strain(3);
-    F(0,2) = 0.5 * strain(5);
-    F(1,0) = 0.5 * strain(3);
-    F(1,1) = 1.0 + strain(1);
-    F(1,2) = 0.5 * strain(4);
-    F(2,0) = 0.5 * strain(5);
-    F(2,1) = 0.5 * strain(4);
-    F(2,2) = 1.0 + strain(2);
+    F(0, 0) = 1.0 + strain(0); F(0, 1) = 0.5 * strain(3); F(0, 2) = 0.5 * strain(5);
+    F(1, 0) = 0.5 * strain(3); F(1, 1) = 1.0 + strain(1); F(1, 2) = 0.5 * strain(4);
+    F(2, 0) = 0.5 * strain(5); F(2, 1) = 0.5 * strain(4); F(2, 2) = 1.0 + strain(2);
     double detF = determinant(F);
-    KRATOS_WATCH(F);
-    KRATOS_WATCH(detF);
 
-      /*
-    Vector stress(nr_comps);
-    FlagType cl_flags = Flags();
-    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
-    //cl_flags.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
-    // Prepare parameters for CL
     Parameters cl_params;
     cl_params.SetOptions(cl_flags);
     cl_params.SetDeformationGradientF(F);
     cl_params.SetDeterminantF(detF);
     cl_params.SetStrainVector(strain);
-    cl_params.SetStressVector(stress_vector)
-    cl_params.SetConstitutiveMatrix(constitutive_matrix)
-    cl_params.SetShapeFunctionsValues(N)
-    cl_params.SetShapeFunctionsDerivatives(DN_DX)
-    cl_params.SetProcessInfo(process_info)
-    cl_params.SetMaterialProperties(properties)
-    cl_params.SetElementGeometry(geom)
+    cl_params.SetStressVector(stress);
+    cl_params.SetConstitutiveMatrix(c_matrix);
+    cl_params.SetShapeFunctionsValues(N);
+    cl_params.SetShapeFunctionsDerivatives(DN_DX);
+    cl_params.SetProcessInfo(mpRVEModelPart->GetProcessInfo());
+    const Properties& material_props = mpRVEModelPart->GetProperties(mPropId_vec[i]);
+    cl_params.SetMaterialProperties(material_props);
+    // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
+    // cl_params.SetElementGeometry();
 
-    // Compute RVE's point's response
-    mCL_vec[i]->CalculateMaterialResponseCauchy(rValues);
-    // Get RVE's point's response
-    Vector & stress = rValues.GetStressVector();
-      stress = rValues.GetStressVector();
-    Matrix & constit_matrix = rValues.GetConstitutiveMatrix();
-       */
-  }
+    mCL_vec[i]->CalculateMaterialResponseCauchy(cl_params);
 }
-
-
-int RVELaw::determinant_sign(const permutation_matrix<std::size_t>& pm)
-{
-    int pm_sign=1;
-    std::size_t size = pm.size();
-    for (std::size_t i = 0; i < size; ++i)
-        if (i != pm(i))
-            pm_sign *= -1.0; // swap_rows would swap a pair of rows here, so we change sign
-    return pm_sign;
-}
-
-
-double RVELaw::determinant(Matrix m) {
-    permutation_matrix<std::size_t> pm(m.size1());
-    double det = 1.0;
-    if (lu_factorize(m, pm)) {
-        det = 0.0;
-    } else {
-        for (int i = 0; i < m.size1(); i++)
-            det *= m(i, i); // multiply by elements on diagonal
-        det = det * determinant_sign(pm);
-    }
-    return det;
-}
-
 
 int RVELaw::Check(const Properties& rMaterialProperties,
                   const GeometryType& rElementGeometry,
                   const ProcessInfo& rCurrentProcessInfo)
 {
+    // Self check
     if (mB_vec[0].size1() != GetStrainSize())
-         KRATOS_THROW_ERROR(std::invalid_argument, "Number of rows in modes matrix "
-                 "rows differs from number of components of constitutive law", "");
+        KRATOS_THROW_ERROR(
+            std::invalid_argument,
+            "Number of rows in modes matrix "
+            "rows differs from number of components of constitutive law",
+            "");
 
-    //TODO: Implement call ->Check of every CL
+    // Individual CLs check
+    const auto nr_points = mB_vec.size();
+    for (auto i = 0; i < nr_points; i++)
+    {
+        const Properties& material_props =
+            mpRVEModelPart->GetProperties(mPropId_vec[i]);
+        const GeometryType dummy_element_geometry;
+        mCL_vec[i]->Check(material_props, dummy_element_geometry, rCurrentProcessInfo);
+    }
 
     return 0;
 }
