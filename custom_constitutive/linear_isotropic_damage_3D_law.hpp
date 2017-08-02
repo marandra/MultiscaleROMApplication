@@ -377,6 +377,11 @@ public:
                       const GeometryType& rElementGeometry,
                       const ProcessInfo& rCurrentProcessInfo);
 
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << "Linear Isotropic Damage 3D constitutive law\n";
+    };
+
 protected:
   double mInelasticFlag;
   double mStrainEnergy;
