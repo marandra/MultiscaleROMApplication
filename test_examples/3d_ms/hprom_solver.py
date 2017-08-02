@@ -134,29 +134,6 @@ def solve(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom):
 if __name__ == "__main__":
     # create model part and assign properties
     model_part_macro = km.ModelPart("CUBE")
-    # Model = {"CUBE" : model_part_macro}
-    # settings = km.Parameters("""
-    #            {
-    #                "Parameters": {
-    #                        "materials_filename": "materials.json"
-    #                }
-    #        }
-    #        """)
-    # read_materials_process.Factory(settings, Model)
-
-
-    # create model part and assign properties
-    # model_part_rve = km.ModelPart("RVE")
-    # Model["RVE"] = model_part_rve
-    #settings = km.Parameters("""
-    #            {
-    #                "Parameters": {
-    #                        "materials_filename": "materials_rve.json"
-    #                }
-    #        }
-    #        """)
-    # read_materials_process.Factory(settings, Model)
-
     model_part_rve = km.ModelPart("RVE")
     node1 = model_part_rve.CreateNewNode(1,0.0,0.0,0.0)
     geom = km.Triangle2D3(node1, node1, node1) # create point geom
@@ -173,7 +150,7 @@ if __name__ == "__main__":
     cl = kmsr.RVELaw(model_part_rve, rve_data)
     cl_clone = cl.Clone()
     # model_part is not used internally
-    cl.InitializeMaterial(km.ModelPart("dummy").Properties[1], geom, km.Vector(3))
+    cl_clone.InitializeMaterial(km.ModelPart("dummy").Properties[1], geom, km.Vector(3))
 
     initial_strain = km.Vector(6)
     initial_strain[0] = 0.001
