@@ -88,17 +88,20 @@ private:
     std::vector<int> mPropId_vec;
     Vector mModesWeights;
 
-    void CalculateIndividualMaterialResponse(Vector &, Matrix &, Vector &, std::size_t);
+    void solve(const Matrix&, const Vector&, Vector&);
+
+    void accumulate(Matrix &, Vector &, const Vector &strain_macro);
+
+    void CalculateIndividualMaterialResponse(Vector&, Matrix&, Vector&, std::size_t);
 
     int determinant_sign(const permutation_matrix<std::size_t>& pm)
     {
         int pm_sign = 1;
         std::size_t size = pm.size();
         for (std::size_t i = 0; i < size; ++i)
+            // swap_rows would swap a pair of rows here, so we change sign
             if (i != pm(i))
-                pm_sign *=
-                    -1.0; // swap_rows would swap a pair of rows here, so we
-                          // change sign
+                pm_sign *= -1.0;
         return pm_sign;
     };
 
