@@ -1,5 +1,5 @@
 #if !defined(KRATOS_LINEAR_ELASTIC_PLASTIC_J2_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define KRATOS_LINEAR_LINEAR_ELASTIC_PLASTIC_J2_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#define KRATOS_LINEAR_ELASTIC_PLASTIC_J2_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 /* System includes */
 
@@ -454,5 +454,4 @@ private:
 
 }; /* class LinearJ2PlasticityPlaneStrain2DLaw */
 } /* namespace Kratos */
-#endif /* KRATOS_LINEAR_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED \
-          defined */
+#endif
