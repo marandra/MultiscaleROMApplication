@@ -57,6 +57,15 @@ public:
                             const GeometryType& rElementGeometry,
                             const Vector& rShapeFunctionsValues) override;
 
+    void FinalizeSolutionStep(const Properties& rMaterialProperties,
+                              const GeometryType& rElementGeometry,
+                              const Vector& rShapeFunctionsValues,
+                              const ProcessInfo& rCurrentProcessInfo) override;
+
+    bool Has(const Variable<Vector>& rThisVariable) override;
+
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
     std::size_t GetStrainSize() override
@@ -75,7 +84,7 @@ public:
 
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << "Multiscale RVE constitutive law";
+        rOStream << "Multiscale HPROM constitutive law";
     };
 
 protected:
@@ -90,9 +99,10 @@ private:
 
     void solve(const Matrix&, const Vector&, Vector&);
 
-    void accumulate(Matrix &, Vector &, const Vector &strain_macro);
+    void
+    accumulate(Matrix &A, Vector &residual, Matrix &c_matrix_homog, Vector &stress_homog, const Vector &strain_macro);
 
-    void CalculateIndividualMaterialResponse(Vector&, Matrix&, Vector&, std::size_t);
+    void calculate_individual_material_response(Vector &, Matrix &, Vector &, std::size_t);
 
     int determinant_sign(const permutation_matrix<std::size_t>& pm)
     {

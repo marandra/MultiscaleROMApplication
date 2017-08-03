@@ -89,7 +89,7 @@ void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const Vector& rShapeFunctionsValues)
 {
-    KRATOS_WATCH("initialize every CL")
+    KRATOS_WATCH("Initialize individual CLs")
     for (auto i = 0; i < mCL_vec.size(); i++)
     {
         const Properties& material_props =
@@ -100,9 +100,6 @@ void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
         const GeometryType dummy_element_geometry;
         mCL_vec[i]->InitializeMaterial(material_props, dummy_element_geometry,
                                        rShapeFunctionsValues);
-
-        // TODO added as debug, remove it later.
-        mCL_vec[i]->PrintData(std::cout);
     }
 }
 
@@ -142,14 +139,14 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     Vector res(nr_modes);
     Vector Dx(nr_modes);
 
-    accumulate(A, res, strain_macro);
+    accumulate(A, res, c_matrix_homog, stress_homog, strain_macro);
     double norm_res = 1.;
     int it = 1;
     while (norm_res > 1e-9 and it < 10)
     {
         solve(A, res, Dx);
         mModesWeights -= Dx;
-        accumulate(A, res, strain_macro);
+        accumulate(A, res, c_matrix_homog, stress_homog, strain_macro);
         norm_res = norm_2(res);
         KRATOS_WATCH(norm_res);
         it++;
@@ -192,7 +189,8 @@ void RVELaw::solve(const Matrix &A, const Vector &res, Vector &Dx){
 
 
 
-void RVELaw::accumulate(Matrix &A, Vector &res, const Vector &strain_macro) {
+void
+RVELaw::accumulate(Matrix &A, Vector &res, Matrix &c_matrix_homog, Vector &stress_homog, const Vector &strain_macro) {
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
     const auto nr_comps = GetStrainSize();
@@ -204,18 +202,20 @@ void RVELaw::accumulate(Matrix &A, Vector &res, const Vector &strain_macro) {
         Matrix c_matrix(nr_comps, nr_comps); // output
         Vector strain = strain_macro + prod(mB_vec[i], res);
         // TODO(marcelo): strain should be const
-        CalculateIndividualMaterialResponse(stress, c_matrix, strain, i);
+        calculate_individual_material_response(stress, c_matrix, strain, i);
         //TODO(marcelo): must use prod<temp_type>(...)
         // noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), prod<temp_type>(c_matrix, mB_vec[i]));
         Matrix Aux1(nr_comps, nr_modes);
         A += mIW_vec[i] * Matrix(prod(trans(mB_vec[i]), prod(c_matrix, mB_vec[i], Aux1)));
         res += mIW_vec[i] * Vector(prod(trans(mB_vec[i]), stress));
+        c_matrix_homog += mIW_vec[i] * c_matrix;
+        stress_homog += mIW_vec[i] * stress;
     }
 }
 
 
 
-void RVELaw::CalculateIndividualMaterialResponse(Vector &stress, Matrix &c_matrix, Vector &strain, std::size_t i)
+void RVELaw::calculate_individual_material_response(Vector &stress, Matrix &c_matrix, Vector &strain, std::size_t i)
 {
     // create and pass individual parameters
     const auto dim = WorkingSpaceDimension();
