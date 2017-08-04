@@ -9,6 +9,12 @@ LinearIsotropicDamage3DLaw::LinearIsotropicDamage3DLaw()
 {
 }
 
+// COPY CONSTRUCTOR
+LinearIsotropicDamage3DLaw::LinearIsotropicDamage3DLaw(const LinearIsotropicDamage3DLaw &rOther)
+    : ConstitutiveLaw(rOther)
+{
+}
+
 // CLONE
 ConstitutiveLaw::Pointer LinearIsotropicDamage3DLaw::Clone() const
 {
@@ -234,10 +240,12 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     // double hyp, sigma_1, sigma_2, sigma_3, angle, cos_a, sin_a;
     bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
 
-    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR))
-    {
-        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
-    }
+    // TODO(marcelo): to be removed. Use USE_ELEMENT_PROVIDED_STRAIN flag
+    //if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR))
+    //{
+    //    noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
+    //}
+    KRATOS_WATCH(epsilon)
 
     CalculateConstitutiveMatrix(matprops, constitutive_matrix);
     sigma_bar = prod(constitutive_matrix, epsilon);

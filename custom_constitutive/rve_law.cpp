@@ -136,7 +136,6 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     stress_homog = ZeroVector(GetStrainSize());
     c_matrix_homog = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
-    KRATOS_WATCH("ACA0")
     Matrix A(nr_modes, nr_modes);
     Vector res(nr_modes);
     Vector Dx(nr_modes);
@@ -227,7 +226,9 @@ void RVELaw::accumulate(Matrix &A, Vector &res, const Vector &strain_macro)
         Matrix c_matrix(nr_comps, nr_comps); // output
         Vector strain = strain_macro + prod(mB_vec[i], res);
         // TODO(marcelo): strain should be const
+        KRATOS_WATCH("ACA2")
         calculate_individual_material_response(stress, c_matrix, strain, i);
+        KRATOS_WATCH("ACA3")
         //TODO(marcelo): must use prod<temp_type>(...)
         // noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), prod<temp_type>(c_matrix, mB_vec[i]));
         Matrix Aux1(nr_comps, nr_modes);
@@ -263,13 +264,16 @@ void RVELaw::calculate_individual_material_response(Vector &stress, Matrix &c_ma
     cl_params.SetConstitutiveMatrix(c_matrix);
     cl_params.SetShapeFunctionsValues(N);
     cl_params.SetShapeFunctionsDerivatives(DN_DX);
+    KRATOS_WATCH("ACA a")
     cl_params.SetProcessInfo(mpRVEModelPart->GetProcessInfo());
     const Properties& material_props = mpRVEModelPart->GetProperties(mPropId_vec[i]);
     cl_params.SetMaterialProperties(material_props);
     // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
     // cl_params.SetElementGeometry();
 
+    KRATOS_WATCH("ACA b")
     mCL_vec[i]->CalculateMaterialResponseCauchy(cl_params);
+    KRATOS_WATCH("ACA c")
 }
 
 

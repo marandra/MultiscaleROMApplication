@@ -27,6 +27,9 @@ public:
     */
     LinearIsotropicDamage3DLaw();
 
+    // Copy constructor
+    LinearIsotropicDamage3DLaw(const LinearIsotropicDamage3DLaw &);
+
     /**
     * Destructor.
     */
