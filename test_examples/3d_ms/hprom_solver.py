@@ -164,8 +164,8 @@ if __name__ == "__main__":
     print(cl)
     print(cl_clone)
 
-    err
     homog_stress_list = []
     homog_stress_list.append(solve(x, initial_strain, iw_list,
                                    CL_list, B_list, props_list, model_part, geom))
+
     finalize_solution_step(CL_list, props_list, model_part, geom)

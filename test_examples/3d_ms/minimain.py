@@ -5,7 +5,6 @@ import read_materials_process
 
 
 if __name__ == "__main__":
-    model_part_macro = km.ModelPart("CUBE")
     model_part_rve = km.ModelPart("RVE")
     node1 = model_part_rve.CreateNewNode(1,0.0,0.0,0.0)
     geom = km.Triangle2D3(node1, node1, node1) # create point geom
@@ -24,7 +23,7 @@ if __name__ == "__main__":
     print(cl)
     print(cl_clone)
 
-    cl.Check(model_part_rve.Properties[1], geom, model_part_rve.ProcessInfo)
+    cl.Check(km.ModelPart("dummy").Properties[1], geom, model_part_rve.ProcessInfo)
     cl.InitializeMaterial(km.ModelPart("dummy").Properties[1], geom, km.Vector(3))
 
     nr_comp = cl.GetStrainSize()

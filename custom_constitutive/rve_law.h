@@ -100,7 +100,7 @@ private:
     void solve(const Matrix&, const Vector&, Vector&);
 
     void
-    accumulate(Matrix &A, Vector &residual, Matrix &c_matrix_homog, Vector &stress_homog, const Vector &strain_macro);
+    accumulate(Matrix &A, Vector &residual, const Vector &strain_macro);
 
     void calculate_individual_material_response(Vector &, Matrix &, Vector &, std::size_t);
 

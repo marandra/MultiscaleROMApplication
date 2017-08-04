@@ -51,10 +51,6 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
       mPropId_vec(prop_id_list)
 {
     KRATOS_WATCH("Inside Clone Constructor");
-    KRATOS_WATCH(mB_vec[0]);
-    KRATOS_WATCH(mIW_vec[0]);
-    KRATOS_WATCH(mCL_vec[0]);
-    KRATOS_WATCH(mPropId_vec[0]);
     const auto nr_modes = mB_vec[0].size2();
     mModesWeights = ZeroVector(nr_modes);
 }
@@ -101,6 +97,7 @@ void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
         mCL_vec[i]->InitializeMaterial(material_props, dummy_element_geometry,
                                        rShapeFunctionsValues);
     }
+    KRATOS_WATCH("Leaving Initialize individual CLs")
 }
 
 
@@ -128,29 +125,59 @@ void RVELaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
 
 void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
+    KRATOS_WATCH("Enter CalculateMaterialREsponse");
+    const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
+    const auto nr_comps = GetStrainSize();
     const Properties& mat_props = rValues.GetMaterialProperties();
     const Vector& strain_macro = rValues.GetStrainVector();
-
     Vector& stress_homog = rValues.GetStressVector();
     Matrix& c_matrix_homog = rValues.GetConstitutiveMatrix();
+    stress_homog = ZeroVector(GetStrainSize());
+    c_matrix_homog = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
+    KRATOS_WATCH("ACA0")
     Matrix A(nr_modes, nr_modes);
     Vector res(nr_modes);
     Vector Dx(nr_modes);
+    res = ZeroVector(nr_modes);
+    A = ZeroMatrix(nr_modes, nr_modes);
+    KRATOS_WATCH("ACA1")
 
-    accumulate(A, res, c_matrix_homog, stress_homog, strain_macro);
+    accumulate(A, res, strain_macro);
+    KRATOS_WATCH(A)
+    KRATOS_WATCH(res)
+    KRATOS_WATCH(c_matrix_homog)
+    KRATOS_WATCH(stress_homog)
+    KRATOS_WATCH(mModesWeights)
     double norm_res = 1.;
     int it = 1;
     while (norm_res > 1e-9 and it < 10)
     {
         solve(A, res, Dx);
         mModesWeights -= Dx;
-        accumulate(A, res, c_matrix_homog, stress_homog, strain_macro);
+        accumulate(A, res, strain_macro);
         norm_res = norm_2(res);
         KRATOS_WATCH(norm_res);
         it++;
+        KRATOS_WATCH(A)
+        KRATOS_WATCH(res)
+        KRATOS_WATCH(c_matrix_homog)
+        KRATOS_WATCH(stress_homog)
+        KRATOS_WATCH(mModesWeights)
     }
+    // Homogenize stress and constitutive tensor
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);             // output
+        Matrix c_matrix(nr_comps, nr_comps); // output
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        // TODO(marcelo): strain should be const
+        calculate_individual_material_response(stress, c_matrix, strain, i);
+        c_matrix_homog += mIW_vec[i] * c_matrix;
+        stress_homog += mIW_vec[i] * stress;
+    }
+    KRATOS_WATCH("Leaving CalculateMaterialResponse");
 }
 
 
@@ -185,17 +212,15 @@ void RVELaw::solve(const Matrix &A, const Vector &res, Vector &Dx){
         for (auto ii = 0; ii < nr_modes; ii++) {
             Dx[ii] = aux_qr_Dx[ii];
         }
-    }
+}
 
 
 
-void
-RVELaw::accumulate(Matrix &A, Vector &res, Matrix &c_matrix_homog, Vector &stress_homog, const Vector &strain_macro) {
+void RVELaw::accumulate(Matrix &A, Vector &res, const Vector &strain_macro)
+{
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
     const auto nr_comps = GetStrainSize();
-    res = ZeroVector(nr_modes);
-    A = ZeroMatrix(nr_modes, nr_modes);
     for (auto i = 0; i < nr_points; i++)
     {
         Vector stress(nr_comps);             // output
@@ -208,8 +233,6 @@ RVELaw::accumulate(Matrix &A, Vector &res, Matrix &c_matrix_homog, Vector &stres
         Matrix Aux1(nr_comps, nr_modes);
         A += mIW_vec[i] * Matrix(prod(trans(mB_vec[i]), prod(c_matrix, mB_vec[i], Aux1)));
         res += mIW_vec[i] * Vector(prod(trans(mB_vec[i]), stress));
-        c_matrix_homog += mIW_vec[i] * c_matrix;
-        stress_homog += mIW_vec[i] * stress;
     }
 }
 
