@@ -1,11 +1,9 @@
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
-//#include <geometries/triangle_2d_3.h>
+#include <multiscale_rom_application_variables.h>
+#include <utilities/math_utils.h>
 namespace Kratos
 {
-
-
-
 // Default constructor
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
@@ -32,11 +30,11 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         mCL_vec.push_back(pcl);
         mPropId_vec.push_back(prop_id_list[i].GetInt());
     }
-    // TODO why is ZeroVector 'const double' type, instead of 'Vector'?
+    // TODO(marcelo): Discuss with Riccardo, following two != ZeroVector
+    // mModesWeight.clear()
+    // noalias(mModesWeights) = ZeroVector(nr_modes);
     mModesWeights = ZeroVector(nr_modes);
 }
-
-
 
 // Constructor used by Clone()
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
@@ -50,19 +48,14 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
       mCL_vec(CL_list),
       mPropId_vec(prop_id_list)
 {
-    KRATOS_WATCH("Inside Clone Constructor");
     const auto nr_modes = mB_vec[0].size2();
     mModesWeights = ZeroVector(nr_modes);
 }
-
-
 
 // Destructor
 RVELaw::~RVELaw()
 {
 }
-
-
 
 // Clone
 ConstitutiveLaw::Pointer RVELaw::Clone() const
@@ -72,20 +65,15 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const
     return pnewCL;
 }
 
-
-
 // Copy
 RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 {
 }
 
-
-
 void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const Vector& rShapeFunctionsValues)
 {
-    KRATOS_WATCH("Initialize individual CLs")
     for (auto i = 0; i < mCL_vec.size(); i++)
     {
         const Properties& material_props =
@@ -97,17 +85,13 @@ void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
         mCL_vec[i]->InitializeMaterial(material_props, dummy_element_geometry,
                                        rShapeFunctionsValues);
     }
-    KRATOS_WATCH("Leaving Initialize individual CLs")
 }
-
-
 
 void RVELaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
                                   const GeometryType& rElementGeometry,
                                   const Vector& rShapeFunctionsValues,
                                   const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_WATCH("Finalize solution step individual CL")
     for (auto i = 0; i < mCL_vec.size(); i++)
     {
         const Properties& material_props =
@@ -117,38 +101,27 @@ void RVELaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
         // Passing empty geometry, as is individual CL is not using it.
         const GeometryType dummy_element_geometry;
         mCL_vec[i]->FinalizeSolutionStep(material_props, dummy_element_geometry,
-                                       rShapeFunctionsValues, rCurrentProcessInfo);
+                                         rShapeFunctionsValues, rCurrentProcessInfo);
     }
 }
 
-
-
 void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
-    KRATOS_WATCH("Enter CalculateMaterialREsponse");
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
     const auto nr_comps = GetStrainSize();
     const Properties& mat_props = rValues.GetMaterialProperties();
     const Vector& strain_macro = rValues.GetStrainVector();
-    Vector& stress_homog = rValues.GetStressVector();
-    Matrix& c_matrix_homog = rValues.GetConstitutiveMatrix();
-    stress_homog = ZeroVector(GetStrainSize());
-    c_matrix_homog = ZeroMatrix(GetStrainSize(), GetStrainSize());
+    Vector& homog_stress = rValues.GetStressVector();
+    Matrix& homog_constit = rValues.GetConstitutiveMatrix();
+    noalias(homog_stress) = ZeroVector(nr_comps);
+    noalias(homog_constit) = ZeroMatrix(nr_comps, nr_comps);
 
     Matrix A(nr_modes, nr_modes);
     Vector res(nr_modes);
     Vector Dx(nr_modes);
-    res = ZeroVector(nr_modes);
-    A = ZeroMatrix(nr_modes, nr_modes);
-    KRATOS_WATCH("ACA1")
 
     accumulate(A, res, strain_macro);
-    KRATOS_WATCH(A)
-    KRATOS_WATCH(res)
-    KRATOS_WATCH(c_matrix_homog)
-    KRATOS_WATCH(stress_homog)
-    KRATOS_WATCH(mModesWeights)
     double norm_res = 1.;
     int it = 1;
     while (norm_res > 1e-9 and it < 10)
@@ -159,29 +132,22 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
         norm_res = norm_2(res);
         KRATOS_WATCH(norm_res);
         it++;
-        KRATOS_WATCH(A)
-        KRATOS_WATCH(res)
-        KRATOS_WATCH(c_matrix_homog)
-        KRATOS_WATCH(stress_homog)
-        KRATOS_WATCH(mModesWeights)
     }
     // Homogenize stress and constitutive tensor
     for (auto i = 0; i < nr_points; i++)
     {
-        Vector stress(nr_comps);             // output
-        Matrix c_matrix(nr_comps, nr_comps); // output
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
         Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
         // TODO(marcelo): strain should be const
-        calculate_individual_material_response(stress, c_matrix, strain, i);
-        c_matrix_homog += mIW_vec[i] * c_matrix;
-        stress_homog += mIW_vec[i] * stress;
+        calculate_individual_material_response(stress, constit, strain, i);
+        homog_stress += mIW_vec[i] * stress;
+        //homog_constit += mIW_vec[i] * constit;
     }
-    KRATOS_WATCH("Leaving CalculateMaterialResponse");
 }
 
-
-
-void RVELaw::solve(const Matrix &A, const Vector &res, Vector &Dx){
+void RVELaw::solve(const Matrix& A, const Vector& res, Vector& Dx)
+{
     const auto nr_modes = mB_vec[0].size2();
     double aux_qr_A[nr_modes][nr_modes];
     double aux_qr_res[nr_modes];
@@ -197,49 +163,52 @@ void RVELaw::solve(const Matrix &A, const Vector &res, Vector &Dx){
     // KRATOS_WATCH(storage_order::col_major);
     QR<double, storage_order::row_major> QR_decomposition;
 
-        // Solve
-        for (auto ii = 0; ii < nr_modes; ii++){
-            for (auto jj = 0; jj < nr_modes; jj++){
-                aux_qr_A[ii][jj] = A(ii, jj);
-            }
-            aux_qr_res[ii] = res(ii);
+    //` Solve
+    for (auto ii = 0; ii < nr_modes; ii++)
+    {
+        for (auto jj = 0; jj < nr_modes; jj++)
+        {
+            aux_qr_A[ii][jj] = A(ii, jj);
         }
-        QR_decomposition.compute(nr_modes, nr_modes, &(aux_qr_A[0][0]));
-        QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
+        aux_qr_res[ii] = res(ii);
+    }
+    QR_decomposition.compute(nr_modes, nr_modes, &(aux_qr_A[0][0]));
+    QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
 
-        // Update
-        for (auto ii = 0; ii < nr_modes; ii++) {
-            Dx[ii] = aux_qr_Dx[ii];
-        }
+    // Update
+    for (auto ii = 0; ii < nr_modes; ii++)
+    {
+        Dx[ii] = aux_qr_Dx[ii];
+    }
 }
 
-
-
-void RVELaw::accumulate(Matrix &A, Vector &res, const Vector &strain_macro)
+void RVELaw::accumulate(Matrix& A, Vector& res, const Vector& strain_macro)
 {
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
     const auto nr_comps = GetStrainSize();
+    Matrix Aux1(nr_comps, nr_modes);
+
+    noalias(A) = ZeroMatrix(nr_modes, nr_modes);
+    noalias(res) = ZeroVector(nr_modes);
     for (auto i = 0; i < nr_points; i++)
     {
-        Vector stress(nr_comps);             // output
-        Matrix c_matrix(nr_comps, nr_comps); // output
-        Vector strain = strain_macro + prod(mB_vec[i], res);
+        Vector stress(nr_comps);  // output
+        Matrix constit(nr_comps, nr_comps);  // output
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
         // TODO(marcelo): strain should be const
-        KRATOS_WATCH("ACA2")
-        calculate_individual_material_response(stress, c_matrix, strain, i);
-        KRATOS_WATCH("ACA3")
-        //TODO(marcelo): must use prod<temp_type>(...)
-        // noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), prod<temp_type>(c_matrix, mB_vec[i]));
-        Matrix Aux1(nr_comps, nr_modes);
-        A += mIW_vec[i] * Matrix(prod(trans(mB_vec[i]), prod(c_matrix, mB_vec[i], Aux1)));
-        res += mIW_vec[i] * Vector(prod(trans(mB_vec[i]), stress));
+        calculate_individual_material_response(stress, constit, strain, i);
+        // TODO(marcelo): explicitly write triple product for A
+        noalias(Aux1) = prod(constit, mB_vec[i]);
+        noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), Aux1);
+        noalias(res) += mIW_vec[i] * prod(trans(mB_vec[i]), stress);
     }
 }
 
-
-
-void RVELaw::calculate_individual_material_response(Vector &stress, Matrix &c_matrix, Vector &strain, std::size_t i)
+void RVELaw::calculate_individual_material_response(Vector& stress,
+                                                    Matrix& constit,
+                                                    Vector& strain,
+                                                    std::size_t i)
 {
     // create and pass individual parameters
     const auto dim = WorkingSpaceDimension();
@@ -247,13 +216,19 @@ void RVELaw::calculate_individual_material_response(Vector &stress, Matrix &c_ma
     cl_flags.Set(COMPUTE_STRESS, true);
     cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    Vector N = ZeroVector(dim);
-    Matrix DN_DX(3, 2);
+    Vector N(dim);
+    Matrix DN_DX(dim, 2);
     Matrix F(dim, dim);
-    F(0, 0) = 1.0 + strain(0); F(0, 1) = 0.5 * strain(3); F(0, 2) = 0.5 * strain(5);
-    F(1, 0) = 0.5 * strain(3); F(1, 1) = 1.0 + strain(1); F(1, 2) = 0.5 * strain(4);
-    F(2, 0) = 0.5 * strain(5); F(2, 1) = 0.5 * strain(4); F(2, 2) = 1.0 + strain(2);
-    double detF = determinant(F);
+    F(0, 0) = 1.0 + strain(0);
+    F(0, 1) = 0.5 * strain(3);
+    F(0, 2) = 0.5 * strain(5);
+    F(1, 0) = 0.5 * strain(3);
+    F(1, 1) = 1.0 + strain(1);
+    F(1, 2) = 0.5 * strain(4);
+    F(2, 0) = 0.5 * strain(5);
+    F(2, 1) = 0.5 * strain(4);
+    F(2, 2) = 1.0 + strain(2);
+    double detF = MathUtils<double>::Det(F);
 
     Parameters cl_params;
     cl_params.SetOptions(cl_flags);
@@ -261,41 +236,31 @@ void RVELaw::calculate_individual_material_response(Vector &stress, Matrix &c_ma
     cl_params.SetDeterminantF(detF);
     cl_params.SetStrainVector(strain);
     cl_params.SetStressVector(stress);
-    cl_params.SetConstitutiveMatrix(c_matrix);
+    cl_params.SetConstitutiveMatrix(constit);
     cl_params.SetShapeFunctionsValues(N);
     cl_params.SetShapeFunctionsDerivatives(DN_DX);
-    KRATOS_WATCH("ACA a")
     cl_params.SetProcessInfo(mpRVEModelPart->GetProcessInfo());
     const Properties& material_props = mpRVEModelPart->GetProperties(mPropId_vec[i]);
     cl_params.SetMaterialProperties(material_props);
     // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
     // cl_params.SetElementGeometry();
 
-    KRATOS_WATCH("ACA b")
     mCL_vec[i]->CalculateMaterialResponseCauchy(cl_params);
-    KRATOS_WATCH("ACA c")
 }
-
-
 
 bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 {
-    //if (rThisVariable == MODE_WEIGHT)
-    //    return true;
-    //else
-        return false;
+    if (rThisVariable == REDUCED_MODES_WEIGHTS)
+        return true;
+    return false;
 }
 
-
-
-Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector&
-rValue)
+Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
-    //if (rThisVariable == MODE_WEIGHT)
-    //    rValue = mModesWeights;
-	return rValue;
+    if (rThisVariable == REDUCED_MODES_WEIGHTS)
+        rValue = mModesWeights;
+    return rValue;
 }
-
 
 int RVELaw::Check(const Properties& rMaterialProperties,
                   const GeometryType& rElementGeometry,
@@ -321,133 +286,6 @@ int RVELaw::Check(const Properties& rMaterialProperties,
 
     return 0;
 }
-
-// bool RVELaw::Has(const Variable<double>& rThisVariable)
-// {
-// 	return false;
-// }
-//
-
-// bool RVELaw::Has(const Variable<Matrix>& rThisVariable)
-// {
-// 	return false;
-// }
-//
-// bool RVELaw::Has(const Variable<array_1d<double, 2 > >& rThisVariable)
-// {
-// 	return false;
-// }
-//
-// bool RVELaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
-// {
-// 	return false;
-// }
-//
-// double& RVELaw::GetValue(const Variable<double>& rThisVariable, double&
-// rValue)
-// {
-// 	return rValue;
-// }
-//
-
-//
-// Matrix& RVELaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix&
-// rValue)
-// {
-// 	return rValue;
-// }
-//
-// array_1d<double, 2 > & RVELaw::GetValue(const Variable<array_1d<double, 2 >
-// >& rVariable, array_1d<double, 2 > & rValue)
-// {
-// 	return rValue;
-// }
-//
-// array_1d<double, 3 > & RVELaw::GetValue(const Variable<array_1d<double, 3 >
-// >& rVariable, array_1d<double, 3 > & rValue)
-// {
-// 	return rValue;
-// }
-//
-// void RVELaw::SetValue(const Variable<double>& rVariable,
-// 	const double& rValue,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
-//
-// void RVELaw::SetValue(const Variable<Vector >& rVariable,
-// 	const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
-//
-// void RVELaw::SetValue(const Variable<Matrix >& rVariable,
-// 	const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
-//
-// void RVELaw::SetValue(const Variable<array_1d<double, 2 > >& rVariable,
-// 	const array_1d<double, 2 > & rValue,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
-//
-// void RVELaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
-// 	const array_1d<double, 3 > & rValue,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
-//
-// bool RVELaw::ValidateInput(const Properties& rMaterialProperties)
-// {
-//	return true;
-// }
-//
-// RVELaw::StrainMeasure HomogenizedRVEResponse2D::GetStrainMeasure()
-// {
-// 	return ConstitutiveLaw::StrainMeasure_Infinitesimal;
-// }
-//
-// RVELaw::StressMeasure HomogenizedRVEResponse2D::GetStressMeasure()
-// {
-// 	return ConstitutiveLaw::StressMeasure_Cauchy;
-// }
-//
-// bool RVELaw::IsIncremental()
-// {
-// 	return false;
-// }
-
-// void RVELaw::InitializeSolutionStep(const Properties& rMaterialProperties,
-// 	const GeometryType& rElementGeometry,
-// 	const Vector& rShapeFunctionsValues,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
-//
-// void RVELaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
-// 	const GeometryType& rElementGeometry,
-// 	const Vector& rShapeFunctionsValues,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-//     // update of damage threshold
-//	r_prev = r;
-// }
-//
-// void RVELaw::InitializeNonLinearIteration(const Properties&
-// rMaterialProperties,
-// 	const GeometryType& rElementGeometry,
-// 	const Vector& rShapeFunctionsValues,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
-//
-// void RVELaw::FinalizeNonLinearIteration(const Properties&
-// rMaterialProperties,
-// 	const GeometryType& rElementGeometry,
-// 	const Vector& rShapeFunctionsValues,
-// 	const ProcessInfo& rCurrentProcessInfo)
-// {
-// }
 //
 // void RVELaw::CalculateMaterialResponsePK1(Parameters& rValues)
 // {
@@ -463,32 +301,6 @@ int RVELaw::Check(const Properties& rMaterialProperties,
 // {
 // //	CalculateMaterialResponseCauchy(rValues);
 // }
-
-// void RVELaw::FinalizeMaterialResponsePK1(Parameters& rValues)
-// {
-// //	FinalizeMaterialResponseCauchy(rValues);
-// }
-//
-// void RVELaw::FinalizeMaterialResponsePK2(Parameters& rValues)
-// {
-// //	FinalizeMaterialResponseCauchy(rValues);
-// }
-//
-// void RVELaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
-// {
-// //	FinalizeMaterialResponseCauchy(rValues);
-// }
-//
-// void RVELaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
-// {
-// }
-//
-// void RVELaw::ResetMaterial(const Properties& rMaterialProperties,
-// 	const GeometryType& rElementGeometry,
-// 	const Vector& rShapeFunctionsValues)
-// {
-// }
-//
 
 // void RVELaw::GetLawFeatures(Features& rFeatures)
 // {

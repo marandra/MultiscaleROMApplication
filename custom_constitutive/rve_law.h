@@ -103,7 +103,7 @@ private:
     accumulate(Matrix &A, Vector &residual, const Vector &strain_macro);
 
     void calculate_individual_material_response(Vector &, Matrix &, Vector &, std::size_t);
-
+/*
     int determinant_sign(const permutation_matrix<std::size_t>& pm)
     {
         int pm_sign = 1;
@@ -131,7 +131,7 @@ private:
         }
         return det;
     };
-
+*/
     friend class Serializer;
 
     void save(Serializer& rSerializer) const

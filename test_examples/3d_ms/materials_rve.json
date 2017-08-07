@@ -29,7 +29,7 @@
 			"Variables": {
 				"IDENTIFIER": "steel",
 				"YOUNG_MODULUS": 210.0,
-				"POISSON_RATIO": 0.3,
+				"POISSON_RATIO": 0.2,
 				"YIELD_STRESS": 100000,
                 "KratosMultiphysics.MultiscaleROMApplication.INFINITY_YIELD_STRESS": 100000,
                 "KratosMultiphysics.MultiscaleROMApplication.ISOTROPIC_DAMAGE_MODULUS": 0.01,

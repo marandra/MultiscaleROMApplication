@@ -245,7 +245,6 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     //{
     //    noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
     //}
-    KRATOS_WATCH(epsilon)
 
     CalculateConstitutiveMatrix(matprops, constitutive_matrix);
     sigma_bar = prod(constitutive_matrix, epsilon);
