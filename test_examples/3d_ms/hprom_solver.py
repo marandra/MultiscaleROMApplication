@@ -25,20 +25,20 @@ def kratos_to_numpy_vector(K, n):
 
 def _call_cl(epsilon, cl, geom, process_info, properties):
 
-    N = km.Vector(3)
     cl.Check(properties, geom, process_info)
     cl_options = km.Flags()
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRAIN, False)
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 
+    N = km.Vector(3)
     F = km.Matrix(3,3)
+    DN_DX = km.Matrix(3,2)
     F[0,0] = 1.0 + epsilon[0];   F[0,1] = 0.5 * epsilon[3]; F[0,2] = 0.5 * epsilon[5]
     F[1,0] = 0.5 * epsilon[3];   F[1,1] = 1.0 + epsilon[1]; F[1,2] = 0.5 * epsilon[4]
     F[2,0] = 0.5 * epsilon[5];   F[2,1] = 0.5 * epsilon[4]; F[2,2] = 1.0 + epsilon[2]
     FN = kratos_to_numpy_matrix(F, 3, 3)
     detF = np.linalg.det(FN)
-    DN_DX = km.Matrix(3,2)
     constitutive_matrix = km.Matrix(cl.GetStrainSize(), cl.GetStrainSize())
     stress_vector = km.Vector(cl.GetStrainSize())
     strain_vector = km.Vector(cl.GetStrainSize())
@@ -100,10 +100,6 @@ def calculate_residual(x, epsilon_h, iw_list, CL_list, B_list, props_list, model
     for i in range(nr_points):
         Bn = np.array(B_list[i])
         epsilon = epsilon_h + np.dot(Bn, x)
-        print(epsilon_h)
-        print(Bn)
-        print(x)
-        print(epsilon)
         sigma_n, C_n = _call_cl(epsilon, CL_list[i], geom, model_part.ProcessInfo, model_part.Properties[props_list[i]])
         w = iw_list[i]
         An += w * np.dot(Bn.transpose(), np.dot(C_n, Bn))
@@ -121,8 +117,6 @@ def solve(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom):
 
     A, res, homog_stress = calculate_residual(x, epsilon_h, iw_list, CL_list,
             B_list, props_list, model_part, geom)
-    print(A)
-    print(res)
     it = 1
     norm_res = 1
     while(norm_res > 1e-9 and it < 10):
@@ -142,8 +136,8 @@ def solve(x, epsilon_h, iw_list, CL_list, B_list, props_list, model_part, geom):
 if __name__ == "__main__":
 
     # create model part and assign properties
-    model_part = km.ModelPart("CUBE")
-    Model = {"CUBE" : model_part}
+    model_part = km.ModelPart("Main")
+    Model = {"Main" : model_part}
     settings = km.Parameters("""
                 {
                     "Parameters": {
@@ -214,7 +208,5 @@ if __name__ == "__main__":
         print("OUTPUT MODES WEIGHT")
         print(x)
         time = time + delta_time
-        break
-    homog_stress_list
     np.savetxt("homogenized_stress_hpromsolver.dat", homog_stress_list)
     print("Computing time = {:.2f}s".format(timer.time() - t0))

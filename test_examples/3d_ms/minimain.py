@@ -55,6 +55,7 @@ if __name__ == "__main__":
 
     nr_timesteps = 250
     t = dt = 1. / nr_timesteps
+    fo=open("homog_stress.dat",'w')
     while (t <= 1. + dt / 10.):
         model_part_rve.CloneTimeStep(t)
         strain_macro = t * init_strain_macro
@@ -74,3 +75,6 @@ if __name__ == "__main__":
         cl_params.GetConstitutiveMatrix(homog_constit)
         print("{}: {}".format(t, homog_constit))
         t += dt
+        fo.write("{}\n".format(homog_stress[0]))
+    fo.close()
+

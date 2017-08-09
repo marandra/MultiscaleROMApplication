@@ -199,6 +199,7 @@ void RVELaw::accumulate(Matrix& A, Vector& res, const Vector& strain_macro)
         // TODO(marcelo): strain should be const
         calculate_individual_material_response(stress, constit, strain, i);
         // TODO(marcelo): explicitly write triple product for A
+        // Dij = BTij Ckl Blj = for k for l for j for i
         noalias(Aux1) = prod(constit, mB_vec[i]);
         noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), Aux1);
         noalias(res) += mIW_vec[i] * prod(trans(mB_vec[i]), stress);
