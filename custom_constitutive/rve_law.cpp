@@ -133,6 +133,8 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
         KRATOS_WATCH(norm_res);
         it++;
     }
+
+    // TODO(marcelo): Use flags for the computation of
     // Homogenize stress and constitutive tensor
     for (auto i = 0; i < nr_points; i++)
     {
@@ -142,8 +144,19 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
         // TODO(marcelo): strain should be const
         calculate_individual_material_response(stress, constit, strain, i);
         homog_stress += mIW_vec[i] * stress;
-        //homog_constit += mIW_vec[i] * constit;
+        //Ctaylor += mIW_vec[i] * constit;
+        //Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
     }
+    // TODO(marcelo): divide by RVE volume
+    //homog_stress /= vol_RVE;
+    //Op = - prod(inv(A), Q);
+    for (auto i = 0; i < nr_points; i++)
+    {
+        //Cfluct += mIW_vec[i] * prod(trans(constit, Op);
+    }
+    //homog_constit = Ctaylor + Cfluct;
+    //homog_constit /= vol_RVE;
+
 }
 
 void RVELaw::solve(const Matrix& A, const Vector& res, Vector& Dx)
