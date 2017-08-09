@@ -4,6 +4,7 @@ import argparse
 import glob
 import numpy as np
 import logging
+import json
 
 def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
     '''Linear least squares with nonnegativity constraints.
@@ -194,7 +195,7 @@ def compute_reduced_set(conf):
         energy_modes = np.load(energy_bases_filename)[:,:nr_roq_points]
 
     [w, z] = ComputeROQ(energy_modes, integration_weights,
-                        nr_roq_points, factorLEQ=1.0, tol=1.e-10)
+                        nr_roq_points, factorLEQ=1.0, tol=1.e-14)
     roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
     roq_list = []
     for x, igg in enumerate(z):
@@ -221,6 +222,56 @@ def create_rom_weights(conf):
 
     return roq_weights, roq_list
 
+
+def generate_rve_params(conf, iw_list):
+    strain_bases_filename = conf['Parameters']['strain_bases_filename']
+    nr_ip = int(conf['Parameters']['nr_integration_points'])
+    nr_comps = int(conf['Parameters']['nr_strain_components'])
+    nr_modes = int(conf['Parameters']['nr_active_modes'])
+    rve_mdpa_filename = conf['Parameters']['rve_mdpa_filename']
+    nr_dofs = nr_ip * nr_comps
+    strain_bases = np.load(strain_bases_filename, mmap_mode='r')
+    strain_bases = strain_bases[:,:nr_modes]
+
+    # read model materials
+    material = []
+    flag_elements = False
+    with open(rve_mdpa_filename, 'r') as fi:
+        for line in fi.readlines():
+            if not flag_elements:
+                if "Begin Elements" not in line:
+                    continue
+                else:
+                    flag_elements = True
+            else:
+                if "End Elements" in line:
+                    break
+                else:
+                    material.append(int(line.split()[1]))
+
+    out = {}
+    out_B = []
+    out_w = []
+    out_prop = []
+    B = np.empty((nr_comps, nr_modes))
+    for list in iw_list:
+        e = int(list[0])
+        i = int(list[1])
+        w = float(list[2])
+
+        # get B
+        index = e * nr_ip * nr_comps + i * nr_comps
+        B = strain_bases[index:index + nr_comps, :]
+
+        out_B.append(B.tolist())
+        out_w.append(w)
+        out_prop.append(material[e])
+        
+    out['props_id'] = out_prop
+    out['w'] = out_w
+    out['B'] = out_B
+
+    return out
 
 #######################################
 # Main
@@ -256,8 +307,13 @@ if __name__ == '__main__':
     else:
         logger.info("Computing HPROM")
         roq_mask, roq_list = compute_reduced_set(conf)
-    filename = conf['Parameters']['roq_weights_filename']
-    print(np.shape(roq_mask))
-    print(np.shape(roq_list))
-    np.savetxt(filename, roq_mask)
-    np.savetxt("roq_list.dat", roq_list)
+    logger.info("Generating RVE parameters for CL")
+    rve_params = generate_rve_params(conf, roq_list)
+    # output
+    logging.debug("ROQ mask size {}".format(np.shape(roq_mask)))
+    logging.debug("ROQ list size {}".format(np.shape(roq_list)))
+    #filename = conf['Parameters']['roq_weights_filename']
+    #np.savetxt(filename, roq_mask)
+    #np.savetxt("roq_list.dat", roq_list)
+    with open("rve.json", 'w') as fo:
+        json.dump(rve_params, fo, indent=2)

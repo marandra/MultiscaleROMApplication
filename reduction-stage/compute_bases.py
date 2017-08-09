@@ -183,7 +183,7 @@ if __name__ == '__main__':
     ##str_e_files =
     ##str_i_files =
 
-    logger.debug('Config parameters"')
+    logger.debug('Config parameters')
     # TODO: not working properly
     logger.debug(pp.pprint(conf.items('Parameters')))
     logger.debug('')
