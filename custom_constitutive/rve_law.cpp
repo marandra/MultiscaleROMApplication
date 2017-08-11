@@ -112,10 +112,11 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const auto nr_comps = GetStrainSize();
     const Properties& mat_props = rValues.GetMaterialProperties();
     const Vector& strain_macro = rValues.GetStrainVector();
+
     Vector& homog_stress = rValues.GetStressVector();
-    Matrix& homog_constit = rValues.GetConstitutiveMatrix();
     noalias(homog_stress) = ZeroVector(nr_comps);
-    noalias(homog_constit) = ZeroMatrix(nr_comps, nr_comps);
+    Matrix& homog_C = rValues.GetConstitutiveMatrix();
+    noalias(homog_C) = ZeroMatrix(nr_comps, nr_comps);
 
     Matrix A(nr_modes, nr_modes);
     Vector res(nr_modes);
@@ -136,27 +137,42 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
     // TODO(marcelo): Use flags for the computation of
     // Homogenize stress and constitutive tensor
+    Matrix homog_C_taylor = ZeroMatrix(nr_comps, nr_comps);
+    Matrix homog_C_fluct = ZeroMatrix(nr_comps, nr_comps);
+    Matrix homog_Q = ZeroMatrix(nr_modes, nr_comps);
+    Matrix homog_Op = ZeroMatrix(nr_modes, nr_comps);
+    Matrix invA = ZeroMatrix(nr_modes, nr_modes);
+    double vol_rve = 0.;
+    double dummy_det;
+
+    MathUtils<double>::InvertMatrix(A, invA, dummy_det);
     for (auto i = 0; i < nr_points; i++)
     {
         Vector stress(nr_comps);
         Matrix constit(nr_comps, nr_comps);
         Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-        // TODO(marcelo): strain should be const
+        // TODO(marcelo): strain argument should be const
         calculate_individual_material_response(stress, constit, strain, i);
         homog_stress += mIW_vec[i] * stress;
-        //Ctaylor += mIW_vec[i] * constit;
-        //Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+        homog_C_taylor += mIW_vec[i] * constit;
+        homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+        vol_rve += mIW_vec[i];
     }
-    // TODO(marcelo): divide by RVE volume
-    //homog_stress /= vol_RVE;
-    //Op = - prod(inv(A), Q);
+    homog_stress /= vol_rve;
+    homog_Op = - prod(invA, homog_Q);
+    Matrix homog_C_fluct_aux(nr_comps, nr_modes);
     for (auto i = 0; i < nr_points; i++)
     {
-        //Cfluct += mIW_vec[i] * prod(trans(constit, Op);
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        // TODO(marcelo): strain argument should be const
+        calculate_individual_material_response(stress, constit, strain, i);
+        homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
     }
-    //homog_constit = Ctaylor + Cfluct;
-    //homog_constit /= vol_RVE;
-
+    noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
+    homog_C = homog_C_taylor + homog_C_fluct;
+    homog_C /= vol_rve;
 }
 
 void RVELaw::solve(const Matrix& A, const Vector& res, Vector& Dx)
