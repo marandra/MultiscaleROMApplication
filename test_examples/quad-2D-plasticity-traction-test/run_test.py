@@ -4,7 +4,8 @@ from __future__ import print_function, absolute_import, division
 import time as timer
 import operator
 import KratosMultiphysics as km
-import KratosMultiphysics.SolidMechanicsApplication as sol
+#import KratosMultiphysics.SolidMechanicsApplication as sol
+import KratosMultiphysics.StructuralMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
 from gid_output_process import GiDOutputProcess
@@ -42,7 +43,7 @@ def analysis(parameters, processes, gid_output, solver, model_part):
             process.ExecuteAfterOutputStep()
 
         # For Benchmarking purposes
-        WriteBenchmarkResults(model_part)
+        # WriteBenchmarkResults(model_part)
 
     for process in processes:
         process.ExecuteFinalize()
