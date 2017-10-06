@@ -14,6 +14,12 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication() :
       mSmallDisplacementStrElement3D8N( 0,
                 Element::GeometryType::Pointer(
                         new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementStrBbarElement2D4N( 0,
+                Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+                        Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementStrBbarElement3D8N( 0,
+                Element::GeometryType::Pointer(
+                        new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
       mSmallDisplacementStdElement2D4N( 0,
                 Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
                         Element::GeometryType::PointsArrayType(4)))),
@@ -84,6 +90,8 @@ void KratosMultiscaleROMApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStrElement2D4N", mSmallDisplacementStrElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStrElement3D8N", mSmallDisplacementStrElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrBbarElement2D4N", mSmallDisplacementStrBbarElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrBbarElement3D8N", mSmallDisplacementStrBbarElement3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement2D4N", mSmallDisplacementStdElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement3D8N", mSmallDisplacementStdElement3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N)
