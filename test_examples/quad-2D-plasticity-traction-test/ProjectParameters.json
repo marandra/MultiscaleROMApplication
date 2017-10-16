@@ -30,75 +30,48 @@
             "verbosity": 0
             },
         "problem_domain_sub_model_part_list": ["RVE"],
-        "processes_sub_model_part_list": ["PINNED", "FIXED_Y_DISP_X", "FREE_Y", "DISP"],
-        "rotation_dofs": false
+        "processes_sub_model_part_list": ["PINNED", "FREE_Y", "DISP"],
+        "rotation_dofs": false,
+        "move_mesh_flag": false
         },
     "constraints_process_list": [{
-        "implemented_in_file": "impose_vector_value_by_components_process",
-        "implemented_in_module": "KratosMultiphysics",
+        "python_module": "impose_vector_value_by_components_process",
+        "kratos_module": "KratosMultiphysics",
         "process_name": "ImposeVectorValueByComponentsProcess",
         "Parameters": {
             "mesh_id": 0,
-            "model_part_name": "PINNED",
-            "variable_name": "DISPLACEMENT",
-            "is_fixed_x": true,
-            "is_fixed_y": true,
-            "is_fixed_z": true,
-            "value": [0.0,0.0,0.0]
+            "model_part_name" : "PINNED",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0, 0.0, 0.0]
             }
         },{
-        "implemented_in_file": "impose_vector_value_by_components_process",
-        "implemented_in_module": "KratosMultiphysics",
+        "python_module": "impose_vector_value_by_components_process",
+        "kratos_module": "KratosMultiphysics",
         "process_name": "ImposeVectorValueByComponentsProcess",
         "Parameters": {
             "mesh_id": 0,
-            "model_part_name": "FIXED_Y_DISP_X",
-            "variable_name": "DISPLACEMENT",
-            "is_fixed_x": true,
-            "is_fixed_y": true,
-            "is_fixed_z": true,
-            "value": [1.0,0.0,0.0]
+            "model_part_name" : "FREE_Y",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : true,
+            "value"           : [0.0, 0.0, 0.0]
             }
         },{
-        "implemented_in_file": "impose_vector_value_by_components_process",
-        "implemented_in_module": "KratosMultiphysics",
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
         "process_name": "ImposeVectorValueByComponentsProcess",
         "Parameters": {
             "mesh_id": 0,
-            "model_part_name": "FREE_Y",
-            "variable_name": "DISPLACEMENT",
-            "is_fixed_x": true,
-            "is_fixed_y": false,
-            "is_fixed_z": true,
-            "value": [0.0,0.0,0.0]
-            }
-        },{
-        "implemented_in_file": "impose_vector_value_by_components_process",
-        "implemented_in_module": "KratosMultiphysics",
-        "help": "This process fixes the selected components of a given vector variable",
-        "process_name": "ImposeVectorValueByComponentsProcess",
-        "Parameters": {
-            "mesh_id": 0,
-            "model_part_name": "DISP",
-            "variable_name": "DISPLACEMENT",
-            "is_fixed_x": true,
-            "is_fixed_y": false,
-            "is_fixed_z": true,
-            "value": [1.0,0.0,0.0]
+            "model_part_name" : "DISP",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : ["t", 0.0, 0.0]
             }
         }],
     "loads_process_list"       : [{
-        "implemented_in_file"   : "impose_custom_displacement_process",
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
-        "process_name": "ApplyCustomDisplacementProcess",
-        "Parameters": {
-            "mesh_id": 0,
-            "model_part_name": "DISP",
-            "variable_name": "DISPLACEMENT",
-	    "lookuptable_time": [0.0, 1.0],
-	    "lookuptable_mult": [0.0, 1.0]
-	    }
-        },{
         "implemented_in_file"   : "write_node_variables_process",
         "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteNodeVariablesProcess",

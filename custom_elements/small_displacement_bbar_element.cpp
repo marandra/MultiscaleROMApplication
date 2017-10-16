@@ -2481,8 +2481,7 @@ void SmallDisplacementBbarElement::CalculateOnIntegrationPoints(
         } // for each gauss_point
     }
 
-    else if (rVariable ==
-	    GAUSS_WEIGHTS) // VARIABLE SET FOR HOMOGENIZATION PURPOSES
+    else if (rVariable == INTEGRATION_WEIGHT) // VARIABLE SET FOR HOMOGENIZATION PURPOSES
     {
         const GeometryType::IntegrationPointsArrayType& integration_points =
             GetGeometry().IntegrationPoints(mThisIntegrationMethod);

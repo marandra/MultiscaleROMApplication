@@ -19,6 +19,7 @@
 #include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
 #include "custom_elements/small_displacement_str_element.h"
+#include "custom_elements/small_displacement_str_bbar_element.h"
 #include "custom_elements/small_displacement_std_element.hpp"
 #include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_elements/small_displacement_hprom_element.hpp"
@@ -67,6 +68,8 @@ private:
     // elements
     const SmallDisplacementStrElement mSmallDisplacementStrElement2D4N;
     const SmallDisplacementStrElement mSmallDisplacementStrElement3D8N;
+    const SmallDisplacementStrBbarElement mSmallDisplacementStrBbarElement2D4N;
+    const SmallDisplacementStrBbarElement mSmallDisplacementStrBbarElement3D8N;
     const SmallDisplacementStdElement mSmallDisplacementStdElement2D4N;
     const SmallDisplacementStdElement mSmallDisplacementStdElement3D8N;
     const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;

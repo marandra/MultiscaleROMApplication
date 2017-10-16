@@ -9,7 +9,5 @@ def AssignMaterial(Properties):
     #mat = LinearElasticPlaneStrain2DLaw()
     mat = LinearJ2PlasticityPlaneStrain2DLaw()
     #mat = LinearIsotropicDamagePlaneStrain2DLaw()
-
     Properties[1].SetValue(CONSTITUTIVE_LAW, mat.Clone())
-    Properties[2].SetValue(CONSTITUTIVE_LAW, mat.Clone())
         

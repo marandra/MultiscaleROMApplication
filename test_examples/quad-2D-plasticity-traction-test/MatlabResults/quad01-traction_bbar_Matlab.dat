@@ -1,5 +1,4 @@
-#  node 4
-#  DISPLACEMENT_X  REACTION_X  DISPLACEMENT_Y  REACTION_Y
+#Componente X del desplazamiento del nodo 4 Vs Componente X de la fuerza interna del nodo 4
 0.000000000000000                    0
 0.050000000000000     2.62430243350123
 0.100000000000000     5.24860486700246

@@ -313,10 +313,19 @@ void LinearJ2Plasticity3DLaw::CalculateMaterialResponseCauchy(Parameters& rValue
     }
 
     //TODO add check of flag here (COMPUTE_STRAIN_ENERGY)
+
+    // Linear + exponential hardening
     mStrainEnergy = 0.5 * inner_prod(epsilon - mPlasticStrain, prod(ElasticityTensor, epsilon - mPlasticStrain))
-        + 0.5 * GetSaturationHardening(matprops) * mAccumulatedPlasticStrain ;
+                    + GetPlasticPotential(matprops);
 
+    //mStrainEnergy = 0.5 * inner_prod(epsilon - mPlasticStrain, prod(ElasticityTensor, epsilon - mPlasticStrain))
+    //    + 0.5 * GetSaturationHardening(matprops) * mAccumulatedPlasticStrain ;
 
+    // mStrainEnergy = 0.5 * inner_prod(epsilon - mPlasticStrain, prod(ElasticityTensor, epsilon - mPlasticStrain))
+    //                + 0.5 * hardening_modulus * mAccumulatedPlasticStrain ;
+
+    //mStrainEnergy = 0.5 * inner_prod(epsilon - mPlasticStrain, prod(ElasticityTensor, epsilon - mPlasticStrain))
+    //    + 0.5 * hardening_modulus * (std::pow((mAccumulatedPlasticStrain),2.0)) ;
 
 }
 
@@ -357,6 +366,19 @@ double LinearJ2Plasticity3DLaw::GetSaturationHardening(const Properties& rMateri
             yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
                 delta_k * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
     return k_new;
+}
+
+double LinearJ2Plasticity3DLaw::GetPlasticPotential(const Properties& rMaterialProperties)
+{
+    //double yield_stress = rMaterialProperties[YIELD_STRESS];
+    double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
+    double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
+    double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
+    double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
+
+    double Wp_new = 0.5*(theta * hardening_modulus * std::pow(mAccumulatedPlasticStrain, 2.0)) +
+                    delta_k * (mAccumulatedPlasticStrain - (1/hardening_exponent) * (1- std::exp(-hardening_exponent * mAccumulatedPlasticStrain)));
+    return Wp_new;
 }
 
 double LinearJ2Plasticity3DLaw::GetDeltaGamma(double norm_s_trial,
