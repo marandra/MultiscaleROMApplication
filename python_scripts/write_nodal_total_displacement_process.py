@@ -46,7 +46,7 @@ class ComputeTotalDisplacementProcess(km.Process):
     def write_results(self, filename):
         def write_results_binary():
             with open(filename, 'wb') as ofile:
-                initial_strain = self.model_part.ProcessInfo[msr.INITIAL_STRAIN_VECTOR]
+                initial_strain = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
                 for node in self.model_part.Nodes:
                     nodal_displ = TotalDisplacement(node, initial_strain)
                     #for v in total_displ:
@@ -56,7 +56,7 @@ class ComputeTotalDisplacementProcess(km.Process):
 
         def write_results_ascii():
             with open(filename, 'w') as ofile:
-                initial_strain = self.model_part.ProcessInfo[msr.INITIAL_STRAIN_VECTOR]
+                initial_strain = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
                 for node in self.model_part.Nodes:
                     nodal_displ = TotalDisplacement(node, initial_strain)
                     for v in nodal_displ:

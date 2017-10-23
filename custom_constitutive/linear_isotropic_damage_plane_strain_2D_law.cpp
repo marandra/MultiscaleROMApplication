@@ -210,9 +210,9 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
     double hyp, sigma_1, sigma_2, angle, cos_a, sin_a;
     bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
 
-    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR))
+    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN))
     {
-        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
+        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN];
     }
 
     CalculateConstitutiveMatrix(matprops, constitutive_matrix);
