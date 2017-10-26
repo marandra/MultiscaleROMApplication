@@ -217,9 +217,9 @@ void LinearJ2PlasticityPlaneStrain2DLaw::CalculateMaterialResponseCauchy(Paramet
     double mu = E / (2. + 2. * poisson_ratio);
     double volumetric_modulus = E / (3 * (1 - 2 * poisson_ratio));
 
-    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR))
+    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN))
     {
-        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
+        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN];
     }
 
     mPlasticStrain = mPlasticStrainOld;

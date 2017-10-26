@@ -241,9 +241,9 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
     bool TRACTION_ONLY = matprops[FLOW_RULE_IS_TRACTION_ONLY];
 
     // TODO(marcelo): to be removed. Use USE_ELEMENT_PROVIDED_STRAIN flag
-    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN_VECTOR))
+    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN))
     {
-        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN_VECTOR];
+        noalias(epsilon) += rValues.GetProcessInfo()[INITIAL_STRAIN];
     }
 
     CalculateConstitutiveMatrix(matprops, constitutive_matrix);
