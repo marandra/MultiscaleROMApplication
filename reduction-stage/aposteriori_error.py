@@ -46,8 +46,8 @@ def compute_mean_square_error(comp, ref):
             length = length_p
     ref = ref[:length, :]
     comp = comp[:length, :]
-    N = np.shape(comp)[0] * np.ones((1, np.shape(ref)[1]))
-    #N = np.linalg.norm(ref, axis=0)
+    #n = np.shape(comp)[0] * np.ones((1, np.shape(ref)[1]))
+    N = np.linalg.norm(ref, ord=1, axis=0)
     return np.linalg.norm(comp - ref, axis=0) / N
 
 
