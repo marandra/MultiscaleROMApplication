@@ -5,12 +5,6 @@ Begin Properties 0
 End Properties
 
 Begin Properties 1
-    DENSITY 1.
-    YOUNG_MODULUS   21000.0
-    POISSON_RATIO   0.3
-    ISOTROPIC_DAMAGE_MODULUS 0.001 
-    YIELD_STRESS 5.5
-    INFINITY_YIELD_STRESS 1000.0
 End Properties
 
 Begin Nodes
@@ -25,7 +19,7 @@ Begin Nodes
     9    0.60000e+00    0.70000e+00    0.00000e+00  //note displaced node
 End Nodes
 
-Begin Elements SmallDisplacementStdElement2D4N
+Begin Elements SmallDisplacementStrElement2D4N
          1          1          1         2         9         8    
          2          1          2         3         4         9    
          3          1          9         4         5         6    
@@ -87,7 +81,6 @@ End SubModelPart
 
 Begin SubModelPart DISP
     Begin SubModelPartNodes
-         3
          4
          5
     End SubModelPartNodes
