@@ -65,7 +65,6 @@ class ImposeInitialStrainProcess(km.Process):
 
     def ExecuteInitialize(self):
         self.model_part.ProcessInfo[km.INITIAL_STRAIN] = self.initial_strain
-        pass
 
     def ExecuteInitializeSolutionStep(self):
         strain = get_scaling_factor(self) * self.initial_strain
