@@ -4,50 +4,36 @@ from __future__ import print_function, absolute_import, division
 import time as timer
 import operator
 import KratosMultiphysics as km
-import KratosMultiphysics.SolidMechanicsApplication as sol
+import KratosMultiphysics.StructuralMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
-from gid_output_process import GiDOutputProcess
-
-# For Benchmarking purposes
-import run_test_benchmark_results
-
 km.CheckForPreviousImport()
 
-def analysis(parameters, processes, gid_output, solver, model_part):
+
+def analysis(parameters, processes, solver, model_part):
     for process in processes:
         process.ExecuteInitialize()
-    gid_output.ExecuteInitialize()
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
-    gid_output.ExecuteBeforeSolutionLoop()
-    delta_time = parameters["problem_data"]["time_step"].GetDouble()
-    time = parameters["problem_data"]["start_time"].GetDouble()
+    nr_time_steps = parameters["problem_data"]["nr_time_steps"].GetInt()
     end_time = parameters["problem_data"]["end_time"].GetDouble()
-    while(time <= end_time):
-        time = time + delta_time
+    delta_time = end_time / nr_time_steps
+    time = delta_time
+    tolerance = delta_time / 10.
+    while(time <= end_time + tolerance):
         model_part.CloneTimeStep(time)
         for process in processes:
             process.ExecuteInitializeSolutionStep()
-        gid_output.ExecuteInitializeSolutionStep()
         solver.Solve()
         for process in processes:
             process.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalizeSolutionStep()
         for process in processes:
             process.ExecuteBeforeOutputStep()
-        if gid_output.IsOutputStep():
-            gid_output.PrintOutput()
         for process in processes:
             process.ExecuteAfterOutputStep()
-
-        # For Benchmarking purposes
-        run_test_benchmark_results.WriteBenchmarkResults(model_part)
-
+        time = time + delta_time
     for process in processes:
         process.ExecuteFinalize()
-    gid_output.ExecuteFinalize()
-
 
 def create_model(parameters):
     domain_size = parameters["problem_data"]["domain_size"].GetInt()
@@ -62,32 +48,49 @@ def create_solver_complete_model_part(model_part, parameters):
     solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
     solver = solver_module.CreateSolver(model_part, parameters["solver_settings"])
     solver.AddVariables()
-    #print("Adding Variables for MinimalKineticBC to model part", flush=True)
     #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_1)
     #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
     #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_4)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_5)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_6)
     solver.ImportModelPart()
     solver.AddDofs()
-    #print("Adding DOFs for MinimalKineticBC to reference node", flush=True)
     #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)
     #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_2)
     #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_3)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_4)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_5)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_6)
     #constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
     #aux_obj_getter = operator.methodcaller(constitutive_law_name)
+    #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(msr))
     #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
+    #model_part.Properties[2].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
     return solver, model_part
 
 parameters = km.Parameters(open("ProjectParameters.json", 'r').read())
 Model = create_model(parameters)
 model_part = Model[parameters["problem_data"]["part_name"].GetString()]
 solver, model_part = create_solver_complete_model_part(model_part, parameters)
+#print("Adding Variables for MinimalKineticBC to model part", flush=True)
+#model_part.AddNodalSolutionStepVariable(msr.LAGRANGIAN_DOF_1)
+#model_part.AddNodalSolutionStepVariable(msr.LAGRANGIAN_DOF_2)
+#model_part.AddNodalSolutionStepVariable(msr.LAGRANGIAN_DOF_3)
+#model_part.AddNodalSolutionStepVariable(msr.SCALAR_LAGRANGE_MULTIPLIER_1)
+#model_part.AddNodalSolutionStepVariable(km.SCALAR_LAGRANGE_MULTIPLIER)
+#print("Adding DOFs for MinimalKineticBC to reference node", flush=True)
+#model_part.Nodes[2].AddDof(msr.LAGRANGIAN_DOF_1)
+#model_part.Nodes[2].AddDof(msr.LAGRANGIAN_DOF_2)
+#model_part.Nodes[2].AddDof(msr.LAGRANGIAN_DOF_3)
+#model_part.Nodes[2].AddDof(msr.SCALAR_LAGRANGE_MULTIPLIER_1)
+#model_part.Nodes[2].AddDof(km.SCALAR_LAGRANGE_MULTIPLIER)
 #print(model_part.Nodes, flush=True)
 #build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 
 # initialize GiD  I/O (gid outputs, file_lists)
 output_settings = parameters["output_configuration"]
 problem_name = parameters["problem_data"]["problem_name"].GetString()
-gid_output = GiDOutputProcess(model_part, problem_name, output_settings)
 
 solver.Initialize()
 
@@ -105,7 +108,7 @@ processes += process_factory.KratosProcessFactory(Model)\
 
 t0p = timer.clock()
 t0w = timer.time()
-analysis(parameters, processes, gid_output, solver, model_part)
+analysis(parameters, processes, solver, model_part)
 tfp = timer.clock()
 tfw = timer.time()
 print("Computing Time = {:.2f} s ({:.2f} s wall-time)".format(tfp - t0p, tfw - t0w))
@@ -113,5 +116,5 @@ print(timer.ctime())
 
 # to create a benchmark: add standard benchmark files and decomment next two lines 
 # rename the file to: run_test.py
-# from run_test_benchmark_results import *
-# WriteBenchmarkResults(model_part)
+#from run_test_benchmark_results import *
+#WriteBenchmarkResults(model_part)

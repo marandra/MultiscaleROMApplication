@@ -5,12 +5,6 @@ Begin Properties 0
 End Properties
 
 Begin Properties 1
-    DENSITY 1.
-    YOUNG_MODULUS   21000.0
-    POISSON_RATIO   0.3
-    ISOTROPIC_DAMAGE_MODULUS 0.015
-    YIELD_STRESS 5.5
-    INFINITY_YIELD_STRESS 1000.0
 End Properties
 
 Begin Nodes
@@ -24,7 +18,7 @@ Begin Nodes
     8               1               0               0
 End Nodes
 
-Begin Elements SmallDisplacementStdElement3D8N
+Begin Elements SmallDisplacementElement3D8N
 1 1 7 4 6 8 3 1 2 5
 End Elements
                                                                                 

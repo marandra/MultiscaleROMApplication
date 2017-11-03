@@ -31,7 +31,7 @@
             "verbosity": 0
             },
         "problem_domain_sub_model_part_list": ["RVE"],
-        "processes_sub_model_part_list": ["DISPLACEMENT_BC", "RVE", "MATRIX", "INCLUSION"],
+        "processes_sub_model_part_list": ["DISPLACEMENT_BC", "RVE", "MATRIX", "INCLUSSION"],
         "rotation_dofs": false,
         "move_mesh_flag": false
         },
@@ -54,7 +54,7 @@
         "Parameters": {
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-            "initial_strain": M4VAR_INITIALSTRAIN,
+            "initial_strain": [0.001, 0.0, 0.0],
             "lookuptable_time": [0.0, 1.0],
             "lookuptable_mult": [0.0, 1.0]
             }
