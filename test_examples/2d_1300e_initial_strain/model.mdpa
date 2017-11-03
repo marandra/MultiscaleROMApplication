@@ -2104,8 +2104,6 @@ Begin Elements SmallDisplacementStrElement2D4N
        722          1       1318      1317      1298 1301    
        723          1       1335      1321      1328 1336    
        724          1       1323      1338      1328 1305    
-End Elements
-Begin Elements SmallDisplacementStrElement2D4N
        725          2         73        66        82 94    
        726          2         66        60        72 82    
        727          2         87        73        94 103    
