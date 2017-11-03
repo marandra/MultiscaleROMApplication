@@ -1379,7 +1379,7 @@ Begin Nodes
  1365    1.00000e+00    1.00000e+00    0.00000e+00
 End Nodes
 
-Begin Elements SmallDisplacementStrElement2D4N
+Begin Elements SmallDisplacementElement2D4N
          1          1       1045      1127      1130 1050    
          2          1       1364      1365      1363 1360    
          3          1       1131      1128      1044 1041    
@@ -2104,8 +2104,6 @@ Begin Elements SmallDisplacementStrElement2D4N
        722          1       1318      1317      1298 1301    
        723          1       1335      1321      1328 1336    
        724          1       1323      1338      1328 1305    
-End Elements
-Begin Elements SmallDisplacementStrElement2D4N
        725          2         73        66        82 94    
        726          2         66        60        72 82    
        727          2         87        73        94 103    
