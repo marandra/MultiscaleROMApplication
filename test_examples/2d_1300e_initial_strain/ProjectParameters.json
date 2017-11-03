@@ -76,7 +76,6 @@
             "model_part_name": "RVE",                                           
             "filename": "strain",                                        
             "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
-	        "variable_location": "MultiscaleROMApplication",
 	        "write_mode": "binary"
             }                                                                   
         },{
