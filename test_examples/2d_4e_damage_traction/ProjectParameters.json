@@ -104,6 +104,26 @@
             "filename": "homogenized_stress.dat",
             "variable_name": "CAUCHY_STRESS_VECTOR"
             }
+        },{
+        "implemented_in_file": "write_elements_output",               
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "process_name": "WriteElementsOutput",                            
+        "Parameters": {                                                         
+            "model_part_name": "RVE",                                           
+            "filename": "strain",                                        
+            "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
+	        "write_mode": "ascii"
+            }                                                                   
+        },{
+        "implemented_in_file": "write_elements_output",               
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "process_name": "WriteElementsOutput",                            
+        "Parameters": {                                                         
+            "model_part_name": "RVE",                                           
+            "filename": "energy",                                        
+            "variable_name": "STRAIN_ENERGY",
+	        "write_mode": "ascii"
+            }                                                                   
         }],
     "output_configuration"     : {
         "result_file_configuration" : {
