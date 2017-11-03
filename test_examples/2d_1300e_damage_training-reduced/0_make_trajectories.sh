@@ -12,7 +12,7 @@ do
 	TRAJ="trajectory_$i"
 	echo $TRAJ 
 	mkdir -p $TRAJ
-	cp materials.py $TRAJ
+	cp t_materials.json $TRAJ/materials.json
 	cp t_model.mdpa $TRAJ/model.mdpa
 	cp t_MainKratos.py $TRAJ/MainKratos.py
 	mv ProjectParameters_$i.json $TRAJ/ProjectParameters.json

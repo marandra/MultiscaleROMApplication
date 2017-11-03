@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division
 import time as timer
 import operator
 import KratosMultiphysics as km
-import KratosMultiphysics.SolidMechanicsApplication as sol
+import KratosMultiphysics.StructuralMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
 km.CheckForPreviousImport()
@@ -49,20 +49,20 @@ def create_solver_complete_model_part(model_part, parameters):
     solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
     solver = solver_module.CreateSolver(model_part, parameters["solver_settings"])
     solver.AddVariables()
-    model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_1)
-    model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
-    model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
-    model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_4)
-    model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_5)
-    model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_6)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_1)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_4)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_5)
+    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_6)
     solver.ImportModelPart()
     solver.AddDofs()
-    model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)
-    model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_2)
-    model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_3)
-    model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_4)
-    model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_5)
-    model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_6)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_2)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_3)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_4)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_5)
+    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_6)
     #constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
     #aux_obj_getter = operator.methodcaller(constitutive_law_name)
     #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(msr))
