@@ -56,9 +56,6 @@ bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 
 double& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<double>& rThisVariable,
                                                         double& rValue)
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        rValue = mStrainEnergy;
-    }
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
     }
@@ -277,6 +274,30 @@ void LinearIsotropicDamagePlaneStrain2DLaw::CalculateMaterialResponseCauchy(Para
     //TODO: Add e.g. COMPUTE_STRAIN_ENERGY flag
     mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutive_elastic_matrix, epsilon)));
 }
+
+double& LinearIsotropicDamagePlaneStrain2DLaw::CalculateValue(Parameters& rParameterValues,
+                                                              const Variable<double>& rThisVariable, double& rValue)
+{
+    //const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
+    //Vector& StrainVector                  = rParameterValues.GetStrainVector();
+    //Vector& StressVector                  = rParameterValues.GetStressVector();
+    //const double& E          = MaterialProperties[YOUNG_MODULUS];
+    //const double& NU    = MaterialProperties[POISSON_RATIO];
+
+    //if (rThisVariable == STRAIN_ENERGY)
+    //{
+    //    CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+    //    CalculatePK2Stress( StrainVector, StressVector, E, NU );
+
+    //    rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
+    //}
+
+    if(rThisVariable == STRAIN_ENERGY){
+        rValue = mStrainEnergy;
+    }
+    return( rValue );
+}
+
 
 void LinearIsotropicDamagePlaneStrain2DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
