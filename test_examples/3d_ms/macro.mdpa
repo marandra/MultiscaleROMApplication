@@ -13,6 +13,9 @@ Begin Properties 1
 //    INFINITY_YIELD_STRESS 1000.0
 End Properties
 
+Begin Properties 2
+End Properties
+
 Begin Nodes
     1               0               1               1
     2               0               1               0
@@ -25,7 +28,7 @@ Begin Nodes
 End Nodes
 
 Begin Elements SmallDisplacementStrElement3D8N
-1 1 7 4 6 8 3 1 2 5
+1 2 7 4 6 8 3 1 2 5
 End Elements
                                                                                 
 Begin SubModelPart MAIN

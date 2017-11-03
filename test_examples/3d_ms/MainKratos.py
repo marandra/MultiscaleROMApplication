@@ -65,6 +65,7 @@ def create_solver_complete_model_part(model_part, parameters):
     # model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
     # model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
     solver.ImportModelPart()
+    exit
 
     # Manually set RVE CL to elements that use it
     RVE1_model_part = km.ModelPart("RVE1")
