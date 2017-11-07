@@ -69,9 +69,6 @@ bool LinearIsotropicDamage3DLaw::Has(const Variable<array_1d<double, 3>>& rThisV
 double& LinearIsotropicDamage3DLaw::GetValue(const Variable<double>& rThisVariable,
                                                         double& rValue)
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        rValue = mStrainEnergy;
-    }
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
     }
@@ -317,6 +314,29 @@ void LinearIsotropicDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rVa
 
     //TODO add check of flag here (COMPUTE_STRAIN_ENERGY)
     mStrainEnergy = 0.5 * ((1. - d) * inner_prod(epsilon, prod(constitutive_elastic_matrix, epsilon)));
+}
+
+double& LinearIsotropicDamage3DLaw::CalculateValue(Parameters& rParameterValues,
+                                                              const Variable<double>& rThisVariable, double& rValue)
+{
+    //const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
+    //Vector& StrainVector                  = rParameterValues.GetStrainVector();
+    //Vector& StressVector                  = rParameterValues.GetStressVector();
+    //const double& E          = MaterialProperties[YOUNG_MODULUS];
+    //const double& NU    = MaterialProperties[POISSON_RATIO];
+
+    //if (rThisVariable == STRAIN_ENERGY)
+    //{
+    //    CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+    //    CalculatePK2Stress( StrainVector, StressVector, E, NU );
+
+    //    rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
+    //}
+
+    if(rThisVariable == STRAIN_ENERGY){
+        rValue = mStrainEnergy;
+    }
+    return( rValue );
 }
 
 void LinearIsotropicDamage3DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)

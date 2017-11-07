@@ -366,6 +366,15 @@ public:
     virtual void GetLawFeatures(Features& rFeatures);
 
     /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+
+    /**
     * This function is designed to be called once to perform all the checks
     * needed
     * on the input provided. Checks can be "expensive" as the function is
