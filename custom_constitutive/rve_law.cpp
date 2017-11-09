@@ -14,7 +14,9 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     auto prop_id_list = param["props_id"];
     const auto nr_points = B_list.size();
     const auto nr_modes = B_list[0][0].size();
-    const auto nr_comps = GetStrainSize();
+    const auto nr_comps = mB_vec[0].size1();;
+    // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
+    //const auto nr_comps = GetStrainSize();
 
     for (auto i = 0; i < nr_points; i++)
     {
@@ -25,6 +27,7 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         Properties::Pointer prop =
             mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
         ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
+        KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
         mB_vec.push_back(BK);
         mIW_vec.push_back(w_list[i].GetDouble());
         mCL_vec.push_back(pcl);
@@ -109,7 +112,9 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
-    const auto nr_comps = GetStrainSize();
+    const auto nr_comps = mB_vec[0].size1();;
+    // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
+    //const auto nr_comps = GetStrainSize();
     const Properties& mat_props = rValues.GetMaterialProperties();
     const Vector& strain_macro = rValues.GetStrainVector();
 
@@ -215,7 +220,9 @@ void RVELaw::accumulate(Matrix& A, Vector& res, const Vector& strain_macro)
 {
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
-    const auto nr_comps = GetStrainSize();
+    const auto nr_comps = mB_vec[0].size1();;
+    // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
+    //const auto nr_comps = GetStrainSize();
     Matrix Aux1(nr_comps, nr_modes);
 
     noalias(A) = ZeroMatrix(nr_modes, nr_modes);
@@ -297,12 +304,13 @@ int RVELaw::Check(const Properties& rMaterialProperties,
                   const ProcessInfo& rCurrentProcessInfo)
 {
     // Self check
-    if (mB_vec[0].size1() != GetStrainSize())
-        KRATOS_THROW_ERROR(
-            std::invalid_argument,
-            "Number of rows in modes matrix "
-            "rows differs from number of components of constitutive law",
-            "");
+    // TODO(marcelo): check disable until proper handlo od 2D-3D
+    //if (mB_vec[0].size1() != GetStrainSize())
+    //    KRATOS_THROW_ERROR(
+    //        std::invalid_argument,
+    //        "Number of rows in modes matrix "
+    //        "rows differs from number of components of constitutive law",
+    //        "");
 
     // Individual CLs check
     const auto nr_points = mB_vec.size();
