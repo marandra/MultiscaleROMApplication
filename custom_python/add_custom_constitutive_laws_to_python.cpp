@@ -20,10 +20,10 @@
 
 // Application includes
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/rve_law.h"
-#include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
+//#include "custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.hpp"
+//#include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
@@ -58,11 +58,11 @@ void AddCustomConstitutiveLawsToPython()
     class_<ExponentialIsotropicDamagePlaneStrain2DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
         "ExponentialIsotropicDamagePlaneStrain2DLaw", init<>());
 
-    class_<LinearJ2PlasticityPlaneStrain2DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
-        "LinearJ2PlasticityPlaneStrain2DLaw", init<>());
+//    class_<LinearJ2PlasticityPlaneStrain2DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+//        "LinearJ2PlasticityPlaneStrain2DLaw", init<>());
 
-    class_<LinearJ2Plasticity3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
-        "LinearJ2Plasticity3DLaw", init<>());
+//    class_<LinearJ2Plasticity3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+//        "LinearJ2Plasticity3DLaw", init<>());
 
     class_<LinearIsotropicDamage3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
         "LinearIsotropicDamage3DLaw", init<>());

@@ -4,7 +4,7 @@
 // External includes
 #include <boost/python.hpp>
 // Project includes
-#include "custom_elements/small_displacement_bbar_element.hpp"
+//#include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
