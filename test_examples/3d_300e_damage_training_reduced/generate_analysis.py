@@ -10,17 +10,16 @@ TRAJ = []
 #TRAJ.append([0.001, 0.001, 0.0, ])  # 4
 #TRAJ.append([0.0,   0.001, 0.001])  # 5
 #TRAJ.append([0.001, 0.001, 0.001])  # 6
-TRAJ.append([0.001, 0, 0, 0, 0, 0, 0])  # 6
+TRAJ.append([0.001, 0, 0, 0, 0, 0])  # 6
 
 
 if __name__ == "__main__":
 
     if True:
         # HPROM
-        for m in [5]:
-            for p in [5]:
-                #filename = "bases/rve_{}_{}.json".format(m, p)
-                filename = "rve.json".format(m, p)
+        for m in [15]:
+            for p in [20]:
+                filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
                 #for t in range(63):
                 for t in range(1):
@@ -36,12 +35,12 @@ if __name__ == "__main__":
 
     if False:
         # ROM
-        for m in [10]:
+        for m in [7]:
             for p in ['ROM']:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
                 #for t in range(63):
-                for t in range(7):
+                for t in range(1):
                     path_out ="traj_{}/m{}p{}".format(t, m, p)
                     if not os.path.exists(path_out):
                         os.makedirs(path_out)

@@ -10,16 +10,14 @@ class Kratos:
         node = self.model_part_rve.CreateNewNode(1, 0.0, 0.0, 0.0)
         geom = km.Triangle2D3(node, node, node)
         Model = {"RVE" : self.model_part_rve}
-        #materials_rve  = km.Parameters("""
-        #           {
-        #               "Parameters": {
-        #                       "materials_filename": "materials_rve.json"
-        #               }
-        #       }
-        #       """)
-        #print("DEBUG 1")
-        #read_materials_process.Factory(materials_rve, Model)
-        #print("DEBUG 2")
+        materials_rve  = km.Parameters("""
+                   {
+                       "Parameters": {
+                               "materials_filename": "materials_rve.json"
+                       }
+               }
+               """)
+        read_materials_process.Factory(materials_rve, Model)
         # import rve_data json string
         with open (filename, "r") as myfile:
             rve_data = km.Parameters(myfile.read())
@@ -34,6 +32,7 @@ class Kratos:
         nr_comp = self.cl.GetStrainSize()
         self.init_strain_macro = km.Vector(nr_comp)
         for i, e in enumerate(strain):
+            print(i, e)
             self.init_strain_macro[i] = e
         print(self.init_strain_macro)
     
@@ -52,7 +51,7 @@ class Kratos:
         cl_params.SetConstitutiveMatrix(homog_constit)
         cl_params.SetMaterialProperties(self.model_part_rve.Properties[1])
     
-        nr_timesteps = 250
+        nr_timesteps = 200
         t = dt = 1. / nr_timesteps
         fo = open("{}/hs_hprom.dat".format(self.path_out) ,'w')
         while (t <= 1. + dt / 10.):
@@ -72,4 +71,5 @@ class Kratos:
             fo.write("\n")
             fo.flush()
             t += dt
+            print("BREAK"); exit()
         fo.close()
