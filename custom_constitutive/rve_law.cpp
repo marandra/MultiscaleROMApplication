@@ -14,9 +14,12 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     auto prop_id_list = param["props_id"];
     const auto nr_points = B_list.size();
     const auto nr_modes = B_list[0][0].size();
-    const auto nr_comps = mB_vec[0].size1();;
+    const auto nr_comps = B_list[0].size();;
     // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
     //const auto nr_comps = GetStrainSize();
+    //KRATOS_WATCH(nr_points);
+    //KRATOS_WATCH(nr_modes);
+    //KRATOS_WATCH(nr_comps);
 
     for (auto i = 0; i < nr_points; i++)
     {
@@ -27,7 +30,7 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
         Properties::Pointer prop =
             mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
         ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
-        KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
+        //KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
         mB_vec.push_back(BK);
         mIW_vec.push_back(w_list[i].GetDouble());
         mCL_vec.push_back(pcl);
