@@ -44,12 +44,12 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication() :
       mSmallDisplacementHpromJ2Element3D8N( 0,
           Element::GeometryType::Pointer(
               new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-      mUpdatedLagrangianFbarElement2D4N( 0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
-      mTotalLagrangianFbarElement2D4N( 0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
+//      mUpdatedLagrangianFbarElement2D4N( 0,
+//          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+//              Element::GeometryType::PointsArrayType(4)))),
+//      mTotalLagrangianFbarElement2D4N( 0,
+//          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+//              Element::GeometryType::PointsArrayType(4)))),
       mMinimalKineticCondition2D3N( 0,
           Condition::GeometryType::Pointer(
               new Line2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -96,8 +96,8 @@ void KratosMultiscaleROMApplication::Register()
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromElement3D8N", mSmallDisplacementHpromElement3D8N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromJ2Element2D4N", mSmallDisplacementHpromJ2Element2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementHpromJ2Element3D8N", mSmallDisplacementHpromJ2Element3D8N)
-    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFbarElement2D4N", mUpdatedLagrangianFbarElement2D4N)
-    KRATOS_REGISTER_ELEMENT("TotalLagrangianFbarElement2D4N", mTotalLagrangianFbarElement2D4N)
+//    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFbarElement2D4N", mUpdatedLagrangianFbarElement2D4N)
+//    KRATOS_REGISTER_ELEMENT("TotalLagrangianFbarElement2D4N", mTotalLagrangianFbarElement2D4N)
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N)
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N)
 
