@@ -72,5 +72,5 @@ class Kratos:
             fo.write("\n")
             fo.flush()
             t += dt
-            print("BREAK"); exit()
+            #print("BREAK"); exit()
         fo.close()
