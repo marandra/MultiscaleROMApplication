@@ -75,7 +75,7 @@
         "Parameters": {                                                         
             "model_part_name": "RVE",                                           
             "filename": "strain",                                        
-            "variable_name": "ALMANSI_STRAIN_VECTOR",
+            "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
 	        "write_mode": "binary"
             }                                                                   
         },{
