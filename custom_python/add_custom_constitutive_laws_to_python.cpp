@@ -19,6 +19,7 @@
 #include "python/variable_indexing_python.h"
 
 // Application includes
+#include "custom_constitutive/linear_isotropic_elastic_3D_law.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/rve_law.h"
@@ -66,6 +67,9 @@ void AddCustomConstitutiveLawsToPython()
 
     class_<LinearIsotropicDamage3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
         "LinearIsotropicDamage3DLaw", init<>());
+
+    class_<LinearIsotropicElastic3DLaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
+        "LinearIsotropicElastic3DLaw", init<>());
 
     class_<RVELaw, bases<ConstitutiveLawBaseType>, boost::noncopyable>(
         "RVELaw", init<ModelPart::Pointer, Parameters>());

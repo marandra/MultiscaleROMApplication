@@ -101,6 +101,8 @@ void KratosMultiscaleROMApplication::Register()
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N)
 
     // Register Constitutive Laws
+    Serializer::Register("LinearIsotropicElastic3DLaw",
+                         mLinearIsotropicElastic3DLaw);
     Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw",
                          mLinearIsotropicDamagePlaneStrain2DLaw);
     Serializer::Register("LinearIsotropicDamage3DLaw",

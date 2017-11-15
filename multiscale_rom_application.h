@@ -18,6 +18,7 @@
 //#include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
+#include "custom_constitutive/linear_isotropic_elastic_3D_law.hpp"
 #include "custom_elements/small_displacement_str_element.h"
 //#include "custom_elements/small_displacement_str_bbar_element.h"
 //#include "custom_elements/small_displacement_std_element.hpp"
@@ -84,6 +85,7 @@ private:
     const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
     const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
     // constitutive laws
+    const LinearIsotropicElastic3DLaw mLinearIsotropicElastic3DLaw;
     const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
     const LinearIsotropicDamage3DLaw mLinearIsotropicDamage3DLaw;
     const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
