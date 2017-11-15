@@ -435,37 +435,56 @@ int LinearIsotropicDamage3DLaw::Check(const Properties& rMaterialProperties,
                                                  const ProcessInfo& rCurrentProcessInfo)
 {
     if (!rMaterialProperties.Has(YOUNG_MODULUS))
-        KRATOS_THROW_ERROR(
-            std::invalid_argument,
-            "LinearIsotropicDamagePlaneStrain2DLaw - missing YOUNG_MODULUS", "");
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "LinearIsotropicDamage3DLaw - "
+                           "missing YOUNG_MODULUS",
+                           "");
     if (!rMaterialProperties.Has(POISSON_RATIO))
-        KRATOS_THROW_ERROR(
-            std::invalid_argument,
-            "LinearIsotropicDamagePlaneStrain2DLaw - missing POISSON_RATIO", "");
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "LinearIsotropicDamage3DLaw - "
+                           "missing POISSON_RATIO",
+                           "");
     if (!rMaterialProperties.Has(INFINITY_YIELD_STRESS))
         KRATOS_THROW_ERROR(std::invalid_argument,
-                           "LinearIsotropicDamagePlaneStrain2DLaw - missing "
-                           "INFINITY_YIELD_STRESS",
+                           "LinearIsotropicDamage3DLaw - "
+                           "missing INFINITY_YIELD_STRESS",
+                           "");
+    if (rMaterialProperties[YIELD_STRESS] < 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "LinearIsotropicDamage3DLaw - "
+                           "YIELD_STRESS must be positive",
                            "");
     if (rMaterialProperties[INFINITY_YIELD_STRESS] < 0)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                           "LinearIsotropicDamagePlaneStrain2DLaw - "
+                           "LinearIsotropicDamage3DLaw - "
                            "INFINITY_YIELD_STRESS must be positive",
                            "");
     if (!rMaterialProperties.Has(ISOTROPIC_DAMAGE_MODULUS))
         KRATOS_THROW_ERROR(std::invalid_argument,
-                           "LinearIsotropicDamagePlaneStrain2DLaw - missing "
-                           "ISOTROPIC_DAMAGE_MODULUS",
+                           "LinearIsotropicDamage3DLaw - "
+                           "missing ISOTROPIC_DAMAGE_MODULUS",
                            "");
-    // Is mandatory to check the value of the hardening modulus in virtue of the
-    // Clauss-Duhem inequality (2nd Thermodynamic law)
-    // std::cout << "WARNING: ISOTROPIC_DAMAGE_MODULUS check deactivated" <<
-    // std::endl;
-    // std::cout << "         Fix bug in multiscale application." << std::endl;
     if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] >= 1.)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                           "LinearIsotropicDamagePlaneStrain2DLaw - "
+                           "LinearIsotropicDamage3DLaw - "
                            "ISOTROPIC_DAMAGE_MODULUS must be < 1.",
+                           "");
+    if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "LinearIsotropicDamage3DLaw - "
+                           "ISOTROPIC_DAMAGE_MODULUS must be != 0",
+                           "");
+    if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] > 0 &&
+        rMaterialProperties[INFINITY_YIELD_STRESS] <= rMaterialProperties[YIELD_STRESS])
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "LinearIsotropicDamage3DLaw - "
+                           "INFINITY_YIELD_STRESS must be > YIELD_STRESS",
+                           "");
+    if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] < 0 &&
+        rMaterialProperties[INFINITY_YIELD_STRESS] >= rMaterialProperties[YIELD_STRESS])
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "LinearIsotropicDamage3DLaw - "
+                           "INFINITY_YIELD_STRESS must be < YIELD_STRESS",
                            "");
     return 0;
 }
