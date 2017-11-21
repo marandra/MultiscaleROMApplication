@@ -234,7 +234,7 @@ def generate_rve_params(conf, iw_list):
     strain_bases = strain_bases[:,:nr_modes]
 
     # read model materials
-    material = []
+    material = {}
     flag_elements = False
     with open(rve_mdpa_filename, 'r') as fi:
         for line in fi.readlines():
@@ -247,8 +247,7 @@ def generate_rve_params(conf, iw_list):
                 if "End Elements" in line:
                     break
                 else:
-                    material.append(int(line.split()[1]))
-
+                    material[int(line.split()[0]) - 1] = int(line.split()[1])
     out = {}
     out_B = []
     out_w = []
