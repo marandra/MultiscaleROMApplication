@@ -3,21 +3,21 @@ import time
 import main_kratos_hprom as kratos
 
 TRAJ = []
-TRAJ.append([0.001, 0.0,   0.0])  # 0
-TRAJ.append([0.0,   0.001, 0.0])  # 1
-TRAJ.append([0.0,   0.0,   0.001])  # 2
-TRAJ.append([0.001, 0.001, 0.0])  # 3
-TRAJ.append([0.001, 0.0, 0.001])  # 4
-TRAJ.append([0.0,   0.001, 0.001])  # 5
-TRAJ.append([0.001, 0.001, 0.001])  # 6
+TRAJ.append([0.001, 0.0,   0.0, 0.0,   0.0, 0.0])  # 0
+TRAJ.append([0.0,   0.001, 0.0, 0.0,   0.0, 0.0])  # 1
+TRAJ.append([0.0,   0.0,   0.0, 0.001, 0.0, 0.0])  # 2
+TRAJ.append([0.001, 0.001, 0.0, 0.0,   0.0, 0.0])  # 3
+TRAJ.append([0.001, 0.0,   0.0, 0.001, 0.0, 0.0])  # 4
+TRAJ.append([0.0,   0.001, 0.0, 0.001, 0.0, 0.0])  # 5
+TRAJ.append([0.001, 0.001, 0.0, 0.001, 0.0, 0.0])  # 6
 
 
 if __name__ == "__main__":
 
-    if False:
+    if True:
         # HPROM
-        for m in [10]:
-            for p in [10]:
+        for m in [15]:
+            for p in [50]:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
                 #for t in range(63):
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     if True:
         # ROM
-        for m in [12]:
+        for m in [15]:
             for p in ['ROM']:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)

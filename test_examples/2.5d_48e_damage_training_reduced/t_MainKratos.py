@@ -7,14 +7,20 @@ import KratosMultiphysics as km
 import KratosMultiphysics.StructuralMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
+from gid_output_process import GiDOutputProcess
+
+# For Benchmarking purposes
+#from run_test_benchmark_results import *
+
 km.CheckForPreviousImport()
 
-
-def analysis(parameters, processes, solver, model_part):
+def analysis(parameters, processes, gid_output, solver, model_part):
     for process in processes:
         process.ExecuteInitialize()
+    gid_output.ExecuteInitialize()
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
+    gid_output.ExecuteBeforeSolutionLoop()
     nr_time_steps = parameters["problem_data"]["nr_time_steps"].GetInt()
     end_time = parameters["problem_data"]["end_time"].GetDouble()
     delta_time = end_time / nr_time_steps
@@ -24,17 +30,23 @@ def analysis(parameters, processes, solver, model_part):
         model_part.CloneTimeStep(time)
         for process in processes:
             process.ExecuteInitializeSolutionStep()
+        gid_output.ExecuteInitializeSolutionStep()
+
         solver.Solve()
+
         for process in processes:
             process.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalizeSolutionStep()
         for process in processes:
             process.ExecuteBeforeOutputStep()
+        if gid_output.IsOutputStep():
+            gid_output.PrintOutput()
         for process in processes:
             process.ExecuteAfterOutputStep()
         time = time + delta_time
     for process in processes:
         process.ExecuteFinalize()
-
+    gid_output.ExecuteFinalize()
 
 def create_model(parameters):
     domain_size = parameters["problem_data"]["domain_size"].GetInt()
@@ -53,13 +65,13 @@ def create_solver_complete_model_part(model_part, parameters):
     solver.AddDofs()
     return solver, model_part
 
-
 parameters = km.Parameters(open("ProjectParameters.json", 'r').read())
 Model = create_model(parameters)
 model_part = Model[parameters["problem_data"]["part_name"].GetString()]
 solver, model_part = create_solver_complete_model_part(model_part, parameters)
 output_settings = parameters["output_configuration"]
 problem_name = parameters["problem_data"]["problem_name"].GetString()
+gid_output = GiDOutputProcess(model_part, problem_name, output_settings)
 
 solver.Initialize()
 
@@ -75,8 +87,9 @@ processes += process_factory.KratosProcessFactory(Model)\
 
 t0p = timer.clock()
 t0w = timer.time()
-analysis(parameters, processes, solver, model_part)
+analysis(parameters, processes, gid_output, solver, model_part)
 tfp = timer.clock()
 tfw = timer.time()
 print("Computing Time = {:.2f} s ({:.2f} s wall-time)".format(tfp - t0p, tfw - t0w))
 print(timer.ctime())
+
