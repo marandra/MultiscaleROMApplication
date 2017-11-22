@@ -26,7 +26,7 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_str_element.cpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_std_element.cpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_str_bbar_element.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_str_bbar_element.cpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_hprom_element.cpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_hprom_J2_element.cpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fbar_element.cpp
