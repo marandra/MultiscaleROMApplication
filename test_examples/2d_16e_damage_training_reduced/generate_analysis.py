@@ -14,10 +14,10 @@ TRAJ.append([0.001, 0.001, 0.001])  # 6
 
 if __name__ == "__main__":
 
-    if False:
+    if True:
         # HPROM
-        for m in [10]:
-            for p in [10]:
+        for m in [15]:
+            for p in [50]:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
                 #for t in range(63):
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     if True:
         # ROM
-        for m in [12]:
+        for m in [15]:
             for p in ['ROM']:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
