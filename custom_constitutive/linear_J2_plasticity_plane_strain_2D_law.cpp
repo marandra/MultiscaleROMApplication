@@ -1,7 +1,6 @@
 #include "linear_J2_plasticity_plane_strain_2D_law.hpp"
 #include "../../../kratos/includes/variables.h"
 #include "multiscale_rom_application_variables.h"
-#include <solid_mechanics_application_variables.h>
 
 namespace Kratos
 {
