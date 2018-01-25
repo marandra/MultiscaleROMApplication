@@ -58,7 +58,7 @@ public:
 
     void Execute()
     {
-        Node<3>::Pointer pNode = mMainModelPart.pGetNode(0);
+        Node<3>::Pointer pNode = mMainModelPart.pGetNode(1);
         mMainModelPart.GetProcessInfo()[LAGRANGE_MULTIPLIER_NODE] = pNode;
     }
 
