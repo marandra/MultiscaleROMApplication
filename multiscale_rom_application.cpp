@@ -5,21 +5,24 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "includes/variables.h"
+#include "includes/mat_variables.h"
+
 namespace Kratos
 {
-KratosMultiscaleROMApplication::KratosMultiscaleROMApplication() :
+KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
+    : KratosApplication("MultiscaleROMApplication"),
       mSmallDisplacementStrElement2D4N( 0,
                 Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
                         Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementStrElement3D8N( 0,
                 Element::GeometryType::Pointer(
                         new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
-//      mSmallDisplacementStrBbarElement2D4N( 0,
-//                Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-//                        Element::GeometryType::PointsArrayType(4)))),
-//      mSmallDisplacementStrBbarElement3D8N( 0,
-//                Element::GeometryType::Pointer(
-//                        new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementStrBbarElement2D4N( 0,
+                Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+                        Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementStrBbarElement3D8N( 0,
+                Element::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(
+                        Element::GeometryType::PointsArrayType(8)))),
 //      mSmallDisplacementStdElement2D4N( 0,
 //                Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
 //                        Element::GeometryType::PointsArrayType(4)))),
@@ -82,11 +85,15 @@ void KratosMultiscaleROMApplication::Register()
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_NODE)
     KRATOS_REGISTER_VARIABLE(GAUSS_WEIGHTS)
 
+    //KRATOS_REGISTER_VARIABLE(INFINITY_HARDENING_MODULUS)
+    //KRATOS_REGISTER_VARIABLE(HARDENING_EXPONENT)
+    //KRATOS_REGISTER_VARIABLE(REFERENCE_HARDENING_MODULUS)
+    //KRATOS_REGISTER_VARIABLE(ISOTROPIC_HARDENING_MODULUS)
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStrElement2D4N", mSmallDisplacementStrElement2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementStrElement3D8N", mSmallDisplacementStrElement3D8N)
-//    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrBbarElement2D4N", mSmallDisplacementStrBbarElement2D4N)
-//    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrBbarElement3D8N", mSmallDisplacementStrBbarElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrBbarElement2D4N", mSmallDisplacementStrBbarElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementStrBbarElement3D8N", mSmallDisplacementStrBbarElement3D8N)
 //    KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement2D4N", mSmallDisplacementStdElement2D4N)
 //    KRATOS_REGISTER_ELEMENT("SmallDisplacementStdElement3D8N", mSmallDisplacementStdElement3D8N)
 //    KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N", mSmallDisplacementBbarElement2D4N)
@@ -109,9 +116,9 @@ void KratosMultiscaleROMApplication::Register()
                          mLinearIsotropicDamage3DLaw);
     Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw",
                          mExponentialIsotropicDamagePlaneStrain2DLaw);
-//    Serializer::Register("LinearJ2PlasticityPlaneStrain2DLaw",
-//                         mLinearJ2PlasticityPlaneStrain2DLaw);
-//    Serializer::Register("LinearJ2Plasticity3DLaw",
-//                         mLinearJ2Plasticity3DLaw);
+    Serializer::Register("LinearJ2PlasticityPlaneStrain2DLaw",
+                         mLinearJ2PlasticityPlaneStrain2DLaw);
+    Serializer::Register("LinearJ2Plasticity3DLaw",
+                         mLinearJ2Plasticity3DLaw);
 }
 }

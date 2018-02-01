@@ -14,13 +14,13 @@
 #include "custom_conditions/minimal_kinetic_2D.hpp"
 #include "custom_conditions/minimal_kinetic_3D.hpp"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
+#include "custom_constitutive/linear_J2_plasticity_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_J2_plasticity_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
 #include "custom_constitutive/linear_isotropic_elastic_3D_law.hpp"
 #include "custom_elements/small_displacement_str_element.h"
-//#include "custom_elements/small_displacement_str_bbar_element.h"
+#include "custom_elements/small_displacement_str_bbar_element.h"
 //#include "custom_elements/small_displacement_std_element.hpp"
 //#include "custom_elements/small_displacement_bbar_element.hpp"
 //#include "custom_elements/small_displacement_hprom_element.hpp"
@@ -69,8 +69,8 @@ private:
     // elements
     const SmallDisplacementStrElement mSmallDisplacementStrElement2D4N;
     const SmallDisplacementStrElement mSmallDisplacementStrElement3D8N;
-//    const SmallDisplacementStrBbarElement mSmallDisplacementStrBbarElement2D4N;
-//    const SmallDisplacementStrBbarElement mSmallDisplacementStrBbarElement3D8N;
+    const SmallDisplacementStrBbarElement mSmallDisplacementStrBbarElement2D4N;
+    const SmallDisplacementStrBbarElement mSmallDisplacementStrBbarElement3D8N;
 //    const SmallDisplacementStdElement mSmallDisplacementStdElement2D4N;
 //    const SmallDisplacementStdElement mSmallDisplacementStdElement3D8N;
 //    const SmallDisplacementBbarElement mSmallDisplacementBbarElement2D4N;
@@ -89,8 +89,8 @@ private:
     const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
     const LinearIsotropicDamage3DLaw mLinearIsotropicDamage3DLaw;
     const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
-//    const LinearJ2PlasticityPlaneStrain2DLaw mLinearJ2PlasticityPlaneStrain2DLaw;
-//    const LinearJ2Plasticity3DLaw mLinearJ2Plasticity3DLaw;
+    const LinearJ2PlasticityPlaneStrain2DLaw mLinearJ2PlasticityPlaneStrain2DLaw;
+    const LinearJ2Plasticity3DLaw mLinearJ2Plasticity3DLaw;
     // others
     KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
     KratosMultiscaleROMApplication(KratosMultiscaleROMApplication const& rOther);
