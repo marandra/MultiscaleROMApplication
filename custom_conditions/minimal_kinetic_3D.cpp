@@ -130,26 +130,30 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     // Auxiliar magic node
     Node<3>::Pointer pNode = rCurrentProcessInfo[LAGRANGE_MULTIPLIER_NODE];
 
-    // Lagrange Multipliers
-    currentValues[12] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
-    currentValues[13] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
-    currentValues[14] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
-    currentValues[15] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_4);
-    currentValues[16] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_5);
-    currentValues[17] = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_6);
+    // Displacements
+    currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+    currentValues(1) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    currentValues(2) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
 
-    // currentValues(12) =
-    // geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
-    // currentValues(13) =
-    // geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
-    // currentValues(14) =
-    // geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
-    // currentValues(15) =
-    // geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_4);
-    // currentValues(16) =
-    // geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_5);
-    // currentValues(17) =
-    // geom[4].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_6);
+    currentValues(3) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+    currentValues(4) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    currentValues(5) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    currentValues(6) = geom[2].FastGetSolutionStepValue(DISPLACEMENT_X);
+    currentValues(7) = geom[2].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    currentValues(8) = geom[2].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    currentValues(9)  = geom[3].FastGetSolutionStepValue(DISPLACEMENT_X);
+    currentValues(10) = geom[3].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    currentValues(11) = geom[3].FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+    // Lagrange Multipliers
+    currentValues(12) = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
+    currentValues(13) = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
+    currentValues(14) = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
+    currentValues(15) = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_4);
+    currentValues(16) = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_5);
+    currentValues(17) = pNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_6);
 
     // Vector V1(dimension, 0.0);
     // Vector V2(dimension, 0.0);
@@ -178,24 +182,18 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     Matrix TensNormal(StrainComp, dimension, 0.0);
     // TensNormal = ZeroMatrix( 6, dimension );
 
-    TensNormal(0, 0) = V3(0);       // xx
-    TensNormal(1, 1) = V3(1);       // yy
-    TensNormal(2, 2) = V3(2);       // zz
-    TensNormal(3, 0) = 0.5 * V3(1); // xy
-    TensNormal(3, 1) = 0.5 * V3(0);
-    TensNormal(4, 1) = 0.5 * V3(2); // yz
-    TensNormal(4, 2) = 0.5 * V3(1);
-    TensNormal(5, 0) = 0.5 * V3(2); // xz
-    TensNormal(5, 2) = 0.5 * V3(0);
-
-    //KRATOS_WATCH(TensNormal)
-    //KRATOS_WATCH(rNintMatrix)
-    //KRATOS_WATCH(V3)
+    TensNormal(0, 0) = V3(0);  // xx
+    TensNormal(1, 1) = V3(1);  // yy
+    TensNormal(2, 2) = V3(2);  // zz
+    TensNormal(3, 0) = V3(1);  // xy
+    TensNormal(3, 1) = V3(0);
+    TensNormal(4, 1) = V3(2);  // yz
+    TensNormal(4, 2) = V3(1);
+    TensNormal(5, 0) = V3(2);  // xz
+    TensNormal(5, 2) = V3(0);
 
     // constraint matrix
     Matrix ElemConstraintMatrix = prod(TensNormal, rNintMatrix);
-
-    //KRATOS_WATCH(ElemConstraintMatrix)
 
     unsigned int indexi = number_of_nodes * dimension;
     Matrix& K = rLeftHandSideMatrix;
@@ -213,8 +211,9 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         }
     }
 
-    // form residual
+    // residual force
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, currentValues);
+
     ////KRATOS_WATCH(currentValues)
     // KRATOS_WATCH(rLeftHandSideMatrix)
     // KRATOS_WATCH(rRightHandSideVector)

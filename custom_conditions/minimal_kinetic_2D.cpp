@@ -66,6 +66,8 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     Vector currentValues(n_dofs, 0.0);
     GeometryType& geom = GetGeometry();
 
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
     // resize system matrix and vector
     if (rLeftHandSideMatrix.size1() != n_dofs || rLeftHandSideMatrix.size2() != n_dofs)
         rLeftHandSideMatrix.resize(n_dofs, n_dofs, false);
@@ -75,19 +77,35 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         rRightHandSideVector.resize(n_dofs, false);
     noalias(rRightHandSideVector) = ZeroVector(n_dofs);
 
+    currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+    currentValues(1) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    currentValues(2) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+    currentValues(3) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
     currentValues(4) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1);
     currentValues(5) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
     currentValues(6) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
 
+    array_1d<double, 2> V1(dimension, 0.0);
+    // Unitary normal vector V1
+    V1(0) = geom[1].X0()-geom[0].X0();
+    V1(1) = geom[1].Y0()-geom[0].Y0();
+
+    double length_segment = MathUtils<double>::Norm3(V1);
+
+    V1 /= length_segment;
+
     // compute the outward normal vector
-    double x0 = geom[0].X0();
-    double y0 = geom[0].Y0();
-    double x1 = geom[1].X0();
-    double y1 = geom[1].Y0();
-    double tx = (x1 - x0);
-    double ty = (y1 - y0);
-    double nx = -0.5 * ty;
-    double ny = -0.5 * (-tx);
+    //double x0 = geom[0].X0();
+    //double y0 = geom[0].Y0();
+    //double x1 = geom[1].X0();
+    //double y1 = geom[1].Y0();
+    //double tx = (x1 - x0);
+    //double ty = (y1 - y0);
+    //double nx = -0.5 * ty;
+    //double ny = -0.5 * (-tx);
+    double nx = 0.5 * length_segment * (V1(1));
+    double ny = 0.5 * length_segment * (-V1(0));
 
     Matrix& K = rLeftHandSideMatrix;
     K(4, 0) = nx;
