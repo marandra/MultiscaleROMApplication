@@ -9,8 +9,8 @@
 
 namespace Kratos
 {
-KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
-    : KratosApplication("MultiscaleROMApplication"),
+KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
+     KratosApplication("MultiscaleROMApplication"),
       mSmallDisplacementStrElement2D4N( 0,
                 Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
                         Element::GeometryType::PointsArrayType(4)))),
@@ -57,8 +57,8 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication()
           Condition::GeometryType::Pointer(
               new Line2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mMinimalKineticCondition3D4N( 0,
-          Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(
-              Condition::GeometryType::PointsArrayType(4))))
+          Condition::GeometryType::Pointer(
+              new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))))
 {
 }
 
