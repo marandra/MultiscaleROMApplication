@@ -31,7 +31,7 @@
             "verbosity": 0
             },
         "problem_domain_sub_model_part_list": ["RVE"],
-        "processes_sub_model_part_list": ["DISPLACEMENT_BC", "RVE", "MATRIX", "INCLUSSION"],
+        "processes_sub_model_part_list": ["DISPLACEMENT_BC", "RVE", "MATRIX", "INCLUSION"],
         "rotation_dofs": false,
         "move_mesh_flag": false
         },
