@@ -7,14 +7,20 @@ import KratosMultiphysics as km
 import KratosMultiphysics.StructuralMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import process_factory
+from gid_output_process import GiDOutputProcess
+
+# For Benchmarking purposes
+#from run_test_benchmark_results import *
+
 km.CheckForPreviousImport()
 
-
-def analysis(parameters, processes, solver, model_part):
+def analysis(parameters, processes, gid_output, solver, model_part):
     for process in processes:
         process.ExecuteInitialize()
+    gid_output.ExecuteInitialize()
     for process in processes:
         process.ExecuteBeforeSolutionLoop()
+    gid_output.ExecuteBeforeSolutionLoop()
     nr_time_steps = parameters["problem_data"]["nr_time_steps"].GetInt()
     end_time = parameters["problem_data"]["end_time"].GetDouble()
     delta_time = end_time / nr_time_steps
@@ -24,17 +30,23 @@ def analysis(parameters, processes, solver, model_part):
         model_part.CloneTimeStep(time)
         for process in processes:
             process.ExecuteInitializeSolutionStep()
+        gid_output.ExecuteInitializeSolutionStep()
+
         solver.Solve()
+
         for process in processes:
             process.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalizeSolutionStep()
         for process in processes:
             process.ExecuteBeforeOutputStep()
+        if gid_output.IsOutputStep():
+            gid_output.PrintOutput()
         for process in processes:
             process.ExecuteAfterOutputStep()
         time = time + delta_time
     for process in processes:
         process.ExecuteFinalize()
-
+    gid_output.ExecuteFinalize()
 
 def create_model(parameters):
     domain_size = parameters["problem_data"]["domain_size"].GetInt()
@@ -49,29 +61,17 @@ def create_solver_complete_model_part(model_part, parameters):
     solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
     solver = solver_module.CreateSolver(model_part, parameters["solver_settings"])
     solver.AddVariables()
-    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_1)
-    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_2)
-    #model_part.AddNodalSolutionStepVariable(msr.LAGRANGE_MULTIPLIER_3)
     solver.ImportModelPart()
     solver.AddDofs()
-    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)
-    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_2)
-    #model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_3)
-    #constitutive_law_name = parameters["solver_settings"]["model_import_settings"]["constitutive_law"].GetString()
-    #aux_obj_getter = operator.methodcaller(constitutive_law_name)
-    #model_part.Properties[1].SetValue(km.CONSTITUTIVE_LAW, aux_obj_getter(sol))
     return solver, model_part
 
 parameters = km.Parameters(open("ProjectParameters.json", 'r').read())
 Model = create_model(parameters)
 model_part = Model[parameters["problem_data"]["part_name"].GetString()]
 solver, model_part = create_solver_complete_model_part(model_part, parameters)
-#print(model_part.Nodes, flush=True)
-#build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-
-# initialize GiD  I/O (gid outputs, file_lists)
 output_settings = parameters["output_configuration"]
 problem_name = parameters["problem_data"]["problem_name"].GetString()
+gid_output = GiDOutputProcess(model_part, problem_name, output_settings)
 
 solver.Initialize()
 
@@ -84,12 +84,10 @@ processes = process_factory.KratosProcessFactory(Model)\
     .ConstructListOfProcesses(parameters["constraints_process_list"])
 processes += process_factory.KratosProcessFactory(Model)\
     .ConstructListOfProcesses(parameters["loads_process_list"])
-#processes += process_factory.KratosProcessFactory(Model)\
-#    .ConstructListOfProcesses(parameters["loads_rve_process_list"])
 
 t0p = timer.clock()
 t0w = timer.time()
-analysis(parameters, processes, solver, model_part)
+analysis(parameters, processes, gid_output, solver, model_part)
 tfp = timer.clock()
 tfw = timer.time()
 print("Computing Time = {:.2f} s ({:.2f} s wall-time)".format(tfp - t0p, tfw - t0w))
