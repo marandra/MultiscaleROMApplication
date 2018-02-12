@@ -467,7 +467,7 @@ int LinearIsotropicDamage3DLaw::Check(const Properties& rMaterialProperties,
     if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] >= 1.)
         KRATOS_THROW_ERROR(std::invalid_argument,
                            "LinearIsotropicDamage3DLaw - "
-                           "ISOTROPIC_DAMAGE_MODULUS must be < 1.",
+                           "ISOTROPIC_DAMAGE_MODULUS must be lesser than 1.",
                            "");
     if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,
@@ -478,13 +478,13 @@ int LinearIsotropicDamage3DLaw::Check(const Properties& rMaterialProperties,
         rMaterialProperties[INFINITY_YIELD_STRESS] <= rMaterialProperties[YIELD_STRESS])
         KRATOS_THROW_ERROR(std::invalid_argument,
                            "LinearIsotropicDamage3DLaw - "
-                           "INFINITY_YIELD_STRESS must be > YIELD_STRESS",
+                           "INFINITY_YIELD_STRESS must be greater than YIELD_STRESS",
                            "");
     if (rMaterialProperties[ISOTROPIC_DAMAGE_MODULUS] < 0 &&
         rMaterialProperties[INFINITY_YIELD_STRESS] >= rMaterialProperties[YIELD_STRESS])
         KRATOS_THROW_ERROR(std::invalid_argument,
                            "LinearIsotropicDamage3DLaw - "
-                           "INFINITY_YIELD_STRESS must be < YIELD_STRESS",
+                           "INFINITY_YIELD_STRESS must be lesser than YIELD_STRESS",
                            "");
     return 0;
 }
