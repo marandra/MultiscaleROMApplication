@@ -29,17 +29,19 @@ class Kratos:
 
     def init_case(self, strain, path_out="."):
         self.path_out = path_out
-        nr_comp = self.cl.GetStrainSize()
+        #nr_comp = self.cl.GetStrainSize()
+        nr_comp = 6
         self.init_strain_macro = km.Vector(nr_comp)
         for i, e in enumerate(strain):
-            print(i, e)
+            #print(i, e)
             self.init_strain_macro[i] = e
         print(self.init_strain_macro)
     
     def run(self):
         node1 = self.model_part_rve.CreateNewNode(1,0.0,0.0,0.0)
         geom = km.Triangle2D3(node1, node1, node1) # create point geom
-        nr_comp = self.cl.GetStrainSize()
+        #nr_comp = self.cl.GetStrainSize()
+        nr_comp = 6
         homog_stress = km.Vector(nr_comp)
         homog_constit = km.Matrix(nr_comp, nr_comp)
         cl_params = km.ConstitutiveLawParameters()
@@ -51,7 +53,7 @@ class Kratos:
         cl_params.SetConstitutiveMatrix(homog_constit)
         cl_params.SetMaterialProperties(self.model_part_rve.Properties[1])
     
-        nr_timesteps = 200
+        nr_timesteps = 40
         t = dt = 1. / nr_timesteps
         fo = open("{}/hs_hprom.dat".format(self.path_out) ,'w')
         while (t <= 1. + dt / 10.):
@@ -71,5 +73,4 @@ class Kratos:
             fo.write("\n")
             fo.flush()
             t += dt
-            print("BREAK"); exit()
         fo.close()
