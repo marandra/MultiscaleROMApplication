@@ -2,6 +2,7 @@ import KratosMultiphysics as km
 import KratosMultiphysics.MultiscaleROMApplication as msr
 import os
 import operator
+import math
 
 def Factory(settings, Model):
     return WriteElementsHomogenizedOutput(settings["Parameters"], Model)
@@ -33,6 +34,14 @@ def homogenization_function(self):
         var_accum[i] /= volume
     return var_accum
 
+def compute_vonmisses_stress(hs):
+    s = (hs[0] + hs[1] + hs[2]) / 3
+    d = [hs[0] - s, hs[1] - s, hs[2] - s, hs[3], hs[4], hs[5]]
+    dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + \
+         d[3] * d[3] + d[4] * d[4] + d[5] * d[5] 
+    vm = math.sqrt(dd)
+    return vm
+
 class WriteElementsHomogenizedOutput(km.Process):
     def __init__(self, param, Model):
         self.model_part = Model[param['model_part_name'].GetString()]
@@ -44,8 +53,10 @@ class WriteElementsHomogenizedOutput(km.Process):
     def write_results(self, filename):
         with open(filename, 'a') as ofile:
             homog_value = homogenization_function(self)
+            von_misses = compute_vonmisses_stress(homog_value)
             for v in homog_value:
                 ofile.write("{:.17f}   ".format(v))
+            ofile.write("{:.17f}".format(von_misses))
             ofile.write("\n")
 
     def ExecuteInitialize(self):
