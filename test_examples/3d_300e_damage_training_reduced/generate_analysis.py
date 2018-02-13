@@ -20,10 +20,10 @@ TRAJ.append([0.0,   0.0,   0.0,   0.001, 0.001, 0.001])  # 12
 
 if __name__ == "__main__":
 
-    if False:
+    if True:
         # HPROM
         for m in [15]:
-            for p in [50]:
+            for p in [190]:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
                 #for t in range(63):
@@ -38,7 +38,7 @@ if __name__ == "__main__":
                     with open("{}/time.dat".format(path_out), 'w') as fo:
                         fo.write("{:.2f}\n".format(t2 - t1))
 
-    if True:
+    if False:
         # ROM
         for m in [10]:
             for p in ['ROM']:

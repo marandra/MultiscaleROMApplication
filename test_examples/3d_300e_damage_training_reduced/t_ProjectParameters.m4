@@ -31,33 +31,32 @@
             "verbosity": 0
             },
         "problem_domain_sub_model_part_list": ["RVE"],
-        "processes_sub_model_part_list": ["DISPLACEMENT_BC", "RVE", "MATRIX", "INCLUSION"],
+        "processes_sub_model_part_list": ["RVE", "PINNED", "MATRIX", "INCLUSION"],
         "rotation_dofs": false,
         "move_mesh_flag": false
         },
     "constraints_process_list": [{
-        "python_module": "assign_vector_variable_process",
-        "kratos_module": "KratosMultiphysics",
+        "implemented_in_file": "assign_vector_variable_process",
+        "implemented_in_module": "KratosMultiphysics",
         "process_name": "AssignVectorVariableProcess",
         "Parameters": {
-            "model_part_name" : "DISPLACEMENT_BC",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0, 0.0, 0.0]
+            "model_part_name": "PINNED",
+            "variable_name": "DISPLACEMENT",
+            "constrained": [true,true,true],
+            "value": [0.0, 0.0, 0.0]
             }
         }],
-    "loads_process_list"       : [{
-        "implemented_in_file"   : "impose_initial_strain_process",
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
-        "help": "",
+    "loads_process_list": [{
+        "implemented_in_file": "impose_initial_strain_process",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "ImposeInitialStrainProcess",
         "Parameters": {
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-	    "initial_strain": M4VAR_INITIALSTRAIN,
-	    "lookuptable_time": [0.0, 1.0],
-	    "lookuptable_mult": [0.0, 1.0]
-	    }
+            "initial_strain": M4VAR_INITIALSTRAIN,
+            "lookuptable_time": [0.0, 1.0],
+            "lookuptable_mult": [0.0, 1.0]
+            }
     },{
         "implemented_in_file": "write_elements_output",
         "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
@@ -84,17 +83,17 @@
         "process_name": "WriteElementsOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "integration_weight",
+            "filename": "integration_weight",
             "variable_name": "INTEGRATION_WEIGHT",
             "write_frequency": "last_timestep"
-	    }
+            }
         },{
         "implemented_in_file": "write_flag_timesteps",
         "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteGlobalOutputScalarApplication",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "elastic_timesteps",
+            "filename": "elastic_timesteps",
             "flag_name": "INELASTIC_FLAG",
             "flag_location": "MultiscaleROMApplication"
 	    }
@@ -104,11 +103,11 @@
         "process_name": "WriteElementsHomogenizedOutput",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "homogenized_stress.dat",
+            "filename": "homogenized_stress.dat",
             "variable_name": "CAUCHY_STRESS_VECTOR"
 	    }
         }],
-    "output_configuration"     : {
+    "output_configuration": {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",
@@ -134,8 +133,8 @@
         "LoadRestart"      : false,
         "Restart_Step"     : 0
         },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    "constraints_data": {
+        "incremental_load": false,
+        "incremental_displacement": false
         }
     }

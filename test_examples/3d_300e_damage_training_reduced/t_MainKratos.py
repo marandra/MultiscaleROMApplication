@@ -6,6 +6,7 @@ import operator
 import KratosMultiphysics as km
 import KratosMultiphysics.StructuralMechanicsApplication as sol
 import KratosMultiphysics.MultiscaleROMApplication as msr
+import KratosMultiphysics.ExternalSolversApplication
 import process_factory
 from gid_output_process import GiDOutputProcess
 
