@@ -53,10 +53,10 @@ class WriteElementsHomogenizedOutput(km.Process):
     def write_results(self, filename):
         with open(filename, 'a') as ofile:
             homog_value = homogenization_function(self)
-            von_misses = compute_vonmisses_stress(homog_value)
+            #von_misses = compute_vonmisses_stress(homog_value)
             for v in homog_value:
                 ofile.write("{:.17f}   ".format(v))
-            ofile.write("{:.17f}".format(von_misses))
+            #ofile.write("{:.17f}".format(von_misses))
             ofile.write("\n")
 
     def ExecuteInitialize(self):

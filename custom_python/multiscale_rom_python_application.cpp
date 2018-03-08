@@ -1,10 +1,10 @@
-// System includes
 #if defined(KRATOS_PYTHON)
+// System includes
 
 // External includes
 #include <boost/python.hpp>
+
 // Project includes
-//#include "custom_elements/small_displacement_bbar_element.hpp"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -12,17 +12,22 @@
 
 namespace Kratos
 {
+
 namespace Python
 {
+
 using namespace boost::python;
+
 BOOST_PYTHON_MODULE(KratosMultiscaleROMApplication)
 {
-    class_<KratosMultiscaleROMApplication, KratosMultiscaleROMApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable>(
-        "KratosMultiscaleROMApplication");
+    class_<KratosMultiscaleROMApplication,
+           KratosMultiscaleROMApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable>("KratosMultiscaleROMApplication");
+
     AddCustomConstitutiveLawsToPython();
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(ISOTROPIC_DAMAGE_MODULUS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(INFINITY_YIELD_STRESS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(FLOW_RULE_IS_TRACTION_ONLY)
@@ -36,7 +41,7 @@ BOOST_PYTHON_MODULE(KratosMultiscaleROMApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(REDUCED_MODES_MATRIX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(REDUCED_MODES_WEIGHTS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(INTEGRATION_POINT_WEIGHT)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(INELASTIC_FLAG)
+    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(INELASTIC_FLAG)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(GAUSS_WEIGHTS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(GREEN_LAGRANGE_STRAIN_VECTOR)
 }

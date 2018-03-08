@@ -65,7 +65,6 @@ class WriteElementsOutputScalar(km.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        print ("adentro {}".format(self.timestep_counter), flush=True)
         if not self.inelastic_flag:
             for elem in self.model_part.Elements:
                 flag = elem.GetValuesOnIntegrationPoints(self.var, self.model_part.ProcessInfo)

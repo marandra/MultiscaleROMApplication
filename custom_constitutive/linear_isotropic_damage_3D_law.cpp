@@ -1,5 +1,6 @@
 #include "linear_isotropic_damage_3D_law.hpp"
 #include "multiscale_rom_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
