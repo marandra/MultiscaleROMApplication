@@ -61,7 +61,6 @@ void KratosMultiscaleROMApplication::Register() {
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N);
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N);
 
-    Serializer::Register("LinearIsotropicElastic3DLaw", mLinearIsotropicElastic3DLaw);
     Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2DLaw);
     Serializer::Register("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3DLaw);
     Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw", mExponentialIsotropicDamagePlaneStrain2DLaw);
