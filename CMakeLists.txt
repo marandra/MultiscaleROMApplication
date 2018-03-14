@@ -21,8 +21,6 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_str_element.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_hprom_element.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_hprom_J2_element.cpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fbar_element.cpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_fbar_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/lagrange_multiplier_utility.h )
