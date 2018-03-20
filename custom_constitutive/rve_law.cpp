@@ -66,9 +66,10 @@ RVELaw::~RVELaw()
 // Clone
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
-    RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(
-        mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec);
-    return pnewCL;
+    //RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(
+    //        mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec);
+    RVELaw::Pointer p_clone(new RVELaw(mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
+    return p_clone;
 }
 
 // Copy

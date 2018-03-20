@@ -16,7 +16,7 @@
 #include "includes/properties.h"
 #include "includes/variables.h"
 #include "python/add_mesh_to_python.h"
-#include "python/pointer_vector_set_python_interface.h"
+//#include "python/pointer_vector_set_python_interface.h"
 #include "python/variable_indexing_python.h"
 
 // Application includes

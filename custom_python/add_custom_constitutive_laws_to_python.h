@@ -13,8 +13,8 @@ namespace Kratos
 {
 namespace Python
 {
-void AddCustomConstitutiveLawsToPython();
-void AddCustomPropertiesToPython();
+void AddCustomConstitutiveLawsToPython(pybind11::module& m);
+//void AddCustomPropertiesToPython();
 } // namespace Python.
 } // namespace Kratos.
 
