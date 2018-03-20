@@ -113,7 +113,7 @@ Begin Nodes
   100    1.00000e+00    0.00000e+00    0.00000e+00
 End Nodes
 
-Begin Elements SmallDisplacementStrElement3D8N
+Begin Elements SmallDisplacementElement3D8N
          1          2         49        44        74 78 71 68 86 91    
          2          2         62        49        78 84 82 71 91 95    
          3          2         77        62        84 94 89 82 95 98    
