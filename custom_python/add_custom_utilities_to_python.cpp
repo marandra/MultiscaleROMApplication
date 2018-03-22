@@ -9,7 +9,8 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
+//#include "includes/define_python.h"
+#include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 // Utilities
 #include "custom_utilities/lagrange_multiplier_utility.h"

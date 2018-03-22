@@ -3,10 +3,11 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "multiscale_rom_application_variables.h"
 #include "multiscale_rom_application.h"
-#include "custom_python/add_custom_constitutive_laws_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
+//#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 namespace Kratos
 {
@@ -27,9 +28,9 @@ PYBIND11_MODULE(KratosMultiscaleROMApplication, m)
             .def(init<>())
             ;
 
-    AddCustomConstitutiveLawsToPython(m);
     //AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ISOTROPIC_DAMAGE_MODULUS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INFINITY_YIELD_STRESS)

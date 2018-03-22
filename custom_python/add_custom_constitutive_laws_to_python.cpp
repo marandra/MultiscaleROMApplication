@@ -4,7 +4,7 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
+//#include "includes/define_python.h":
 #include "includes/constitutive_law.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
