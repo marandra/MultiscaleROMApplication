@@ -15,15 +15,12 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/small_displacement.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-#include "includes/constitutive_law.h"
+//#include "includes/variables.h"
+//#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -51,7 +48,7 @@ namespace Kratos
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class SmallDisplacementStrElement
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementStrElement
     : public SmallDisplacement
 {
 public:
@@ -76,7 +73,7 @@ public:
     SmallDisplacementStrElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~SmallDisplacementStrElement();
+    ~SmallDisplacementStrElement() override;
 
     ///@}
     ///@name Operators
@@ -88,7 +85,6 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-    //TODO: ADD THE OTHER CREATE FUNCTION
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
@@ -115,13 +111,7 @@ protected:
 
 private:
 
-    friend class Serializer;
-
     // A private default constructor necessary for serialization
-
-    virtual void save(Serializer& rSerializer) const override;
-
-    virtual void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
@@ -133,6 +123,13 @@ private:
     /// Copy constructor.
     //SmallDisplacementStrElement(const SmallDisplacementStrElement& rOther);
     ///@}
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
 }; // Class SmallDisplacementStrElement
 

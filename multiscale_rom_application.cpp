@@ -4,9 +4,9 @@
 
 // Project includes
 #include "includes/variables.h"
-#include "includes/mat_variables.h"
+//#include "includes/mat_variables.h"
 #include "multiscale_rom_application.h"
-#include "multiscale_rom_application_variables.h"
+//#include "multiscale_rom_application_variables.h"
 
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_3.h"
@@ -18,12 +18,12 @@ namespace Kratos
 {
 KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
      KratosApplication("MultiscaleROMApplication"),
-      mSmallDisplacementStrElement2D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacementStrElement3D8N(0,
-          Element::GeometryType::Pointer(
-              new Hexahedra3D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+      //mSmallDisplacementStrElement2D4N(0,
+      //    Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+      //        Element::GeometryType::PointsArrayType(4)))),
+      //mSmallDisplacementStrElement3D8N(0,
+      //    Element::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(
+      //        Element::GeometryType::PointsArrayType(8)))),
       mMinimalKineticCondition2D3N(0,
           Condition::GeometryType::Pointer(
               new Line2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -53,8 +53,8 @@ void KratosMultiscaleROMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_6);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_NODE);
 
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement2D4N", mSmallDisplacementStrElement2D4N);
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement3D8N", mSmallDisplacementStrElement3D8N);
+    //KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement2D4N", mSmallDisplacementStrElement2D4N);
+    //KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement3D8N", mSmallDisplacementStrElement3D8N);
 
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N);
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N);
