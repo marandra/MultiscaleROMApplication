@@ -14,8 +14,6 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
     ## MAIN FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/multiscale_rom_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/multiscale_rom_application_variables.cpp
-    ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication/structural_mechanics_application.cpp
-    ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication/structural_mechanics_application_variables.cpp
 
     ## CUSTOM PYTHON
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multiscale_rom_python_application.cpp
@@ -43,7 +41,7 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosMultiscaleROMApplication MODULE ${KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES})
 
-target_link_libraries(KratosMultiscaleROMApplication PRIVATE KratosCore)
+target_link_libraries(KratosMultiscaleROMApplication PRIVATE KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES COMPILE_DEFINITIONS "MULTISCALE_ROM_APPLICATION=EXPORT,API")
 set_target_properties(KratosMultiscaleROMApplication PROPERTIES PREFIX "")
 
