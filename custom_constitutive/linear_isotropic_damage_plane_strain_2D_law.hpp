@@ -40,49 +40,41 @@ public:
     * IsotropicDamageHardeningPlaneStrain2DLaw());
     *      return p_clone;
     */
-    virtual ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
     * @return the working space dimension of the current constitutive law
     * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
     */
-    virtual SizeType WorkingSpaceDimension();
+    SizeType WorkingSpaceDimension() override;
 
     /**
     * returns the size of the strain vector of the current constitutive law
     * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
     */
-    virtual SizeType GetStrainSize();
+    SizeType GetStrainSize() override;
 
     /**
     * returns whether this constitutive Law has specified variable
     * @param rThisVariable the variable to be checked for
     * @return true if the variable is defined in the constitutive law
     */
-    virtual bool Has(const Variable<double>& rThisVariable);
+    bool Has(const Variable<double>& rThisVariable) override;
 
     /**
     * returns whether this constitutive Law has specified variable
     * @param rThisVariable the variable to be checked for
     * @return true if the variable is defined in the constitutive law
     */
-    virtual bool Has(const Variable<Vector>& rThisVariable);
+    bool Has(const Variable<Vector>& rThisVariable) override;
 
     /**
     * returns whether this constitutive Law has specified variable
     * @param rThisVariable the variable to be checked for
     * @return true if the variable is defined in the constitutive law
     */
-    virtual bool Has(const Variable<Matrix>& rThisVariable);
+    bool Has(const Variable<Matrix>& rThisVariable) override;
 
-    /**
-    * returns whether this constitutive Law has specified variable
-    * @param rThisVariable the variable to be checked for
-    * @return true if the variable is defined in the constitutive law
-    * NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic
-    * strains, ...)
-    */
-    virtual bool Has(const Variable<array_1d<double, 2>>& rThisVariable);
 
     /**
     * returns whether this constitutive Law has specified variable
@@ -91,7 +83,7 @@ public:
     * NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains,
     * ...)
     */
-    virtual bool Has(const Variable<array_1d<double, 3>>& rThisVariable);
+    bool Has(const Variable<array_1d<double, 3>>& rThisVariable) override;
 
     /**
     * returns the value of a specified variable
@@ -99,7 +91,7 @@ public:
     * @param rValue a reference to the returned value
     * @param rValue output: the value of the specified variable
     */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue);
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
     /**
     * returns the value of a specified variable
@@ -107,23 +99,15 @@ public:
     * @param rValue a reference to the returned value
     * @return the value of the specified variable
     */
-    virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
     * returns the value of a specified variable
     * @param rThisVariable the variable to be returned
     * @return the value of the specified variable
     */
-    virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
+    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
-    /**
-    * returns the value of a specified variable
-    * @param rThisVariable the variable to be returned
-    * @param rValue a reference to the returned value
-    * @return the value of the specified variable
-    */
-    virtual array_1d<double, 2>& GetValue(const Variable<array_1d<double, 2>>& rVariable,
-                                          array_1d<double, 2>& rValue);
 
     /**
     * returns the value of a specified variable
@@ -131,8 +115,8 @@ public:
     * @param rValue a reference to the returned value
     * @return the value of the specified variable
     */
-    virtual array_1d<double, 3>& GetValue(const Variable<array_1d<double, 3>>& rVariable,
-                                          array_1d<double, 3>& rValue);
+    array_1d<double, 3>& GetValue(const Variable<array_1d<double, 3>>& rVariable,
+                                          array_1d<double, 3>& rValue) override;
 
     /**
     * sets the value of a specified variable
@@ -140,9 +124,9 @@ public:
     * @param rValue new value of the specified variable
     * @param rCurrentProcessInfo the process info
     */
-    virtual void SetValue(const Variable<double>& rVariable,
+    void SetValue(const Variable<double>& rVariable,
                           const double& rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
+                          const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * sets the value of a specified variable
@@ -150,9 +134,9 @@ public:
     * @param rValue new value of the specified variable
     * @param rCurrentProcessInfo the process info
     */
-    virtual void SetValue(const Variable<Vector>& rVariable,
+    void SetValue(const Variable<Vector>& rVariable,
                           const Vector& rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
+                          const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * sets the value of a specified variable
@@ -160,9 +144,10 @@ public:
     * @param rValue new value of the specified variable
     * @param rCurrentProcessInfo the process info
     */
-    virtual void SetValue(const Variable<Matrix>& rVariable,
+    void SetValue(const Variable<Matrix>& rVariable,
                           const Matrix& rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
+                          const ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
     * sets the value of a specified variable
@@ -170,19 +155,9 @@ public:
     * @param rValue new value of the specified variable
     * @param rCurrentProcessInfo the process info
     */
-    virtual void SetValue(const Variable<array_1d<double, 2>>& rVariable,
-                          const array_1d<double, 2>& rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-    * sets the value of a specified variable
-    * @param rVariable the variable to be returned
-    * @param rValue new value of the specified variable
-    * @param rCurrentProcessInfo the process info
-    */
-    virtual void SetValue(const Variable<array_1d<double, 3>>& rVariable,
+    void SetValue(const Variable<array_1d<double, 3>>& rVariable,
                           const array_1d<double, 3>& rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
+                          const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Is called to check whether the provided material parameters in the
@@ -195,21 +170,21 @@ public:
     * in base class since
     * no valid implementation is contained here.
     */
-    virtual bool ValidateInput(const Properties& rMaterialProperties);
+    bool ValidateInput(const Properties& rMaterialProperties) override;
 
     /**
     * returns the expected strain measure of this constitutive law (by default
     * linear strains)
     * @return the expected strain measure
     */
-    virtual StrainMeasure GetStrainMeasure();
+    StrainMeasure GetStrainMeasure() override;
 
     /**
     * returns the stress measure of this constitutive law (by default 1st
     * Piola-Kirchhoff stress in voigt notation)
     * @return the expected stress measure
     */
-    virtual StressMeasure GetStressMeasure();
+    StressMeasure GetStressMeasure() override;
 
     /**
     * returns whether this constitutive model is formulated in incremental
@@ -219,7 +194,7 @@ public:
     * @return true, if formulated in incremental strains/stresses, false
     * otherwise
     */
-    virtual bool IsIncremental();
+    bool IsIncremental() override;
 
     /**
     * This is to be called at the very beginning of the calculation
@@ -230,9 +205,9 @@ public:
     * @param rShapeFunctionsValues the shape functions values in the current
     * integration point
     */
-    virtual void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rMaterialProperties,
                                     const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues);
+                                    const Vector& rShapeFunctionsValues) override;
 
     /**
     * to be called at the beginning of each solution step
@@ -243,10 +218,10 @@ public:
     * integration point
     * @param the current ProcessInfo instance
     */
-    virtual void InitializeSolutionStep(const Properties& rMaterialProperties,
+    void InitializeSolutionStep(const Properties& rMaterialProperties,
                                         const GeometryType& rElementGeometry,
                                         const Vector& rShapeFunctionsValues,
-                                        const ProcessInfo& rCurrentProcessInfo);
+                                        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * to be called at the end of each solution step
@@ -257,10 +232,10 @@ public:
     * integration point
     * @param the current ProcessInfo instance
     */
-    virtual void FinalizeSolutionStep(const Properties& rMaterialProperties,
+    void FinalizeSolutionStep(const Properties& rMaterialProperties,
                                       const GeometryType& rElementGeometry,
                                       const Vector& rShapeFunctionsValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * to be called at the beginning of each step iteration
@@ -271,10 +246,10 @@ public:
     * integration point
     * @param the current ProcessInfo instance
     */
-    virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
+    void InitializeNonLinearIteration(const Properties& rMaterialProperties,
                                               const GeometryType& rElementGeometry,
                                               const Vector& rShapeFunctionsValues,
-                                              const ProcessInfo& rCurrentProcessInfo);
+                                              const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * to be called at the end of each step iteration
@@ -285,62 +260,62 @@ public:
     * integration point
     * @param the current ProcessInfo instance
     */
-    virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
                                             const GeometryType& rElementGeometry,
                                             const Vector& rShapeFunctionsValues,
-                                            const ProcessInfo& rCurrentProcessInfo);
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Computes the material response in terms of 1st Piola-Kirchhoff stresses
     * and constitutive tensor
     * @see Parameters
     */
-    virtual void CalculateMaterialResponsePK1(Parameters& rValues);
+    void CalculateMaterialResponsePK1(Parameters& rValues) override;
 
     /**
     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses
     * and constitutive tensor
     * @see Parameters
     */
-    virtual void CalculateMaterialResponsePK2(Parameters& rValues);
+    void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
     * Computes the material response in terms of Kirchhoff stresses and
     * constitutive tensor
     * @see Parameters
     */
-    virtual void CalculateMaterialResponseKirchhoff(Parameters& rValues);
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
     * Computes the material response in terms of Cauchy stresses and
     * constitutive tensor
     * @see Parameters
     */
-    virtual void CalculateMaterialResponseCauchy(Parameters& rValues);
+    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
     * Updates the material response in terms of 1st Piola-Kirchhoff stresses
     * @see Parameters
     */
-    virtual void FinalizeMaterialResponsePK1(Parameters& rValues);
+    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
 
     /**
     * Updates the material response in terms of 2nd Piola-Kirchhoff stresses
     * @see Parameters
     */
-    virtual void FinalizeMaterialResponsePK2(Parameters& rValues);
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
     /**
     * Updates the material response in terms of Kirchhoff stresses
     * @see Parameters
     */
-    virtual void FinalizeMaterialResponseKirchhoff(Parameters& rValues);
+    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
     * Updates the material response in terms of Cauchy stresses
     * @see Parameters
     */
-    virtual void FinalizeMaterialResponseCauchy(Parameters& rValues);
+    void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
     * This can be used in order to reset all internal variables of the
@@ -351,16 +326,16 @@ public:
     * integration point
     * @param the current ProcessInfo instance
     */
-    virtual void ResetMaterial(const Properties& rMaterialProperties,
+    void ResetMaterial(const Properties& rMaterialProperties,
                                const GeometryType& rElementGeometry,
-                               const Vector& rShapeFunctionsValues);
+                               const Vector& rShapeFunctionsValues) override;
 
     /**
     * This function is designed to be called once to check compatibility with
     * element
     * @param rFeatures
     */
-    virtual void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
     /**
      * calculates the value of a specified variable
@@ -382,9 +357,9 @@ public:
     * @param rCurrentProcessInfo
     * @return
     */
-    virtual int Check(const Properties& rMaterialProperties,
+    int Check(const Properties& rMaterialProperties,
                       const GeometryType& rElementGeometry,
-                      const ProcessInfo& rCurrentProcessInfo);
+                      const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
     ///@name Protected static Member Variables
@@ -439,12 +414,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     }

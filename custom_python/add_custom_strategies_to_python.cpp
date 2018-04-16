@@ -1,23 +1,18 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
 //
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
 
 // Project includes
-#include "add_custom_strategies_to_python.h"
+#include "includes/define_python.h"
+#include "custom_python/add_custom_strategies_to_python.h"
+
 #include "containers/flags.h"
-#include "includes/define.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 
@@ -28,12 +23,13 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
+
 typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 //typedef UblasSpace<double, Matrix, Vector> SparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-void AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     // base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
@@ -47,6 +43,10 @@ void AddCustomStrategiesToPython()
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
+
+    class_<ResidualBasedROMBuilderAndSolverType, typename ResidualBasedROMBuilderAndSolverType::Pointer,
+            BuilderAndSolverType>, boost::noncopyable>(
+            "ResidualBasedROMBuilderAndSolver", init<LinearSolverType::Pointer>());
 
     class_<ResidualBasedROMBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable>(
         "ResidualBasedROMBuilderAndSolver", init<LinearSolverType::Pointer>());

@@ -1,34 +1,33 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED)
-#define KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED
+
+#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
+#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
+
+
 
 // System includes
+#include <pybind11/pybind11.h>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
+
 
 namespace Kratos
 {
 namespace Python
 {
-void AddCustomStrategiesToPython();
-/* { */
-/*   using namespace boost::python; */
-/* } */
+
+  void  AddCustomStrategiesToPython(pybind11::module& m);
 
 } // namespace Python.
 
 } // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined

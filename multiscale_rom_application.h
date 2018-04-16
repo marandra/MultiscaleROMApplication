@@ -16,7 +16,7 @@
 #include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
-#include "custom_elements/small_displacement_str_element.h"
+//#include "custom_elements/small_displacement_str_element.h"
 #include "multiscale_rom_application_variables.h"
 
 namespace Kratos
@@ -57,10 +57,8 @@ public:
 protected:
 private:
     // elements
-    const SmallDisplacementStrElement mSmallDisplacementStrElement2D4N;
-    const SmallDisplacementStrElement mSmallDisplacementStrElement3D8N;
-//    const UpdatedLagrangianFbarElement mUpdatedLagrangianFbarElement2D4N;
-//    const TotalLagrangianFbarElement mTotalLagrangianFbarElement2D4N;
+    //const SmallDisplacementStrElement mSmallDisplacementStrElement2D4N;
+    //const SmallDisplacementStrElement mSmallDisplacementStrElement3D8N;
     // restrictions
     const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
     const MinimalKineticCondition3D mMinimalKineticCondition3D4N;

@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name": "training",
-        "part_name": "QUADS",
-        "domain_size": 2,
+        "part_name": "DOMAIN",
+        "domain_size": 3,
         "nr_time_steps": 40,
         "end_time": 1.0,
         "echo_level": 0
@@ -40,10 +40,10 @@
         "kratos_module": "KratosMultiphysics",
         "process_name": "AssignVectorVariableProcess",
         "Parameters": {
-            "model_part_name" : "DISPLACEMENT_BC",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0, 0.0, 0.0]
+            "model_part_name": "DISPLACEMENT_BC",
+            "variable_name": "DISPLACEMENT",
+            "constrained": [true,true,true],
+            "value": [0.0, 0.0, 0.0]
             }
         },{
         "python_module": "assign_scalar_variable_process",
@@ -106,7 +106,7 @@
             "model_part_name": "RVE",
 	    "filename": "elastic_timesteps",
             "flag_name": "INELASTIC_FLAG",
-            "flag_location": "MultiscaleROMApplication"
+            "flag_location": "StructuralMechanicsApplication"
 	    }
         },{
         "implemented_in_file": "write_elements_homogenized_output",
