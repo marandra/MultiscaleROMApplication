@@ -1,160 +1,314 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosStructuralMechanicsApplication ****")
+#echo of user defined options
+SET(LIST_OF_APPS "\
+CONVECTION_DIFFUSION_APPLICATION;\
+PURE_DIFFUSION_APPLICATION;\
+STRUCTURAL_APPLICATION;\
+STRUCTURAL_MECHANICS_APPLICATION;\
+CONTACT_STRUCTURAL_MECHANICS_APPLICATION;\
+SOLID_MECHANICS_APPLICATION;\
+CONTACT_MECHANICS_APPLICATION;\
+CONSTITUTIVE_MODELS_APPLICATION;\
+CONSTITUTIVE_LAWS_APPLICATION;\
+UMAT_APPLICATION;\
+MULTISCALE_APPLICATION;\
+MULTISCALE_ROM_APPLICATION;\
+STRING_DYNAMICS_APPLICATION;\
+THERMO_MECHANICAL_APPLICATION;\
+POROMECHANICS_APPLICATION;\
+FREEZING_SOIL_APPLICATION;\
+DAM_APPLICATION;\
+FLUID_DYNAMICS_APPLICATION;\
+INCOMPRESSIBLE_FLUID_APPLICATION;\
+TURBULENT_FLOW_APPLICATION;\
+BLOOD_FLOW_APPLICATION;\
+ALE_APPLICATION;\
+FSI_APPLICATION;\
+WIND_TURBINE_APPLICATION;\
+COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION;\
+SHALLOW_WATER_APPLICATION;\
+EMPIRE_APPLICATION;\
+MIXED_ELEMENT_APPLICATION;\
+PFEM_APPLICATION;\
+PFEM_SOLID_MECHANICS_APPLICATION;\
+PFEM_FLUID_DYNAMICS_APPLICATION;\
+PFEM2_APPLICATION;\
+MACHINING_APPLICATION;\
+FORMING_APPLICATION;\
+DEM_APPLICATION;\
+SWIMMING_DEM_APPLICATION;\
+PARTICLE_MECHANICS_APPLICATION;\
+LAGRANGIAN_MPM_APPLICATION;\
+EXTERNAL_SOLVERS_APPLICATION;\
+OPENCL_APPLICATION;\
+TRILINOS_APPLICATION;\
+MPI_SEARCH_APPLICATION;\
+METIS_APPLICATION;\
+MESHLESS_APPLICATION;\
+MESHING_APPLICATION;\
+CLICK2CAST_APPLICATION;\
+ADJOINT_FLUID_APPLICATION;\
+SHAPE_OPTIMIZATION_APPLICATION;\
+TOPOLOGY_OPTIMIZATION_APPLICATION;\
+MY_LAPLACIAN_APPLICATION;\
+MAPPING_APPLICATION;\
+EIGEN_SOLVERS_APPLICATION;\
+STABILIZED_CFD_APPLICATION;\
+HDF5_APPLICATION;\
+")
 
-################### PYBIND11
-include(pybind11Tools)
+message( " ")
+message( " ")
+message( "***** LIST OF KRATOS APPLICATIONS THAT ARE GOING TO BE COMPILED: *****")
+message( " ")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
+FOREACH(APP ${LIST_OF_APPS})
+IF(${${APP}} MATCHES ON)
+message("                ${APP} - ${${APP}}")
+ENDIF(${${APP}} MATCHES ON)
+ENDFOREACH()
+message( " ")
+message( "**********************************************************************")
+message( " ")
 
-## generate variables with the sources
-set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
-  ## MAIN FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
+message( "********** LIST OF KRATOS APPLICATIONS THAT ARE SET TO OFF: **********")
+message( " ")
+FOREACH(APP ${LIST_OF_APPS})
+IF(${${APP}} MATCHES OFF)
+message("                ${APP} - ${${APP}}")
+ENDIF(${${APP}} MATCHES OFF)
+ENDFOREACH()
+message( " ")
+message( "**********************************************************************")
 
-  ## CUSTOM PYTHON
-#   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
-#   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-#   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-#   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-#   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-#   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
-
-  ## UTILITIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
-
-  ## PROCESSES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/postprocess_eigenvalues_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/total_structural_mass_process.cpp
-
-  ##CONSTITUTIVE LAW
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/beam_constitutive_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/axisym_elastic_isotropic.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_plane_strain_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_3d.cpp
-
-  ## ELEMENTS
-  #Adding truss element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_linear_3D2N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cable_element_3D2N.cpp
-   
-  # Adding the beam element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_3D2N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_2D2N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_2D2N.cpp
-  
-
-  # Adding shells and membranes elements
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D4N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D3N.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/prestress_membrane_element.cpp
-
-  # Solid elements
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_total_lagrangian.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar.cpp
-
-  # Adding the SPRISM element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
-
-  # Adding the nodal concentrated element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
-
-  # Adding the spring + damper element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spring_damper_element_3D2N.cpp  
-
-  ## CONDITIONS
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_load_condition.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_contact_condition.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_load_condition.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_condition_3d.cpp
-)
-
-## generate variables with the sources
-set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
-  ## CUSTOM PYTHON
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
-)
-
-add_library(KratosStructuralMechanicsCORE SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE})
-target_link_libraries(KratosStructuralMechanicsCORE PUBLIC KratosCore) 
-set_target_properties(KratosStructuralMechanicsCORE PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
-
-###############################################################
-## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosStructuralMechanicsApplication MODULE ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCORE) 
-# set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
-set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
-
-# changing the .dll suffix to .pyd
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .pyd)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-# changing the .dylib suffix to .so
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .so)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
+message( " ")
+message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/applications_interface.py DESTINATION applications)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
+#include subdirectories for compilation
+if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON)
+  add_subdirectory(ExternalSolversApplication)
+endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON)
+
+if(${SOLID_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(SolidMechanicsApplication)
+endif(${SOLID_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${PFEM_APPLICATION} MATCHES ON)
+  add_subdirectory(PfemApplication)
+endif(${PFEM_APPLICATION} MATCHES ON)
+
+if(${PFEM_SOLID_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(PfemSolidMechanicsApplication)
+endif(${PFEM_SOLID_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${PFEM_FLUID_DYNAMICS_APPLICATION} MATCHES ON)
+  add_subdirectory(PfemFluidDynamicsApplication)
+endif(${PFEM_FLUID_DYNAMICS_APPLICATION} MATCHES ON)
+
+if(${CONTACT_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(ContactMechanicsApplication)
+endif(${CONTACT_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
+  add_subdirectory(ConstitutiveModelsApplication)
+endif(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
+
+if(${UMAT_APPLICATION} MATCHES ON)
+  add_subdirectory(UmatApplication)
+endif(${UMAT_APPLICATION} MATCHES ON)
+
+if(${MACHINING_APPLICATION} MATCHES ON)
+  add_subdirectory(MachiningApplication)
+endif(${MACHINING_APPLICATION} MATCHES ON)
+
+if(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
+  add_subdirectory(StringDynamicsApplication)
+endif(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
+
+if(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
+  add_subdirectory(convection_diffusion_application)
+endif(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
+
+if(${MESHING_APPLICATION} MATCHES ON)
+  add_subdirectory(MeshingApplication)
+endif(${MESHING_APPLICATION} MATCHES ON)
+
+if(${STRUCTURAL_APPLICATION} MATCHES ON)
+  add_subdirectory(structural_application)
+endif(${STRUCTURAL_APPLICATION} MATCHES ON)
+
+if(${STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(StructuralMechanicsApplication)
+endif(${STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${FLUID_DYNAMICS_APPLICATION} MATCHES ON)
+  add_subdirectory(FluidDynamicsApplication)
+endif(${FLUID_DYNAMICS_APPLICATION} MATCHES ON)
+
+if(${ALE_APPLICATION} MATCHES ON)
+  add_subdirectory(ALEapplication)
+endif(${ALE_APPLICATION} MATCHES ON)
+
+if(${FSI_APPLICATION} MATCHES ON)
+  add_subdirectory(FSIapplication)
+endif(${FSI_APPLICATION} MATCHES ON)
+
+if(${EMPIRE_APPLICATION} MATCHES ON)
+  add_subdirectory(EmpireApplication)
+endif(${EMPIRE_APPLICATION} MATCHES ON)
+
+if(${OPENCL_APPLICATION} MATCHES ON)
+  add_subdirectory(OpenCLapplication)
+endif(${OPENCL_APPLICATION} MATCHES ON)
+
+if(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
+  add_subdirectory(MixedElementApplication)
+endif(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
+
+if(${DEM_APPLICATION} MATCHES ON)
+  add_subdirectory(DEM_application)
+endif(${DEM_APPLICATION} MATCHES ON)
+
+if(${SWIMMING_DEM_APPLICATION} MATCHES ON)
+  add_subdirectory(swimming_DEM_application)
+endif(${SWIMMING_DEM_APPLICATION} MATCHES ON)
+
+if(${CONSTITUTIVE_LAWS_APPLICATION} MATCHES ON)
+  add_subdirectory(constitutive_laws_application)
+endif(${CONSTITUTIVE_LAWS_APPLICATION} MATCHES ON)
+
+if(${ULF_APPLICATION} MATCHES ON)
+  add_subdirectory(ULFapplication)
+endif(${ULF_APPLICATION} MATCHES ON)
+
+if(${THERMO_MECHANICAL_APPLICATION} MATCHES ON)
+  add_subdirectory(ThermoMechanicalApplication)
+endif(${THERMO_MECHANICAL_APPLICATION} MATCHES ON)
+
+if(${MPI_SEARCH_APPLICATION} MATCHES ON)
+  add_subdirectory(mpi_search_application)
+endif(${MPI_SEARCH_APPLICATION} MATCHES ON)
+
+if(${METIS_APPLICATION} MATCHES ON)
+  add_subdirectory(metis_application)
+endif(${METIS_APPLICATION} MATCHES ON)
+
+if(${TRILINOS_APPLICATION} MATCHES ON)
+  add_subdirectory(trilinos_application)
+endif(${TRILINOS_APPLICATION} MATCHES ON)
+
+if(${TURBULENT_FLOW_APPLICATION} MATCHES ON)
+  add_subdirectory(TurbulentFlowApplication)
+endif(${TURBULENT_FLOW_APPLICATION} MATCHES ON)
+
+if(${DEM_FEM_APPLICATION} MATCHES ON)
+  add_subdirectory(DEM_FEM_Application)
+endif(${DEM_FEM_APPLICATION} MATCHES ON)
+
+if(${BLOOD_FLOW_APPLICATION} MATCHES ON)
+  add_subdirectory(blood_flow_application)
+endif(${BLOOD_FLOW_APPLICATION} MATCHES ON)
+
+if(${PFEM2_APPLICATION} MATCHES ON)
+  add_subdirectory(pfem_2_application)
+endif(${PFEM2_APPLICATION} MATCHES ON)
+
+if(${MESHLESS_APPLICATION} MATCHES ON)
+  add_subdirectory(meshless_application)
+endif(${MESHLESS_APPLICATION} MATCHES ON)
+
+if(${WIND_TURBINE_APPLICATION} MATCHES ON)
+  add_subdirectory(wind_turbine_application)
+endif(${WIND_TURBINE_APPLICATION} MATCHES ON)
+
+if(${CLICK2CAST_APPLICATION} MATCHES ON)
+  add_subdirectory(Click2CastApplication)
+endif(${CLICK2CAST_APPLICATION} MATCHES ON)
+
+if(${MULTISCALE_APPLICATION} MATCHES ON)
+  add_subdirectory(MultiScaleApplication)
+endif(${MULTISCALE_APPLICATION} MATCHES ON)
+
+if(${MULTISCALE_ROM_APPLICATION} MATCHES ON)
+	add_subdirectory(MultiscaleROMApplication)
+endif(${MULTISCALE_ROM_APPLICATION} MATCHES ON)
+
+if(${ADJOINT_FLUID_APPLICATION} MATCHES ON)
+  add_subdirectory(AdjointFluidApplication)
+endif(${ADJOINT_FLUID_APPLICATION} MATCHES ON)
+
+if(${NURBS_APPLICATION} MATCHES ON)
+  add_subdirectory(nurbs_application)
+endif(${NURBS_APPLICATION} MATCHES ON)
+
+if(${FREEZING_SOIL_APPLICATION} MATCHES ON)
+  add_subdirectory(freezing_soil_application)
+endif(${FREEZING_SOIL_APPLICATION} MATCHES ON)
+
+if(${POROMECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(PoromechanicsApplication)
+endif(${POROMECHANICS_APPLICATION} MATCHES ON)
+
+if(${PARTICLE_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(ParticleMechanicsApplication)
+endif(${PARTICLE_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${FORMING_APPLICATION} MATCHES ON)
+  add_subdirectory(Forming_Application)
+endif(${FORMING_APPLICATION} MATCHES ON)
+
+if(${DAM_APPLICATION} MATCHES ON)
+  add_subdirectory(DamApplication)
+endif(${DAM_APPLICATION} MATCHES ON)
+
+if(${SHAPE_OPTIMIZATION_APPLICATION} MATCHES ON)
+  add_subdirectory(ShapeOptimizationApplication)
+endif(${SHAPE_OPTIMIZATION_APPLICATION} MATCHES ON)
+
+if(${TOPOLOGY_OPTIMIZATION_APPLICATION} MATCHES ON)
+  add_subdirectory(TopologyOptimizationApplication)
+endif(${TOPOLOGY_OPTIMIZATION_APPLICATION} MATCHES ON)
+
+if(${LAGRANGIAN_MPM_APPLICATION} MATCHES ON)
+  add_subdirectory(LagrangianMPMApplication)
+endif(${LAGRANGIAN_MPM_APPLICATION} MATCHES ON)
+
+if(${CONTACT_STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(ContactStructuralMechanicsApplication)
+endif(${CONTACT_STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+
+if(${MAPPING_APPLICATION} MATCHES ON)
+  add_subdirectory(MappingApplication)
+endif(${MAPPING_APPLICATION} MATCHES ON)
+
+if(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
+  add_subdirectory(incompressible_fluid_application)
+endif(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
+
+if(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
+  add_subdirectory(CompressiblePotentialFlowApplication)
+endif(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
+
+if(${HDF5_APPLICATION} MATCHES ON)
+  add_subdirectory(HDF5Application)
+endif(${HDF5_APPLICATION} MATCHES ON)
+
+if(${SHALLOW_WATER_APPLICATION} MATCHES ON)
+  add_subdirectory(ShallowWaterApplication)
+endif(${SHALLOW_WATER_APPLICATION} MATCHES ON)
+
+if(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
+  add_subdirectory(EigenSolversApplication)
+endif(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
+
+if(${STABILIZED_CFD_APPLICATION} MATCHES ON)
+  add_subdirectory(StabilizedCFDApplication)
+endif(${STABILIZED_CFD_APPLICATION} MATCHES ON)
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosStructuralMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
-
-install(TARGETS KratosStructuralMechanicsCORE DESTINATION libs )
-install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
-
-
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )
+# message("applications subdir inc_dirs = ${inc_dirs}")

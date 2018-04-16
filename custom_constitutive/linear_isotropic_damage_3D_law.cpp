@@ -50,11 +50,6 @@ bool LinearIsotropicDamage3DLaw::Has(const Variable<Matrix>& rThisVariable)
     return false;
 }
 
-bool LinearIsotropicDamage3DLaw::Has(const Variable<array_1d<double, 2>>& rThisVariable)
-{
-    return false;
-}
-
 bool LinearIsotropicDamage3DLaw::Has(const Variable<array_1d<double, 3>>& rThisVariable)
 {
     return false;
@@ -88,11 +83,6 @@ Matrix& LinearIsotropicDamage3DLaw::GetValue(const Variable<Matrix>& rThisVariab
     return rValue;
 }
 
-array_1d<double, 2>& LinearIsotropicDamage3DLaw::GetValue(
-    const Variable<array_1d<double, 2>>& rVariable, array_1d<double, 2>& rValue)
-{
-    return rValue;
-}
 
 array_1d<double, 3>& LinearIsotropicDamage3DLaw::GetValue(
     const Variable<array_1d<double, 3>>& rVariable, array_1d<double, 3>& rValue)
@@ -125,11 +115,6 @@ void LinearIsotropicDamage3DLaw::SetValue(const Variable<Matrix>& rVariable,
 {
 }
 
-void LinearIsotropicDamage3DLaw::SetValue(const Variable<array_1d<double, 2>>& rVariable,
-                                                     const array_1d<double, 2>& rValue,
-                                                     const ProcessInfo& rCurrentProcessInfo)
-{
-}
 
 void LinearIsotropicDamage3DLaw::SetValue(const Variable<array_1d<double, 3>>& rVariable,
                                                      const array_1d<double, 3>& rValue,

@@ -75,14 +75,6 @@ public:
     */
     virtual bool Has(const Variable<Matrix>& rThisVariable);
 
-    /**
-    * returns whether this constitutive Law has specified variable
-    * @param rThisVariable the variable to be checked for
-    * @return true if the variable is defined in the constitutive law
-    * NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic
-    * strains, ...)
-    */
-    virtual bool Has(const Variable<array_1d<double, 2>>& rThisVariable);
 
     /**
     * returns whether this constitutive Law has specified variable
@@ -115,15 +107,6 @@ public:
     * @return the value of the specified variable
     */
     virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
-
-    /**
-    * returns the value of a specified variable
-    * @param rThisVariable the variable to be returned
-    * @param rValue a reference to the returned value
-    * @return the value of the specified variable
-    */
-    virtual array_1d<double, 2>& GetValue(const Variable<array_1d<double, 2>>& rVariable,
-                                          array_1d<double, 2>& rValue);
 
     /**
     * returns the value of a specified variable
@@ -164,15 +147,6 @@ public:
                           const Matrix& rValue,
                           const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-    * sets the value of a specified variable
-    * @param rVariable the variable to be returned
-    * @param rValue new value of the specified variable
-    * @param rCurrentProcessInfo the process info
-    */
-    virtual void SetValue(const Variable<array_1d<double, 2>>& rVariable,
-                          const array_1d<double, 2>& rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
 
     /**
     * sets the value of a specified variable

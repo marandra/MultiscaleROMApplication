@@ -44,10 +44,6 @@ bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<Matrix>& rThisVar
     return false;
 }
 
-bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 2>>& rThisVariable)
-{
-    return false;
-}
 
 bool LinearIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 3>>& rThisVariable)
 {
@@ -75,11 +71,6 @@ Matrix& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Matrix>& 
     return rValue;
 }
 
-array_1d<double, 2>& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(
-    const Variable<array_1d<double, 2>>& rVariable, array_1d<double, 2>& rValue)
-{
-    return rValue;
-}
 
 array_1d<double, 3>& LinearIsotropicDamagePlaneStrain2DLaw::GetValue(
     const Variable<array_1d<double, 3>>& rVariable, array_1d<double, 3>& rValue)
@@ -105,11 +96,6 @@ void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Matrix>& rVa
 {
 }
 
-void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 2>>& rVariable,
-                                                     const array_1d<double, 2>& rValue,
-                                                     const ProcessInfo& rCurrentProcessInfo)
-{
-}
 
 void LinearIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<array_1d<double, 3>>& rVariable,
                                                      const array_1d<double, 3>& rValue,

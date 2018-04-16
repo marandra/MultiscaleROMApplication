@@ -61,14 +61,6 @@ MinimalKineticCondition3D::~MinimalKineticCondition3D()
 {
 }
 
-//**************** GETTING METHODS
-//***************************************************
-//************************************************************************************
-MinimalKineticCondition3D::IntegrationMethod MinimalKineticCondition3D::GetIntegrationMethod() const
-{
-    return mThisIntegrationMethod;
-}
-
 //*******************************ASSIGMENT
 //OPERATOR***********************************
 //************************************************************************************

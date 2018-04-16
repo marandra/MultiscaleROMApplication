@@ -43,11 +43,6 @@ bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<Matrix>& rTh
     return false;
 }
 
-bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 2>>& rThisVariable)
-{
-    return false;
-}
-
 bool ExponentialIsotropicDamagePlaneStrain2DLaw::Has(const Variable<array_1d<double, 3>>& rThisVariable)
 {
     return false;
@@ -73,12 +68,6 @@ Vector& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Vect
 
 Matrix& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Matrix>& rThisVariable,
                                                              Matrix& rValue)
-{
-    return rValue;
-}
-
-array_1d<double, 2>& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(
-    const Variable<array_1d<double, 2>>& rVariable, array_1d<double, 2>& rValue)
 {
     return rValue;
 }
@@ -109,13 +98,6 @@ void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Vector>
 void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(const Variable<Matrix>& rVariable,
                                                           const Matrix& rValue,
                                                           const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-void ExponentialIsotropicDamagePlaneStrain2DLaw::SetValue(
-    const Variable<array_1d<double, 2>>& rVariable,
-    const array_1d<double, 2>& rValue,
-    const ProcessInfo& rCurrentProcessInfo)
 {
 }
 

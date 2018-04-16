@@ -102,7 +102,7 @@ public:
     MinimalKineticCondition3D(MinimalKineticCondition3D const& rOther);
 
     /// Destructor.
-    virtual ~MinimalKineticCondition3D();
+    ~MinimalKineticCondition3D() override;
 
     /// Constructor.
     /** @param NewId Index number of the new condition (optional)
@@ -149,10 +149,10 @@ public:
     /// Create a new MinimalKineticCondition2D instance
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const;
+                              PropertiesType::Pointer pProperties) const override;
 
     /// Check input to ensure that it makes sense.
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
@@ -164,9 +164,9 @@ public:
      * @param rRightHandSideVector Local right hand side vector (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a matrix of the integral of Shape Functions to compute the
     /// penalty matrix in 3D cases.
@@ -178,7 +178,7 @@ public:
      * @param rNintMatrix matrix of integral of shape functions (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void CalculateIntegralOfShapeFunctions(MatrixType& rNintMatrix,
+    void CalculateIntegralOfShapeFunctions(MatrixType& rNintMatrix,
                                                    ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a matrix of penalty terms for the periodic variables.
@@ -186,16 +186,16 @@ public:
      * @param rLeftHandSideMatrix Local left hand side matrix (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns RHS values for the penalized dofs.
     /**
      * @param rRightHandSideVector Local right hand side vector (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -204,17 +204,17 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
     /// Returns the values of the unknowns for each node
-    virtual void GetValuesVector(Vector& Values, int Step = 0);
+    void GetValuesVector(Vector& Values, int Step = 0) override;
 
     /// Returns the cross product of two 3D vectors
     ////virtual void CrossProduct(array_1d<double, 3>& cross, const
@@ -224,12 +224,6 @@ public:
     //                          const Vector& b);
 
     //************* GETTING METHODS
-
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    IntegrationMethod GetIntegrationMethod() const;
 
     ///@}
     ///@name Conditional Data
@@ -248,7 +242,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MinimalKineticCondition3D #" << Id();
@@ -256,13 +250,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MinimalKineticCondition3D #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         Condition::PrintData(rOStream);
     }
@@ -460,9 +454,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

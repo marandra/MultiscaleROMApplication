@@ -119,7 +119,7 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const auto nr_comps = mB_vec[0].size1();;
     // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
     //const auto nr_comps = GetStrainSize();
-    const Properties& mat_props = rValues.GetMaterialProperties();
+    //const Properties& mat_props = rValues.GetMaterialProperties();
     const Vector& strain_macro = rValues.GetStrainVector();
 
     Vector& homog_stress = rValues.GetStressVector();
