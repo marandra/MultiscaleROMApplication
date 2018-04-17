@@ -38,9 +38,9 @@ void KratosMultiscaleROMApplication::Register() {
     KratosApplication::Register();
     std::cout << "Initializing KratosMultiscaleROMApplication...  " << std::endl;
 
-    KRATOS_REGISTER_VARIABLE(ISOTROPIC_DAMAGE_MODULUS);
-    KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS);
-    KRATOS_REGISTER_VARIABLE(FLOW_RULE_IS_TRACTION_ONLY);
+    //KRATOS_REGISTER_VARIABLE(ISOTROPIC_DAMAGE_MODULUS);
+    //KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS);
+    //KRATOS_REGISTER_VARIABLE(FLOW_RULE_IS_TRACTION_ONLY);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_1);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_2);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_3);
@@ -59,8 +59,8 @@ void KratosMultiscaleROMApplication::Register() {
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N);
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N);
 
-    Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2DLaw);
-    Serializer::Register("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3DLaw);
-    Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw", mExponentialIsotropicDamagePlaneStrain2DLaw);
+    //Serializer::Register("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2DLaw);
+    //Serializer::Register("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3DLaw);
+    //Serializer::Register("ExponentialIsotropicDamagePlaneStrain2DLaw", mExponentialIsotropicDamagePlaneStrain2DLaw);
 }
 }

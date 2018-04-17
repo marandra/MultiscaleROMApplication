@@ -13,9 +13,9 @@
 
 #include "custom_conditions/minimal_kinetic_2D.hpp"
 #include "custom_conditions/minimal_kinetic_3D.hpp"
-#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
+//#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
+//#include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
+//#include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
 //#include "custom_elements/small_displacement_str_element.h"
 #include "multiscale_rom_application_variables.h"
 
@@ -63,9 +63,9 @@ private:
     const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
     const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
     // constitutive laws
-    const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
-    const LinearIsotropicDamage3DLaw mLinearIsotropicDamage3DLaw;
-    const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
+    //const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
+    //const LinearIsotropicDamage3DLaw mLinearIsotropicDamage3DLaw;
+    //const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
     // others
     KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
     KratosMultiscaleROMApplication(KratosMultiscaleROMApplication const& rOther);

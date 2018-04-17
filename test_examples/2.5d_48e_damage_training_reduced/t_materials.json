@@ -12,8 +12,7 @@
                 "POISSON_RATIO": 0.3,
                 "YIELD_STRESS": 5.5,
                 "INFINITY_YIELD_STRESS": 100000,
-                "ISOTROPIC_DAMAGE_MODULUS": 0.001,
-                "FLOW_RULE_IS_TRACTION_ONLY": false
+                "ISOTROPIC_HARDENING_MODULUS": 0.001
                 },
             "Tables":  {}
             }
@@ -30,8 +29,7 @@
                 "POISSON_RATIO": 0.2,
                 "YIELD_STRESS": 2.5,
                 "INFINITY_YIELD_STRESS": 100000,
-                "ISOTROPIC_DAMAGE_MODULUS": 0.001,
-                "FLOW_RULE_IS_TRACTION_ONLY": false
+                "ISOTROPIC_HARDENING_MODULUS": 0.001
                 },
             "Tables":  {}
             }

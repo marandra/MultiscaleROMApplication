@@ -27,17 +27,17 @@ using namespace pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-    class_<LinearIsotropicDamagePlaneStrain2DLaw, typename LinearIsotropicDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw>
-            (m, "LinearIsotropicDamagePlaneStrain2DLaw").def(init<>() )
-            ;
+    //class_<LinearIsotropicDamagePlaneStrain2DLaw, typename LinearIsotropicDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw>
+    //        (m, "LinearIsotropicDamagePlaneStrain2DLaw").def(init<>() )
+    //        ;
 
-    class_<ExponentialIsotropicDamagePlaneStrain2DLaw, typename ExponentialIsotropicDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw>
-            (m, "ExponentialIsotropicDamagePlaneStrain2DLaw").def(init<>() )
-            ;
+    //class_<ExponentialIsotropicDamagePlaneStrain2DLaw, typename ExponentialIsotropicDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw>
+    //        (m, "ExponentialIsotropicDamagePlaneStrain2DLaw").def(init<>() )
+    //        ;
 
-    class_<LinearIsotropicDamage3DLaw, typename LinearIsotropicDamage3DLaw::Pointer, ConstitutiveLaw>
-            (m, "LinearIsotropicDamage3DLaw").def(init<>() )
-            ;
+    //class_<LinearIsotropicDamage3DLaw, typename LinearIsotropicDamage3DLaw::Pointer, ConstitutiveLaw>
+    //        (m, "LinearIsotropicDamage3DLaw").def(init<>() )
+    //        ;
 
     class_<RVELaw, typename RVELaw::Pointer, ConstitutiveLaw>
     (m, "RVELaw").def(init<ModelPart::Pointer, Parameters>() )

@@ -4,8 +4,9 @@ from __future__ import print_function, absolute_import, division
 import time as timer
 import operator
 import KratosMultiphysics as km
+import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.MultiscaleROMApplication as msr
+import KratosMultiphysics.MultiscaleROMApplication
 import process_factory
 from gid_output_process import GiDOutputProcess
 
