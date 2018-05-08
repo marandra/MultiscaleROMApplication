@@ -1,12 +1,11 @@
 import KratosMultiphysics as km
-#import KratosMultiphysics.MultiscaleROMApplication as msr
-#import os
-#import struct
+
 
 def Factory(settings, Model):
     if(type(settings) != km.Parameters):
         raise Exception("expected input is Parameters object, encapsulating a json string")
     return ComputeTotalDisplacementProcess(Model, settings["Parameters"])
+
 
 def TotalDisplacement(node, strain):
     s_xx = strain[0]
@@ -26,68 +25,18 @@ def TotalDisplacement(node, strain):
 
 
 class ComputeTotalDisplacementProcess(km.Process):
-
     def __init__(self, Model, settings):
         km.Process.__init__(self)
-
         default_settings = km.Parameters("""
         {
-            "mesh_id": 0,
-            "model_part_name": "unset_model_part_name",
+            "model_part_name": "unset_model_part_name"
         }
         """)
-        #"filename": "unset_filename",
-        #"write_mode": "ascii"
         settings.ValidateAndAssignDefaults(default_settings)
         self.model_part = Model[settings["model_part_name"].GetString()]
-        #self.filename = settings['filename'].GetString()
-        #self.write_mode = settings['write_mode'].GetString()
-
-    #def write_results(self, filename):
-    #    def write_results_binary():
-    #        with open(filename, 'wb') as ofile:
-    #            initial_strain = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
-    #            for node in self.model_part.Nodes:
-    #                nodal_displ = TotalDisplacement(node, initial_strain)
-    #                #for v in total_displ:
-    #                for v in nodal_displ:
-    #                    ofile.write(struct.pack('f', v)) # 'f'=float32
-    #                ofile.write(b'\n')
-
-    #    def write_results_ascii():
-    #        with open(filename, 'w') as ofile:
-    #            initial_strain = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
-    #            for node in self.model_part.Nodes:
-    #                nodal_displ = TotalDisplacement(node, initial_strain)
-    #                for v in nodal_displ:
-    #                    ofile.write("{:18.16f} ".format(v))
-    #                ofile.write("\n")
-
-    #    if self.write_mode == "binary":
-    #        write_results_binary()
-    #    else:
-    #        write_results_ascii()
-
-    #def ExecuteInitialize(self):
-    #    try:
-    #        os.remove(self.filename)
-    #    except OSError:
-    #        pass
-
-    #def ExecuteInitializeSolutionStep(self):
-    #    #self.timestep = "-{:.3f}".format(self.model_part.ProcessInfo[km.TIME])
-    #    #try:
-    #    #    os.remove(self.filename + self.timestep)
-    #    #except OSError:
-    #    #    pass
-    #    pass
 
     def ExecuteFinalizeSolutionStep(self):
-        #self.write_results(self.filename + self.timestep)
         initial_strain = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
         for node in self.model_part.Nodes:
             total_displ = TotalDisplacement(node, initial_strain)
             node.SetSolutionStepValue(km.LAGRANGE_DISPLACEMENT, 0, total_displ)
-
-    #def ExecuteFinalize(self):
-    #    pass
