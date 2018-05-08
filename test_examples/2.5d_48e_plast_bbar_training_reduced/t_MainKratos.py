@@ -62,6 +62,7 @@ def create_solver_complete_model_part(model_part, parameters):
     solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
     solver = solver_module.CreateSolver(model_part, parameters["solver_settings"])
     solver.AddVariables()
+    model_part.AddNodalSolutionStepVariable(km.LAGRANGE_DISPLACEMENT)
     solver.ImportModelPart()
     solver.AddDofs()
     return solver, model_part
