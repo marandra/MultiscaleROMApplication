@@ -7,6 +7,10 @@
 //					 license: structural_mechanics_application/license.txt
 //
 
+//  Main authors:    Marcelo Raschi
+//
+
+
 // System includes
 
 // External includes
@@ -16,62 +20,75 @@
 
 namespace Kratos
 {
-SmallDisplacementStrElement::SmallDisplacementStrElement(IndexType NewId,
-                                                         GeometryType::Pointer pGeometry)
+SmallDisplacementCustom::SmallDisplacementCustom(IndexType NewId, GeometryType::Pointer pGeometry)
     : SmallDisplacement(NewId, pGeometry)
 {
-    // DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
 //************************************************************************************
 
-SmallDisplacementStrElement::SmallDisplacementStrElement(IndexType NewId,
-                                                         GeometryType::Pointer pGeometry,
-                                                         PropertiesType::Pointer pProperties)
+SmallDisplacementCustom::SmallDisplacementCustom(IndexType NewId,
+                                                 GeometryType::Pointer pGeometry,
+                                                 PropertiesType::Pointer pProperties)
     : SmallDisplacement(NewId, pGeometry, pProperties)
 {
 }
 
-Element::Pointer SmallDisplacementStrElement::Create(IndexType NewId,
-                                                     NodesArrayType const& ThisNodes,
-                                                     PropertiesType::Pointer pProperties) const
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer SmallDisplacementCustom::Create(IndexType NewId,
+                                                 NodesArrayType const& ThisNodes,
+                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallDisplacementStrElement(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
-SmallDisplacementStrElement::~SmallDisplacementStrElement()
+SmallDisplacementCustom::~SmallDisplacementCustom()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementStrElement::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rOutput,
+void SmallDisplacementCustom::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
-    {
-        rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
-    }
+    //const GeometryType::IntegrationMethod integration_method =
+    //        GetGeometry().GetDefaultIntegrationMethod();
+    //const GeometryType::IntegrationPointsArrayType &integration_points =
+    //        GetGeometry().IntegrationPoints(integration_method);
 
-    //if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
-    //{
-    //}
-    //else
-    //{
-    //    SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    //}
+    if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
+        rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
+
+    if  (rVariable == DAMAGE_VARIABLE) {
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        for (unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number)
+        {
+            double damage = 0.0;
+            mConstitutiveLawVector[point_number]->CalculateValue(Values, DAMAGE_VARIABLE, damage);
+            rOutput[point_number] = damage;
+        }
+    } else {
+        SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementStrElement::save(Serializer& rSerializer) const
+void SmallDisplacementCustom::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacement);
 }
@@ -79,7 +96,7 @@ void SmallDisplacementStrElement::save(Serializer& rSerializer) const
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementStrElement::load(Serializer& rSerializer)
+void SmallDisplacementCustom::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallDisplacement);
 }

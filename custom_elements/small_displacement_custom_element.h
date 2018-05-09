@@ -6,11 +6,11 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Marcelo Raschi
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_STR_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_STR_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_CUSTOM_H_INCLUDED )
+#define KRATOS_SMALL_DISPLACEMENT_CUSTOM_H_INCLUDED
 
 // System includes
 
@@ -19,8 +19,6 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/small_displacement.h"
-//#include "includes/variables.h"
-//#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -41,14 +39,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Total Lagrangian element for 2D and 3D geometries.
-
 /**
- * Implements a total Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 2D and 3D
+ * @class SmallDisplacementCustom
+ * @ingroup MultiscaleROMApplication
+ * @brief Small displacement element for 2D and 3D geometries.
+ * @details Auxiliary small displacement element, to add custom methods.
+ * @author Marcelo Raschi
  */
 
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementStrElement
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) SmallDisplacementCustom
     : public SmallDisplacement
 {
 public:
@@ -61,19 +60,19 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of SmallDisplacementStrElement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementStrElement);
+    /// Counted pointer of SmallDisplacementCustom
+    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementCustom);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    SmallDisplacementStrElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    SmallDisplacementStrElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallDisplacementCustom(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacementCustom(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~SmallDisplacementStrElement() override;
+    ~SmallDisplacementCustom() override;
 
     ///@}
     ///@name Operators
@@ -82,18 +81,21 @@ public:
     ///@name Operations
     ///@{
     /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
+     * @brief Returns the currently selected integration method
+     * @return Current integration method selected
+     * @todo ADD THE OTHER CREATE FUNCTION
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
-     * Calculate a Vector Variable on the Element Constitutive Law
+     * @brief Calculate a Vector Variable on the Element Constitutive Law
      * @param rVariable: The variable we want to get
      * @param rOutput: The values obtained int the integration points
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
     ///@name Protected static Member Variables
@@ -105,24 +107,37 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	SmallDisplacementStrElement() : SmallDisplacement()
+
+	SmallDisplacementCustom() : SmallDisplacement()
     {
     }
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    // A private default constructor necessary for serialization
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-    ///@name Private Inquiry
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
     ///@{
     ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    //SmallDisplacementStrElement& operator=(const SmallDisplacementStrElement& rOther);
-    /// Copy constructor.
-    //SmallDisplacementStrElement(const SmallDisplacementStrElement& rOther);
+
     ///@}
+    ///@name Serialization
+    ///@{
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -131,7 +146,18 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class SmallDisplacementStrElement
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    /// Assignment operator.
+    //SmallDisplacement& operator=(const SmallDisplacement& rOther);
+    /// Copy constructor.
+    //SmallDisplacement(const SmallDisplacement& rOther);
+    ///@}
+
+}; // Class SmallDisplacementCustom
 
 ///@}
 ///@name Type Definitions
@@ -142,4 +168,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_STR_ELEMENT_H_INCLUDED defined
+#endif // KRATOS_SMALL_DISPLACEMENT_CUSTOM_H_INCLUDED defined
