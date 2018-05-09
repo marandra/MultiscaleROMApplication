@@ -57,8 +57,8 @@ public:
 protected:
 private:
     // elements
-    const SmallDisplacementStrElement mSmallDisplacementStrElement2D4N;
-    const SmallDisplacementStrElement mSmallDisplacementStrElement3D8N;
+    const SmallDisplacementCustom mSmallDisplacementCustom2D4N;
+    const SmallDisplacementCustom mSmallDisplacementCustom3D8N;
     // restrictions
     const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
     const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
