@@ -117,6 +117,13 @@
 	    "filename": "homogenized_stress.dat",
             "variable_name": "CAUCHY_STRESS_VECTOR"
 	    }
+        },{
+        "implemented_in_file": "calculate_total_displacement_process",
+        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "process_name": "ComputeTotalDisplacementProcess",
+        "Parameters": {
+            "model_part_name": "RVE"
+	    }
         }],
     "output_configuration"     : {
         "result_file_configuration" : {
@@ -133,8 +140,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY"]
+            "nodal_results"       : ["DISPLACEMENT", "LAGRANGE_DISPLACEMENT", "REACTION"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY", "DAMAGE_VARIABLE"]
             },
         "point_data_configuration"  : []
         },
