@@ -15,7 +15,7 @@
 #include "custom_conditions/minimal_kinetic_3D.hpp"
 //#include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
 //#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_elements/small_displacement_custom_element.h"
+#include "custom_elements/small_displacement_custom_element.hpp"
 #include "multiscale_rom_application_variables.h"
 
 namespace Kratos

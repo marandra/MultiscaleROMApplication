@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/small_displacement_custom_element.h"
+#include "custom_elements/small_displacement_custom_element.hpp"
 
 namespace Kratos
 {
@@ -58,10 +58,6 @@ void SmallDisplacementCustom::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    //const GeometryType::IntegrationMethod integration_method =
-    //        GetGeometry().GetDefaultIntegrationMethod();
-    //const GeometryType::IntegrationPointsArrayType &integration_points =
-    //        GetGeometry().IntegrationPoints(integration_method);
 
     if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
         rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );

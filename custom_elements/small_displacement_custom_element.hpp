@@ -93,9 +93,11 @@ public:
      * @param rOutput: The values obtained int the integration points
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
 protected:
     ///@name Protected static Member Variables
