@@ -31,7 +31,7 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_3D.cpp
 
     ## ELEMENTS
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_custom_element.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_custom_element.cpp
 )
 
 ###############################################################

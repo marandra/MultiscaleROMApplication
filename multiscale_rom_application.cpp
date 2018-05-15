@@ -18,12 +18,12 @@ namespace Kratos
 {
 KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
      KratosApplication("MultiscaleROMApplication"),
-      mSmallDisplacementCustom2D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacementCustom3D8N(0,
-          Element::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(
-              Element::GeometryType::PointsArrayType(8)))),
+      //mSmallDisplacementCustom2D4N(0,
+      //    Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+      //        Element::GeometryType::PointsArrayType(4)))),
+      //mSmallDisplacementCustom3D8N(0,
+      //    Element::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(
+      //        Element::GeometryType::PointsArrayType(8)))),
       mMinimalKineticCondition2D3N(0,
           Condition::GeometryType::Pointer(
               new Line2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -50,8 +50,8 @@ void KratosMultiscaleROMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_6);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_NODE);
 
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement2D4N", mSmallDisplacementCustom2D4N);
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement3D8N", mSmallDisplacementCustom3D8N);
+    //KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement2D4N", mSmallDisplacementCustom2D4N);
+    //KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement3D8N", mSmallDisplacementCustom3D8N);
 
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N);
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N);
