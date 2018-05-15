@@ -1,0 +1,33 @@
+{  
+    "properties": [{
+        "model_part_name": "MATERIAL_HOMOGENEOUS",
+        "properties_id": 1,
+        "Material": {
+            "name": "homog",
+            "constitutive_law": {
+                "name": "LinearElastic3DLaw"
+            },
+            "Variables": {
+                "DENSITY": 7850.0,
+                "YOUNG_MODULUS": 210000000000.0,
+                "POISSON_RATIO": 0.3
+                },
+            "Tables":  {}
+            }
+    }, {
+        "model_part_name": "MATERIAL_MULTISCALE",
+        "properties_id": 2,
+        "Material": {
+            "name": "multiscale",
+            "constitutive_law": {
+                "name": "RVELaw"
+            },
+            "Variables": {
+                "DENSITY": 7850.0,
+                "YOUNG_MODULUS": 210000000000.0,
+                "POISSON_RATIO": 0.3
+                },
+            "Tables":  {}
+            }
+    }]
+}
