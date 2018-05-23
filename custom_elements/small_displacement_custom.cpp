@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/small_displacement_custom_element.hpp"
+#include "custom_elements/small_displacement_custom.hpp"
 
 namespace Kratos
 {
@@ -47,6 +47,27 @@ Element::Pointer SmallDisplacementCustom::Create(IndexType NewId,
 
 SmallDisplacementCustom::~SmallDisplacementCustom()
 {
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementCustom::InitializeMaterial()
+{
+    KRATOS_TRY
+
+    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial( GetProperties(),
+            GetGeometry(),
+            row( GetGeometry().ShapeFunctionsValues(  ), point_number )
+            );
+        }
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+    KRATOS_CATCH( "" );
 }
 
 //************************************************************************************

@@ -8,6 +8,10 @@ namespace Kratos
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
 {
+    mpRVEModelPart = make_shared<ModelPart>("aaa");
+    mpRVEModelPart = Kernel::GetCurrentModel().CreateModelPart("aaa")
+    ReadMaterialsProcesn(param, mpRVEModelPart).Execute()
+
     // TODO why can't these three be const?
     auto w_list = param["w"];
     auto B_list = param["B"];
@@ -354,5 +358,33 @@ int RVELaw::Check(const Properties& rMaterialProperties,
 // 	rFeatures.mSpaceDimension = WorkingSpaceDimension();
 // }
 //
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    rSerializer.save("mpRVEModelPart", mpRVEModelPart);
+    rSerializer.save("mB_vec", mB_vec);
+    rSerializer.save("mIW_vec", mIW_vec);
+    rSerializer.save("mCL_vec", mCL_vec);
+    rSerializer.save("mPropId_vec", mPropId_vec);
+    rSerializer.save("mModesWeights", mModesWeights);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    rSerializer.load("mpRVEModelPart", mpRVEModelPart);
+    rSerializer.load("mB_vec", mB_vec);
+    rSerializer.load("mIW_vec", mIW_vec);
+    rSerializer.load("mCL_vec", mCL_vec);
+    rSerializer.load("mPropId_vec", mPropId_vec);
+    rSerializer.load("mModesWeights", mModesWeights);
+}
 
 } /* namespace Kratos.*/

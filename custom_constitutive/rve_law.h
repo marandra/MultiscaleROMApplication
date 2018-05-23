@@ -1,5 +1,5 @@
-#if !defined(KRATOS_RVE_IDENTIFIER_LAW_H_INCLUDED)
-#define KRATOS_RVE_IDENTIFIER_LAW_H_INCLUDED
+#if !defined(KRATOS_RVE_LAW_H_INCLUDED)
+#define KRATOS_RVE_LAW_H_INCLUDED
 
 #include <vector>
 #include "includes/constitutive_law.h"
@@ -10,7 +10,6 @@ namespace Kratos
 {
 class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw
 {
-protected:
 public:
     // Type Definitions
     typedef ProcessInfo ProcessInfoType;
@@ -134,15 +133,9 @@ private:
 */
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    void load(Serializer& rSerializer) override;
 
 }; // Class RVELaw
 } // namespace Kratos.
