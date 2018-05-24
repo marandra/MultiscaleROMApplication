@@ -56,6 +56,12 @@ Begin SubModelPart RVE
          1
     End SubModelPartElements
     Begin SubModelPartConditions
+         1
+         2
+         3
+         4
+         5
+         6
     End SubModelPartConditions
 End SubModelPart
 
@@ -91,7 +97,7 @@ End SubModelPart
 
 Begin SubModelPart FIXED_Z
     Begin SubModelPartNodes
-         4
+         6
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
