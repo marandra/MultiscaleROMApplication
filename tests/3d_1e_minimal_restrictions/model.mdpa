@@ -22,15 +22,6 @@ Begin Elements SmallDisplacementElement3D8N
 1 1 7 4 6 8 3 1 2 5
 End Elements
                                                                                 
-Begin Conditions MinimalKineticCondition3D4N
-1 0 3 7 4 1 
-2 0 7 8 6 4
-3 0 1 4 6 2
-4 0 3 1 2 5
-5 0 8 5 2 6
-6 0 3 5 8 7
-End Conditions
-
 Begin SubModelPart MATRIX
     Begin SubModelPartNodes
     End SubModelPartNodes
@@ -56,12 +47,6 @@ Begin SubModelPart RVE
          1
     End SubModelPartElements
     Begin SubModelPartConditions
-         1
-         2
-         3
-         4
-         5
-         6
     End SubModelPartConditions
 End SubModelPart
 

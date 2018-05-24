@@ -51,6 +51,15 @@ main_model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_4)
 main_model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_5)
 main_model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_6)
 
+## Detection of skin and set of boundary conditions
+parameter_string = '''{
+"name_auxiliar_model_part" : "SKIN",
+"name_auxiliar_condition"  : "MinimalKineticCondition",
+"echo_level"               : 1
+}'''
+detect_skin = km.SkinDetectionProcess3D(solver.GetComputingModelPart(), km.Parameters(parameter_string))
+detect_skin.Execute()
+
 ## Initialize GiD I/O
 output_post = ProjectParameters.Has("output_configuration")
 if output_post:
