@@ -1,8 +1,6 @@
 {
     "problem_data": {
         "problem_name": "training",
-        "model_part_name": "DOMAIN",
-        "domain_size": 3,
         "parallel_type": "OpenMP",
         "time_step": 0.10,
         "start_time": 0.0,
@@ -10,6 +8,8 @@
         "echo_level": 0
         },
     "solver_settings": {
+        "model_part_name": "DOMAIN",
+        "domain_size": 3,
         "solver_type": "Static",
         "echo_level": 0,
         "analysis_type": "non_linear",
@@ -36,7 +36,9 @@
         "processes_sub_model_part_list": ["RVE", "PINNED", "FIXED_X", "FIXED_Y", "FIXED_Z", "MATRIX"],
         "rotation_dofs": false,
         "compute_reactions": false,
-        "move_mesh_flag": false
+        "move_mesh_flag": false,
+        "block_builder": true,
+        "auxiliary_variables_list": ["LAGRANGE_MULTIPLIER_1", "LAGRANGE_MULTIPLIER_2", "LAGRANGE_MULTIPLIER_3", "LAGRANGE_MULTIPLIER_4", "LAGRANGE_MULTIPLIER_5", "LAGRANGE_MULTIPLIER_6", "LAGRANGE_DISPLACEMENT"]
         },
     "constraints_process_list": [{
         "python_module": "assign_vector_variable_process",
