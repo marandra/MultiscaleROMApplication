@@ -1,0 +1,20 @@
+{  
+    "properties": [{
+        "model_part_name": "MATRIX",
+        "properties_id": 1,
+        "Material": {
+            "name": "matrix",
+            "constitutive_law": {
+                "name": "LinearIsotropicDamage3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 21000.0,
+                "POISSON_RATIO": 0.3,
+                "YIELD_STRESS": 1e10,
+                "INFINITY_YIELD_STRESS": 2e10,
+                "ISOTROPIC_HARDENING_MODULUS": 0.015
+                },
+            "Tables":  {}
+            }
+    }]
+}
