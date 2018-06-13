@@ -4,13 +4,55 @@
 #include <utilities/math_utils.h>
 namespace Kratos
 {
+// Constructor
+RVELaw::RVELaw()
+{
+    //mpRVEModelPart = make_shared<ModelPart>("aaa");
+    //mpRVEModelPart = Kernel::GetCurrentModel().CreateModelPart("aaa")
+    //ReadMaterialsProcesn(param, mpRVEModelPart).Execute()
+/*
+    // TODO why can't these three be const?
+    auto w_list = param["w"];
+    auto B_list = param["B"];
+    auto prop_id_list = param["props_id"];
+    const auto nr_points = B_list.size();
+    const auto nr_modes = B_list[0][0].size();
+    const auto nr_comps = B_list[0].size();;
+    // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
+    //const auto nr_comps = GetStrainSize();
+    //KRATOS_WATCH(nr_points);
+    //KRATOS_WATCH(nr_modes);
+    //KRATOS_WATCH(nr_comps);
+
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Matrix BK(nr_comps, nr_modes);
+        for (auto c = 0; c < nr_comps; c++)
+            for (auto m = 0; m < nr_modes; m++)
+                BK(c, m) = B_list[i][c][m].GetDouble();
+        Properties::Pointer prop =
+            mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
+        ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
+        //KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
+        mB_vec.push_back(BK);
+        mIW_vec.push_back(w_list[i].GetDouble());
+        mCL_vec.push_back(pcl);
+        mPropId_vec.push_back(prop_id_list[i].GetInt());
+    }
+    // TODO(marcelo): Discuss with Riccardo, following two != ZeroVector
+    // mModesWeight.clear()
+    // noalias(mModesWeights) = ZeroVector(nr_modes);
+    mModesWeights = ZeroVector(nr_modes);
+    */
+}
+
 // Default constructor
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
 {
-    mpRVEModelPart = make_shared<ModelPart>("aaa");
-    mpRVEModelPart = Kernel::GetCurrentModel().CreateModelPart("aaa")
-    ReadMaterialsProcesn(param, mpRVEModelPart).Execute()
+    //mpRVEModelPart = make_shared<ModelPart>("aaa");
+    //mpRVEModelPart = Kernel::GetCurrentModel().CreateModelPart("aaa")
+    //ReadMaterialsProcesn(param, mpRVEModelPart).Execute()
 
     // TODO why can't these three be const?
     auto w_list = param["w"];
@@ -65,6 +107,15 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
 // Destructor
 RVELaw::~RVELaw()
 {
+}
+
+// Create
+ConstitutiveLaw::Pointer RVELaw::Create(Kratos::Parameters Params) const
+{
+    //RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(
+    //        mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec);
+    RVELaw::Pointer p_clone(new RVELaw(mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
+    return p_clone;
 }
 
 // Clone

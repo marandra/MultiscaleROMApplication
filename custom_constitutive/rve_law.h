@@ -20,6 +20,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RVELaw);
 
     // default constructor, takes modelpart and parameters
+    RVELaw();
+
+    // default constructor, takes modelpart and parameters
     RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param);
 
     // constructor used by Clone(), takes individual data
@@ -28,6 +31,8 @@ public:
            std::vector<double> IW_list,
            std::vector<ConstitutiveLaw::Pointer> CL_list,
            std::vector<int> prop_id_list);
+
+     ConstitutiveLaw::Pointer Create(Kratos::Parameters) const override;
 
     // Clone function (has to be implemented by any derived class)
     // @return a pointer to a new instance of this constitutive law
