@@ -22,10 +22,10 @@
             },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 1e-8,
-        "displacement_absolute_tolerance": 1e-8,
-        "residual_relative_tolerance": 1e-8,
-        "residual_absolute_tolerance": 1e-8,
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 1e-4,
+        "residual_absolute_tolerance": 1e-9,
         "max_iteration": 10,
         "linear_solver_settings": {
             "solver_type": "SuperLUSolver",
@@ -62,7 +62,7 @@
             "direction"       : [0, -1, 0],
             "interval"        : [0.0, "End"]
         }
-} ],
+    }],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -88,9 +88,9 @@
         "RestartFrequency" : 0,
         "LoadRestart"      : false,
         "Restart_Step"     : 0
-        },
+    },
     "constraints_data"         : {
         "incremental_load"         : false,
         "incremental_displacement" : false
-        }
     }
+}
