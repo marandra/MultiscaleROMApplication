@@ -140,7 +140,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
 
-        main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
+        #main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
+        main_model_part = self.model.GetComputingModelPart()
         lmutility = msr.LagrangeMultiplierUtility(main_model_part)
         lmutility.Execute()
         main_model_part.Nodes[1].AddDof(msr.LAGRANGE_MULTIPLIER_1)

@@ -2,7 +2,6 @@
     "problem_data": {
         "problem_name": "training",
         "parallel_type": "OpenMP",
-        "time_step": 0.10,
         "start_time": 0.0,
         "end_time": 1.0,
         "echo_level": 0
@@ -11,7 +10,10 @@
         "model_part_name": "DOMAIN",
         "domain_size": 3,
         "solver_type": "Static",
-        "echo_level": 0,
+        "echo_level": 1,
+        "time_stepping": {
+            "time_step": 0.1
+        },
         "analysis_type": "non_linear",
         "model_import_settings": {
             "input_type": "mdpa",
@@ -82,8 +84,8 @@
             "value": 0.0
             }
         },{
-        "implemented_in_file": "write_elements_homogenized_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_elements_homogenized_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsHomogenizedOutput",
         "Parameters":{
             "model_part_name": "RVE",
@@ -96,6 +98,16 @@
         "process_name": "ComputeTotalDisplacementProcess",
         "Parameters":{
             "model_part_name": "RVE"
+	        }
+        },{
+        "python_module": "skin_detection_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "SkinDetectionProcess",
+        "Parameters":{
+            "model_part_name": "DOMAIN",
+            "name_auxiliar_model_part": "SKIN",
+            "name_auxiliar_condition": "MinimalKineticCondition",
+            "echo_level": 1
 	        }
         }],
     "loads_process_list": [{
