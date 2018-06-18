@@ -20,7 +20,11 @@
         "Material": {
             "name": "multiscale",
             "constitutive_law": {
-                "name": "RVELaw"
+                "name": "RVELaw",
+                "Parameters": {
+                    "rve_materials_filename": "rve_materias.json",
+                    "rve_data_filename": "rve_data.json"
+                }
             },
             "Variables": {
                 "DENSITY": 7850.0,

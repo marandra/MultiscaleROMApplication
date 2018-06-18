@@ -1,55 +1,22 @@
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
+#include "utilities/read_materials_utility.h"
+#include "includes/kernel.h"
+#include "includes/kratos_components.h"
 #include <multiscale_rom_application_variables.h>
-#include <utilities/math_utils.h>
 namespace Kratos
 {
-// Constructor
+// Default constructor
 RVELaw::RVELaw()
 {
-    //mpRVEModelPart = make_shared<ModelPart>("aaa");
-    //mpRVEModelPart = Kernel::GetCurrentModel().CreateModelPart("aaa")
-    //ReadMaterialsProcesn(param, mpRVEModelPart).Execute()
-/*
-    // TODO why can't these three be const?
-    auto w_list = param["w"];
-    auto B_list = param["B"];
-    auto prop_id_list = param["props_id"];
-    const auto nr_points = B_list.size();
-    const auto nr_modes = B_list[0][0].size();
-    const auto nr_comps = B_list[0].size();;
-    // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
-    //const auto nr_comps = GetStrainSize();
-    //KRATOS_WATCH(nr_points);
-    //KRATOS_WATCH(nr_modes);
-    //KRATOS_WATCH(nr_comps);
-
-    for (auto i = 0; i < nr_points; i++)
-    {
-        Matrix BK(nr_comps, nr_modes);
-        for (auto c = 0; c < nr_comps; c++)
-            for (auto m = 0; m < nr_modes; m++)
-                BK(c, m) = B_list[i][c][m].GetDouble();
-        Properties::Pointer prop =
-            mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
-        ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
-        //KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
-        mB_vec.push_back(BK);
-        mIW_vec.push_back(w_list[i].GetDouble());
-        mCL_vec.push_back(pcl);
-        mPropId_vec.push_back(prop_id_list[i].GetInt());
-    }
-    // TODO(marcelo): Discuss with Riccardo, following two != ZeroVector
-    // mModesWeight.clear()
-    // noalias(mModesWeights) = ZeroVector(nr_modes);
-    mModesWeights = ZeroVector(nr_modes);
-    */
+    KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CONSTRUCTOR")
 }
 
-// Default constructor
+// Old constructor
 RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     : mpRVEModelPart(mpModelPart)
 {
+    /*
     //mpRVEModelPart = make_shared<ModelPart>("aaa");
     //mpRVEModelPart = Kernel::GetCurrentModel().CreateModelPart("aaa")
     //ReadMaterialsProcesn(param, mpRVEModelPart).Execute()
@@ -86,6 +53,7 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
     // mModesWeight.clear()
     // noalias(mModesWeights) = ZeroVector(nr_modes);
     mModesWeights = ZeroVector(nr_modes);
+     */
 }
 
 // Constructor used by Clone()
@@ -100,6 +68,8 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
       mCL_vec(CL_list),
       mPropId_vec(prop_id_list)
 {
+    KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CLONE CONSTRUCTOR")
+
     const auto nr_modes = mB_vec[0].size2();
     mModesWeights = ZeroVector(nr_modes);
 }
@@ -112,17 +82,82 @@ RVELaw::~RVELaw()
 // Create
 ConstitutiveLaw::Pointer RVELaw::Create(Kratos::Parameters Params) const
 {
-    //RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(
-    //        mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec);
-    RVELaw::Pointer p_clone(new RVELaw(mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
-    return p_clone;
+    KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CREATE")
+    KRATOS_WATCH(Params)
+
+    // Parse RVE materials filename from Parameters
+    Kratos::Parameters default_parameters(R"(
+    {
+        "name": "constitutive law name",
+        "Parameters" : {
+            "rve_materials_filename" : "please specify the file to be opened"
+            "rve_data_filename" : "please specify the file to be opened"
+        }
+    }  )"
+    );
+    Params.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const std::string& materials_filename = Params["Parameters"]["rve_materials_filename"].GetString();
+    std::ifstream infile(materials_filename);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "RVE Materials file: " << materials_filename << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+
+    // Read json string in materials file, create RVE materials parameters
+    Kratos::Parameters materials_params(buffer.str());
+
+    const std::string& data_filename = Params["Parameters"]["rve_data_filename"].GetString();
+    std::ifstream data_infile(data_filename);
+    KRATOS_ERROR_IF_NOT(data_infile.good()) << "RVE Data file: " << data_filename << " cannot be found" << std::endl;
+    std::stringstream data_buffer;
+    buffer << data_infile.rdbuf();
+
+    // Read json string in materials file, create RVE materials parameters
+    Kratos::Parameters data_params(buffer.str());
+
+    // Create model part (dummy in this case, from micro.mdpa in general)
+    Model model();
+    //ModelPart mpRVEModelPart("RVE");
+    model.AddModelPart(&mpRVEModelPart);
+    ReadMaterialsUtility(materials_params, model);
+
+    Kratos::Parameters w_list = data_params["w"];
+    Kratos::Parameters B_list = data_params["B"];
+    Kratos::Parameters prop_id_list = data_params["props_id"];
+    const std::size_t nr_points = B_list.size();
+    const std::size_t nr_modes = B_list[0][0].size();
+    const std::size_t nr_comps = B_list[0].size();;
+
+    KRATOS_WATCH(nr_points);
+    KRATOS_WATCH(nr_modes);
+    KRATOS_WATCH(nr_comps);
+
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Matrix BK(nr_comps, nr_modes);
+        for (auto c = 0; c < nr_comps; c++)
+            for (auto m = 0; m < nr_modes; m++)
+                BK(c, m) = B_list[i][c][m].GetDouble();
+        Properties::Pointer prop =
+            mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
+        ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
+        //KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
+        mB_vec.push_back(BK);
+        mIW_vec.push_back(w_list[i].GetDouble());
+        mCL_vec.push_back(pcl);
+        mPropId_vec.push_back(prop_id_list[i].GetInt());
+    }
+    // TODO(marcelo): Discuss with Riccardo, following two != ZeroVector
+    // mModesWeight.clear()
+    // noalias(mModesWeights) = ZeroVector(nr_modes);
+    mModesWeights = ZeroVector(nr_modes);
 }
 
 // Clone
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
-    //RVELaw::Pointer pnewCL = boost::make_shared<RVELaw>(
-    //        mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec);
+    KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CLONE")
+
     RVELaw::Pointer p_clone(new RVELaw(mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
     return p_clone;
 }
