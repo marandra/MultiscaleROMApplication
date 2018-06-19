@@ -1,8 +1,5 @@
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
-#include "utilities/read_materials_utility.h"
-#include "includes/kernel.h"
-#include "includes/kratos_components.h"
 #include <multiscale_rom_application_variables.h>
 namespace Kratos
 {
@@ -12,15 +9,60 @@ RVELaw::RVELaw()
     KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CONSTRUCTOR")
 }
 
-// Old constructor
-RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
-    : mpRVEModelPart(mpModelPart)
+// Main constructor
+RVELaw::RVELaw(Kratos::Parameters Params)
 {
-    /*
-    //mpRVEModelPart = make_shared<ModelPart>("aaa");
-    //mpRVEModelPart = Kernel::GetCurrentModel().CreateModelPart("aaa")
-    //ReadMaterialsProcesn(param, mpRVEModelPart).Execute()
+    KRATOS_WATCH("DEBUG - IN MULTISCALE RVE MAIN CONSTRUCTOR")
+    KRATOS_WATCH(Params)
 
+    // Parse RVE materials filename from Parameters
+    Kratos::Parameters default_parameters(R"(
+    {
+        "name": "constitutive law name",
+        "Parameters" : {
+            "rve_materials_filename" : "please specify the file to be opened"
+            "rve_data_filename" : "please specify the file to be opened"
+        }
+    }  )"
+    );
+    Params.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    // Read json string in file, create parameters
+    Kratos::Parameters materials_params(ReadFile(Params["Parameters"]["rve_materials_filename"].GetString()));
+    Kratos::Parameters data_params(ReadFile(Params["Parameters"]["rve_data_filename"].GetString()));
+
+    GetPropertyBlock(materials_params);
+
+    Kratos::Parameters w_list = data_params["w"];
+    Kratos::Parameters B_list = data_params["B"];
+    Kratos::Parameters prop_id_list = data_params["props_id"];
+    const std::size_t nr_points = B_list.size();
+    const std::size_t nr_modes = B_list[0][0].size();
+    const std::size_t nr_comps = B_list[0].size();;
+    KRATOS_WATCH(nr_points);
+    KRATOS_WATCH(nr_modes);
+    KRATOS_WATCH(nr_comps);
+
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Matrix BK(nr_comps, nr_modes);
+        for (auto c = 0; c < nr_comps; c++)
+            for (auto m = 0; m < nr_modes; m++)
+                BK(c, m) = B_list[i][c][m].GetDouble();
+        Properties::Pointer prop = mpProperties->[prop_id_list[i].GetInt()];
+        ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
+        //KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
+        mB_vec.push_back(BK);
+        mIW_vec.push_back(w_list[i].GetDouble());
+        mCL_vec.push_back(pcl);
+        mPropId_vec.push_back(prop_id_list[i].GetInt());
+    }
+
+    //mModesWeights = ZeroVector(nr_modes);
+    //mModesWeights.clear();
+    noalias(mModesWeights) = ZeroVector(nr_modes);
+
+    /*
     // TODO why can't these three be const?
     auto w_list = param["w"];
     auto B_list = param["B"];
@@ -57,12 +99,12 @@ RVELaw::RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param)
 }
 
 // Constructor used by Clone()
-RVELaw::RVELaw(ModelPart::Pointer mpModelPart,
+RVELaw::RVELaw(const Properties::Pointer& mpProperties,
                std::vector<Matrix> B_list,
                std::vector<double> IW_list,
                std::vector<ConstitutiveLaw::Pointer> CL_list,
                std::vector<int> prop_id_list)
-    : mpRVEModelPart(mpModelPart),
+    : mpProperties(mpProperties),
       mB_vec(B_list),
       mIW_vec(IW_list),
       mCL_vec(CL_list),
@@ -83,82 +125,14 @@ RVELaw::~RVELaw()
 ConstitutiveLaw::Pointer RVELaw::Create(Kratos::Parameters Params) const
 {
     KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CREATE")
-    KRATOS_WATCH(Params)
-
-    // Parse RVE materials filename from Parameters
-    Kratos::Parameters default_parameters(R"(
-    {
-        "name": "constitutive law name",
-        "Parameters" : {
-            "rve_materials_filename" : "please specify the file to be opened"
-            "rve_data_filename" : "please specify the file to be opened"
-        }
-    }  )"
-    );
-    Params.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-    const std::string& materials_filename = Params["Parameters"]["rve_materials_filename"].GetString();
-    std::ifstream infile(materials_filename);
-    KRATOS_ERROR_IF_NOT(infile.good()) << "RVE Materials file: " << materials_filename << " cannot be found" << std::endl;
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-
-    // Read json string in materials file, create RVE materials parameters
-    Kratos::Parameters materials_params(buffer.str());
-
-    const std::string& data_filename = Params["Parameters"]["rve_data_filename"].GetString();
-    std::ifstream data_infile(data_filename);
-    KRATOS_ERROR_IF_NOT(data_infile.good()) << "RVE Data file: " << data_filename << " cannot be found" << std::endl;
-    std::stringstream data_buffer;
-    buffer << data_infile.rdbuf();
-
-    // Read json string in materials file, create RVE materials parameters
-    Kratos::Parameters data_params(buffer.str());
-
-    // Create model part (dummy in this case, from micro.mdpa in general)
-    Model model();
-    //ModelPart mpRVEModelPart("RVE");
-    model.AddModelPart(&mpRVEModelPart);
-    ReadMaterialsUtility(materials_params, model);
-
-    Kratos::Parameters w_list = data_params["w"];
-    Kratos::Parameters B_list = data_params["B"];
-    Kratos::Parameters prop_id_list = data_params["props_id"];
-    const std::size_t nr_points = B_list.size();
-    const std::size_t nr_modes = B_list[0][0].size();
-    const std::size_t nr_comps = B_list[0].size();;
-
-    KRATOS_WATCH(nr_points);
-    KRATOS_WATCH(nr_modes);
-    KRATOS_WATCH(nr_comps);
-
-    for (auto i = 0; i < nr_points; i++)
-    {
-        Matrix BK(nr_comps, nr_modes);
-        for (auto c = 0; c < nr_comps; c++)
-            for (auto m = 0; m < nr_modes; m++)
-                BK(c, m) = B_list[i][c][m].GetDouble();
-        Properties::Pointer prop =
-            mpRVEModelPart->pGetProperties(prop_id_list[i].GetInt());
-        ConstitutiveLaw::Pointer pcl = prop->GetValue(CONSTITUTIVE_LAW)->Clone();
-        //KRATOS_WATCH(prop->GetValue(YOUNG_MODULUS));
-        mB_vec.push_back(BK);
-        mIW_vec.push_back(w_list[i].GetDouble());
-        mCL_vec.push_back(pcl);
-        mPropId_vec.push_back(prop_id_list[i].GetInt());
-    }
-    // TODO(marcelo): Discuss with Riccardo, following two != ZeroVector
-    // mModesWeight.clear()
-    // noalias(mModesWeights) = ZeroVector(nr_modes);
-    mModesWeights = ZeroVector(nr_modes);
+    return Kratos::make_shared<RVELaw>(Params);
 }
 
 // Clone
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
     KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CLONE")
-
-    RVELaw::Pointer p_clone(new RVELaw(mpRVEModelPart, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
+    RVELaw::Pointer p_clone(new RVELaw(mpProperties, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
     return p_clone;
 }
 
@@ -166,6 +140,174 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const
 RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 {
 }
+
+std::string RVELaw::ReadFile(const std::string &filename) const
+{
+    std::ifstream infile(filename);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "File " << filename << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    return buffer.str();
+}
+
+void RVELaw::GetPropertyBlock(Kratos::Parameters Materials)
+{
+    for (auto i = 0; i < Materials["properties"].size(); ++i) {
+        Kratos::Parameters material = Materials["properties"].GetArrayItem(i);
+        AssignPropertyBlock(material);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RVELaw::TrimComponentName(std::string& rLine){
+    std::stringstream ss(rLine);
+    std::size_t counter = 0;
+    while (std::getline(ss, rLine, '.')){counter++;}
+    if (counter > 1)
+        KRATOS_WARNING("Read materials") << "Ignoring module information for component " << rLine << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RVELaw::AssignPropertyBlock(Kratos::Parameters Data)
+{
+    // Get the properties for the specified model part.
+    const std::size_t property_id = Data["properties_id"].GetInt();
+    mpProperties->SetId(property_id);
+
+    //Set the CONSTITUTIVE_LAW for the current p_properties.
+    if (Data["Material"].Has("constitutive_law")) {
+        std::string constitutive_law_name = Data["Material"]["constitutive_law"]["name"].GetString();
+        TrimComponentName(constitutive_law_name);
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
+        mpProperties->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+    } else {
+        KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << property_id << std::endl;
+    }
+
+    // Add / override the values of material parameters in the p_properties
+    Kratos::Parameters variables = Data["Material"]["Variables"];
+    for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+        const Kratos::Parameters value = variables.GetValue(iter.name());
+
+        std::string variable_name = iter.name();
+        TrimComponentName(variable_name);
+
+        // We don't just copy the values, we do some tyransformation depending of the destination variable
+        if(KratosComponents<Variable<double> >::Has(variable_name)) {
+            const Variable<double>& variable = KratosComponents<Variable<double>>().Get(variable_name);
+            if (value.IsDouble()) {
+                p_prop->SetValue(variable, value.GetDouble());
+            } else if (value.IsInt()) {
+                p_prop->SetValue(variable, static_cast<double>(value.GetInt()));
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+            const Variable<bool>& variable = KratosComponents<Variable<bool>>().Get(variable_name);
+            if (value.IsBool()) {
+                p_prop->SetValue(variable, value.GetBool());
+            } else if (value.IsInt()) {
+                p_prop->SetValue(variable, static_cast<bool>(value.GetInt()));
+            } else if (value.IsDouble()) {
+                p_prop->SetValue(variable, static_cast<bool>(value.GetDouble()));
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+            const Variable<int>& variable = KratosComponents<Variable<int>>().Get(variable_name);
+            if (value.IsInt()) {
+                p_prop->SetValue(variable, value.GetInt());
+            } else if (value.IsDouble()) {
+                p_prop->SetValue(variable, static_cast<int>(value.GetDouble()));
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
+            if (value.IsVector()) {
+                array_1d<double, 3> temp(3, 0.0);
+                const Vector& value_variable = value.GetVector();
+                const std::size_t iter_number = (3 < value_variable.size()) ? 3 : value_variable.size();
+                for (std::size_t index = 0; index < iter_number; index++)
+                    temp[index] = value_variable[index];
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
+            if (value.IsVector()) {
+                array_1d<double, 6> temp(6, 0.0);
+                const Vector& value_variable = value.GetVector();
+                const std::size_t iter_number = (6 < value_variable.size()) ? 6 : value_variable.size();
+                for (std::size_t index = 0; index < iter_number; index++)
+                    temp[index] = value_variable[index];
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
+            const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
+            if (value.IsVector()) {
+                p_prop->SetValue(variable, value.GetVector());
+            } else if (value.IsMatrix()) {
+                Vector temp;
+                const Matrix& value_variable = value.GetMatrix();
+                for (std::size_t index = 0; index < value_variable.size1(); index++)
+                    temp[index] = value_variable(index, 0);
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+            const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
+            if (value.IsMatrix()) {
+                p_prop->SetValue(variable, value.GetMatrix());
+            } else if (value.IsVector()) {
+                Matrix temp;
+                const Vector& value_variable = value.GetVector();
+                for (std::size_t index = 0; index < value_variable.size(); index++)
+                    temp(index, 0) = value_variable[index];
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
+            const Variable<std::string>& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
+            if (value.IsString()) {
+                p_prop->SetValue(variable, value.GetString());
+            } else {
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+            }
+        } else {
+            KRATOS_ERROR << "Value type not defined";
+        }
+    }
+
+    // Add / override tables in the p_properties
+    Parameters tables = Data["Material"]["Tables"];
+    for(auto iter = tables.begin(); iter != tables.end(); iter++) {
+        auto table_param = tables.GetValue(iter.name());
+        // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
+        Table<double> table;
+
+        std::string input_var_name = table_param["input_variable"].GetString();
+        TrimComponentName(input_var_name);
+        std::string output_var_name = table_param["output_variable"].GetString();
+        TrimComponentName(output_var_name);
+
+        const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
+        const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+        for (auto i = 0; i < table_param["data"].size(); i++) {
+            table.insert(table_param["data"][i][0].GetDouble(),
+                         table_param["data"][i][1].GetDouble());
+        }
+        p_prop->SetTable(input_var, output_var, table);
+
 
 void RVELaw::InitializeMaterial(const Properties& rMaterialProperties,
                                 const GeometryType& rElementGeometry,
@@ -207,7 +349,7 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const auto nr_points = mB_vec.size();
     const auto nr_modes = mB_vec[0].size2();
     const auto nr_comps = mB_vec[0].size1();;
-    // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
+    // TODO(marcelo): Use GetStrainSize and WorkingSpaceDimension properly
     //const auto nr_comps = GetStrainSize();
     //const Properties& mat_props = rValues.GetMaterialProperties();
     const Vector& strain_macro = rValues.GetStrainVector();

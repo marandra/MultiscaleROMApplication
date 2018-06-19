@@ -5,6 +5,7 @@
 #include "includes/constitutive_law.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "containers/model.h"
 
 namespace Kratos
 {
@@ -13,8 +14,6 @@ class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw
 public:
     // Type Definitions
     typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
-    typedef std::size_t SizeType;
 
     // Counted pointer of RVELaw
     KRATOS_CLASS_POINTER_DEFINITION(RVELaw);
@@ -22,17 +21,17 @@ public:
     // default constructor, takes modelpart and parameters
     RVELaw();
 
-    // default constructor, takes modelpart and parameters
-    RVELaw(ModelPart::Pointer mpModelPart, Kratos::Parameters param);
+    // main constructor, takes parameters
+    explicit RVELaw(Kratos::Parameters Params);
 
     // constructor used by Clone(), takes individual data
-    RVELaw(ModelPart::Pointer mpModelPart,
+    RVELaw(const Properties::Pointer& mpProperties,
            std::vector<Matrix> B_list,
            std::vector<double> IW_list,
            std::vector<ConstitutiveLaw::Pointer> CL_list,
            std::vector<int> prop_id_list);
 
-     ConstitutiveLaw::Pointer Create(Kratos::Parameters) const override;
+    ConstitutiveLaw::Pointer Create(Kratos::Parameters) const override;
 
     // Clone function (has to be implemented by any derived class)
     // @return a pointer to a new instance of this constitutive law
@@ -40,10 +39,6 @@ public:
 
     // Copy constructor.
     RVELaw(const RVELaw& rOther);
-
-    // TODO define copy assignment constructor
-    // Copy assignment constructor.
-    // RVELaw(const RVELaw& rOther);
 
     // Destructor
     ~RVELaw() override;
@@ -93,8 +88,7 @@ public:
 
 protected:
 private:
-    ModelPart::Pointer mpRVEModelPart;
-
+    Properties::Pointer mpProperties;
     std::vector<Matrix> mB_vec;
     std::vector<double> mIW_vec;
     std::vector<ConstitutiveLaw::Pointer> mCL_vec;
@@ -103,10 +97,18 @@ private:
 
     void solve(const Matrix&, const Vector&, Vector&);
 
-    void
-    accumulate(Matrix &A, Vector &residual, const Vector &strain_macro);
+    void accumulate(Matrix &A, Vector &residual, const Vector &strain_macro);
+
+    std::string ReadFile(const std::string &filename) const;
 
     void calculate_individual_material_response(Vector &, Matrix &, Vector &, std::size_t);
+
+    void GetPropertyBlock(Kratos::Parameters Materials);
+
+    void AssignPropertyBlock(Kratos::Parameters Data);
+
+    void TrimComponentName(std::string& rLine);
+
 /*
     int determinant_sign(const permutation_matrix<std::size_t>& pm)
     {

@@ -40,7 +40,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     //        ;
 
     class_<RVELaw, typename RVELaw::Pointer, ConstitutiveLaw>
-    (m, "RVELaw").def(init<ModelPart::Pointer, Parameters>() )
+    (m, "RVELaw").def(init<>() )
     ;
 
    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
