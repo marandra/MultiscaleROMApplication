@@ -2,6 +2,7 @@
 #define KRATOS_RVE_LAW_H_INCLUDED
 
 #include <vector>
+#include <unordered_map>
 #include "includes/constitutive_law.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -14,6 +15,7 @@ class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw
 public:
     // Type Definitions
     typedef ProcessInfo ProcessInfoType;
+    typedef std::unordered_map<std::size_t, Properties> PropertiesMap;
 
     // Counted pointer of RVELaw
     KRATOS_CLASS_POINTER_DEFINITION(RVELaw);
@@ -25,7 +27,7 @@ public:
     explicit RVELaw(Kratos::Parameters Params);
 
     // constructor used by Clone(), takes individual data
-    RVELaw(const Properties::Pointer& mpProperties,
+    RVELaw(PropertiesMap pProperties_list,
            std::vector<Matrix> B_list,
            std::vector<double> IW_list,
            std::vector<ConstitutiveLaw::Pointer> CL_list,
@@ -88,7 +90,7 @@ public:
 
 protected:
 private:
-    Properties::Pointer mpProperties;
+    PropertiesMap mpProperties_map;
     std::vector<Matrix> mB_vec;
     std::vector<double> mIW_vec;
     std::vector<ConstitutiveLaw::Pointer> mCL_vec;
@@ -101,7 +103,7 @@ private:
 
     std::string ReadFile(const std::string &filename) const;
 
-    void calculate_individual_material_response(Vector &, Matrix &, Vector &, std::size_t);
+    void calculateIndividualMaterialResponse(Vector &, Matrix &, Vector &, std::size_t);
 
     void GetPropertyBlock(Kratos::Parameters Materials);
 
