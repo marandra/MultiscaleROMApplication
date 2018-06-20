@@ -1,49 +1,111 @@
 #if !defined(KRATOS_RVE_LAW_H_INCLUDED)
 #define KRATOS_RVE_LAW_H_INCLUDED
 
+// System includes
 #include <vector>
 #include <unordered_map>
+
+// Project includes
 #include "includes/constitutive_law.h"
-#include "includes/kratos_parameters.h"
-#include "solving_strategies/strategies/solving_strategy.h"
-#include "containers/model.h"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
 class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw
 {
 public:
-    // Type Definitions
-    typedef ProcessInfo ProcessInfoType;
+
+    ///@name Type Definitions
+    ///@{
+
     typedef std::unordered_map<std::size_t, Properties> PropertiesMap;
 
     // Counted pointer of RVELaw
     KRATOS_CLASS_POINTER_DEFINITION(RVELaw);
 
-    // default constructor, takes modelpart and parameters
+    ///@}
+    ///@name Lyfe Cycle
+    ///@{
+
+    /**
+     * @brief Default constructor.
+     */
     RVELaw();
 
-    // main constructor, takes parameters
+    /**
+     * @brief Constructor used by Create()
+     */
     explicit RVELaw(Kratos::Parameters Params);
 
-    // constructor used by Clone(), takes individual data
+    /**
+     * @brief Constructor used by Clone()
+     */
     RVELaw(PropertiesMap pProperties_list,
            std::vector<Matrix> B_list,
            std::vector<double> IW_list,
            std::vector<ConstitutiveLaw::Pointer> CL_list,
            std::vector<int> prop_id_list);
 
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters) const override;
-
-    // Clone function (has to be implemented by any derived class)
-    // @return a pointer to a new instance of this constitutive law
-    ConstitutiveLaw::Pointer Clone() const override;
-
-    // Copy constructor.
+    /**
+     * @brief Copy constructor
+     */
     RVELaw(const RVELaw& rOther);
 
-    // Destructor
+    /**
+     * @brief Destructor
+     */
     ~RVELaw() override;
+
+    /**
+     * @brief Clone function
+     * @return A pointer to a new instance of this constitutive law
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
+
+    /**
+     * @brief creates a new constitutive law pointer
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @return a Pointer to the new constitutive law
+     */
+    ConstitutiveLaw::Pointer Create(Kratos::Parameters) const override;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    std::size_t GetStrainSize() override
+    {
+        return 6;
+    };
+
+    std::size_t WorkingSpaceDimension() override
+    {
+        return 3;
+    };
+
+    bool Has(const Variable<Vector>& rThisVariable) override;
+
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
     * This is to be called at the very beginning of the calculation
@@ -58,27 +120,35 @@ public:
                             const GeometryType& rElementGeometry,
                             const Vector& rShapeFunctionsValues) override;
 
+    /**
+     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param rCurrentProcessInfo the current ProcessInfo instance
+     */
     void FinalizeSolutionStep(const Properties& rMaterialProperties,
                               const GeometryType& rElementGeometry,
                               const Vector& rShapeFunctionsValues,
                               const ProcessInfo& rCurrentProcessInfo) override;
-
-    bool Has(const Variable<Vector>& rThisVariable) override;
-
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
-
+    /**
+     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
-    std::size_t GetStrainSize() override
-    {
-        return 6;
-    };
-
-    std::size_t WorkingSpaceDimension() override
-    {
-        return 3;
-    };
-
+    /**
+     * @brief This function provides the place to perform checks on the
+     * completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often)
+     * typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rMaterialProperties The properties of the material
+     * @param rElementGeometry The geometry of the element
+     * @param rCurrentProcessInfo The current process info instance
+     */
     int Check(const Properties& rMaterialProperties,
               const GeometryType& rElementGeometry,
               const ProcessInfo& rCurrentProcessInfo) override;
@@ -89,21 +159,25 @@ public:
     };
 
 protected:
+
 private:
-    PropertiesMap mpProperties_map;
+    PropertiesMap mProperties_map;
     std::vector<Matrix> mB_vec;
     std::vector<double> mIW_vec;
     std::vector<ConstitutiveLaw::Pointer> mCL_vec;
     std::vector<int> mPropId_vec;
     Vector mModesWeights;
 
-    void solve(const Matrix&, const Vector&, Vector&);
+    void Solve(const Matrix &A, const Vector &res, Vector &Dx);
 
-    void accumulate(Matrix &A, Vector &residual, const Vector &strain_macro);
+    void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro);
 
     std::string ReadFile(const std::string &filename) const;
 
-    void calculateIndividualMaterialResponse(Vector &, Matrix &, Vector &, std::size_t);
+    void CalculateIndividualMaterialResponse(Vector &stress,
+                                             Matrix &constit,
+                                             Vector &strain,
+                                             std::size_t ip_index);
 
     void GetPropertyBlock(Kratos::Parameters Materials);
 
@@ -111,35 +185,6 @@ private:
 
     void TrimComponentName(std::string& rLine);
 
-/*
-    int determinant_sign(const permutation_matrix<std::size_t>& pm)
-    {
-        int pm_sign = 1;
-        std::size_t size = pm.size();
-        for (std::size_t i = 0; i < size; ++i)
-            // swap_rows would swap a pair of rows here, so we change sign
-            if (i != pm(i))
-                pm_sign *= -1.0;
-        return pm_sign;
-    };
-
-    double determinant(Matrix m)
-    {
-        permutation_matrix<std::size_t> pm(m.size1());
-        double det = 1.0;
-        if (lu_factorize(m, pm))
-        {
-            det = 0.0;
-        }
-        else
-        {
-            for (auto i = 0; i < m.size1(); i++)
-                det *= m(i, i); // multiply by elements on diagonal
-            det = det * determinant_sign(pm);
-        }
-        return det;
-    };
-*/
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;
