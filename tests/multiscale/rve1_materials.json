@@ -1,0 +1,41 @@
+{ 
+    "properties": [{
+        "model_part_name": "RVE",
+        "properties_id": 1,
+        "Material": {
+            "name": "matrix",
+            "constitutive_law": {
+                "name": "LinearJ2Plasticity3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 206.9,
+                "POISSON_RATIO": 0.29,
+                "YIELD_STRESS": 0.45,
+                "REFERENCE_HARDENING_MODULUS": 1.0,
+                "ISOTROPIC_HARDENING_MODULUS": 0.12924,
+                "INFINITY_HARDENING_MODULUS": 0.0,
+                "HARDENING_EXPONENT": 1.0
+                },
+            "Tables":  {}
+            }
+    },{
+        "model_part_name": "RVE",
+        "properties_id": 2,
+        "Material": {
+            "name": "inclusion",
+            "constitutive_law": {
+                "name": "LinearJ2Plasticity3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 20.9,
+                "POISSON_RATIO": 0.20,
+                "YIELD_STRESS": 4.50,
+                "REFERENCE_HARDENING_MODULUS": 1.0,
+                "ISOTROPIC_HARDENING_MODULUS": 0.12924,
+                "INFINITY_HARDENING_MODULUS": 0.0,
+                "HARDENING_EXPONENT": 1.0
+                },
+            "Tables":  {}
+            }
+    }]
+}

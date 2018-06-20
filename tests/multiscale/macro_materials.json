@@ -22,15 +22,11 @@
             "constitutive_law": {
                 "name": "RVELaw",
                 "Parameters": {
-                    "rve_materials_filename": "rve_materias.json",
-                    "rve_data_filename": "rve_data.json"
+                    "rve_materials_filename": "rve1_materials.json",
+                    "rve_data_filename": "rve1_data.json"
                 }
             },
-            "Variables": {
-                "DENSITY": 7850.0,
-                "YOUNG_MODULUS": 210000000000.0,
-                "POISSON_RATIO": 0.3
-                },
+            "Variables": {},
             "Tables":  {}
             }
     }]

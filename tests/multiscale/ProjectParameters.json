@@ -18,7 +18,7 @@
             "input_filename": "macro"
             },
         "material_import_settings": {
-            "materials_filename" : "materials.json"
+            "materials_filename" : "macro_materials.json"
             },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
