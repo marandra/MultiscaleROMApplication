@@ -44,11 +44,11 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     const std::size_t nr_modes = B_list[0][0].size();
     const std::size_t nr_comps = GetStrainSize();
 
-    for (auto i = 0; i < nr_points; i++)
+    for (std::size_t i = 0; i < nr_points; i++)
     {
         Matrix BK(nr_comps, nr_modes);
-        for (auto c = 0; c < nr_comps; c++)
-            for (auto m = 0; m < nr_modes; m++)
+        for (std::size_t c = 0; c < nr_comps; c++)
+            for (std::size_t m = 0; m < nr_modes; m++)
                 BK(c, m) = B_list[i][c][m].GetDouble();
 
         // Populate members
@@ -64,14 +64,9 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         //KRATOS_WATCH(prop.GetId());
         //KRATOS_WATCH(pcl->Info());
     }
-
-    //KRATOS_WATCH("DEBUG:");
-    //KRATOS_WATCH(nr_points);
-    //KRATOS_WATCH(nr_modes);
-    //KRATOS_WATCH(nr_comps);
-
-    mModesWeights.clear();
-    noalias(mModesWeights) = ZeroVector(nr_modes);
+    // preserve = false -> new elements (all of them in this case) not initialized
+    mModesWeights.resize(nr_modes, false);
+    mModesWeights.clear(); // values initialized to zero
 }
 
 /***********************************************************************************/
@@ -88,11 +83,10 @@ RVELaw::RVELaw(PropertiesMap pProperties,
       mCL_vec(CL_list),
       mPropId_vec(prop_id_list)
 {
-    KRATOS_WATCH("DEBUG - IN MULTISCALE RVE CLONE CONSTRUCTOR")
-
-    const auto nr_modes = mB_vec[0].size2();
-    mModesWeights.clear();
-    noalias(mModesWeights) = ZeroVector(nr_modes);
+    const std::size_t nr_modes = mB_vec[0].size2();
+    // preserve = false -> new elements (all of them in this case) not initialized
+    mModesWeights.resize(nr_modes, false);
+    mModesWeights.clear(); // values initialized to zero
 }
 
 /***********************************************************************************/
@@ -340,40 +334,41 @@ void RVELaw::FinalizeSolutionStep(const Properties& rUnusedProperties,
 
 /***********************************************************************************/
 /***********************************************************************************/
-void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const std::size_t nr_points = mB_vec.size();
     const std::size_t nr_modes = mB_vec[0].size2();
     const std::size_t nr_comps = GetStrainSize();
-    //const Properties& mat_props = rValues.GetMaterialProperties();
-    const Vector& strain_macro = rValues.GetStrainVector();
+    const Vector& strain_macro = rValues.GetStrainVector(); // input
+    const ProcessInfo& process_info = rValues.GetProcessInfo();
 
-    Vector& homog_stress = rValues.GetStressVector();
-    noalias(homog_stress) = ZeroVector(nr_comps);
-    Matrix& homog_C = rValues.GetConstitutiveMatrix();
-    noalias(homog_C) = ZeroMatrix(nr_comps, nr_comps);
+    Vector& homog_stress = rValues.GetStressVector(); // output
+    homog_stress.clear();
+    Matrix& homog_C = rValues.GetConstitutiveMatrix(); // output
+    homog_C.clear();
 
     Matrix A(nr_modes, nr_modes);
     Vector res(nr_modes);
     Vector Dx(nr_modes);
 
-    Accumulate(A, res, strain_macro);
+    Accumulate(A, res, strain_macro, process_info);
     double norm_res = 1.;
     int it = 1;
+    // TODO(marcelo): Hardcoded tolerance and iteration number. Change it.
     while (norm_res > 1e-9 and it < 10)
     {
         Solve(A, res, Dx);
         mModesWeights -= Dx;
-        Accumulate(A, res, strain_macro);
+        Accumulate(A, res, strain_macro, process_info);
         norm_res = norm_2(res);
-        KRATOS_WATCH(norm_res);
+        //KRATOS_INFO("RVE Law") << "Iteration " << it << " Residual: " << norm_res << std::endl;
         it++;
     }
 
-    // TODO(marcelo): Use flags for the computation of
     // Homogenize stress and constitutive tensor
     Matrix homog_C_taylor = ZeroMatrix(nr_comps, nr_comps);
     Matrix homog_C_fluct = ZeroMatrix(nr_comps, nr_comps);
+    Matrix homog_C_fluct_aux = ZeroMatrix(nr_comps, nr_modes);
     Matrix homog_Q = ZeroMatrix(nr_modes, nr_comps);
     Matrix homog_Op = ZeroMatrix(nr_modes, nr_comps);
     Matrix invA = ZeroMatrix(nr_modes, nr_modes);
@@ -386,8 +381,7 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
         Vector stress(nr_comps);
         Matrix constit(nr_comps, nr_comps);
         Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-        // TODO(marcelo): strain argument should be const
-        CalculateIndividualMaterialResponse(stress, constit, strain, i);
+        CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
         homog_stress += mIW_vec[i] * stress;
         homog_C_taylor += mIW_vec[i] * constit;
         homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
@@ -395,14 +389,13 @@ void RVELaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     }
     homog_stress /= vol_rve;
     homog_Op = - prod(invA, homog_Q);
-    Matrix homog_C_fluct_aux(nr_comps, nr_modes);
     for (auto i = 0; i < nr_points; i++)
     {
         Vector stress(nr_comps);
         Matrix constit(nr_comps, nr_comps);
         Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
         // TODO(marcelo): strain argument should be const
-        CalculateIndividualMaterialResponse(stress, constit, strain, i);
+        CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
         homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
     }
     noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
@@ -448,24 +441,22 @@ void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx)
 
 /***********************************************************************************/
 /***********************************************************************************/
-void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro)
+    void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, const ProcessInfo &process_info)
 {
-    const auto nr_points = mB_vec.size();
-    const auto nr_modes = mB_vec[0].size2();
-    const auto nr_comps = mB_vec[0].size1();;
-    // TODO(marcelo): Use GetStraubSize and Workingspacedimension properly
-    //const auto nr_comps = GetStrainSize();
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_modes = mB_vec[0].size2();
+    const std::size_t nr_comps = GetStrainSize();
     Matrix Aux1(nr_comps, nr_modes);
 
-    noalias(A) = ZeroMatrix(nr_modes, nr_modes);
-    noalias(res) = ZeroVector(nr_modes);
-    for (auto i = 0; i < nr_points; i++)
+    A.clear();
+    res.clear();
+    for (std::size_t i = 0; i < nr_points; i++)
     {
         Vector stress(nr_comps);  // output
         Matrix constit(nr_comps, nr_comps);  // output
         Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
         // TODO(marcelo): strain should be const
-        CalculateIndividualMaterialResponse(stress, constit, strain, i);
+        CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
         // TODO(marcelo): explicitly write triple product for A
         // Dij = BTij Ckl Blj = for k for l for j for i
         noalias(Aux1) = prod(constit, mB_vec[i]);
@@ -476,10 +467,11 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro)
 
 /***********************************************************************************/
 /***********************************************************************************/
-void RVELaw::CalculateIndividualMaterialResponse(Vector &stress,
-                                                 Matrix &constit,
-                                                 Vector &strain,
-                                                 std::size_t ip_index)
+    void RVELaw::CalculateIndividualMaterialResponse(Vector &stress,
+                                                     Matrix &constit,
+                                                     Vector &strain,
+                                                     const ProcessInfo &process_info,
+                                                     std::size_t ip_index)
 {
     // create and pass individual parameters
     const auto dim = WorkingSpaceDimension();
@@ -501,7 +493,7 @@ void RVELaw::CalculateIndividualMaterialResponse(Vector &stress,
     F(2, 2) = 1.0 + strain(2);
     double detF = MathUtils<double>::Det(F);
 
-    Parameters cl_params;
+    ConstitutiveLaw::Parameters cl_params;
     cl_params.SetOptions(cl_flags);
     cl_params.SetDeformationGradientF(F);
     cl_params.SetDeterminantF(detF);
@@ -512,8 +504,7 @@ void RVELaw::CalculateIndividualMaterialResponse(Vector &stress,
     cl_params.SetShapeFunctionsDerivatives(DN_DX);
     const Properties material_props = mProperties_map[mPropId_vec[ip_index]];
     cl_params.SetMaterialProperties(material_props);
-    // TODO(marcelo): Is this ProcessInfo really necessary?
-    //cl_params.SetProcessInfo(mpRVEModelPart->GetProcessInfo());
+    cl_params.SetProcessInfo(process_info);
     // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
     // cl_params.SetElementGeometry();
 
@@ -545,8 +536,10 @@ int RVELaw::Check(const Properties& rUnusedProperties,
                   const ProcessInfo& rCurrentProcessInfo)
 {
     // Self check
-    KRATOS_ERROR_IF_NOT(mB_vec.begin()->size1() == GetStrainSize())
-        << "Number of reduced base components differs from strain size.";
+    const size_t nr_comps = mB_vec.begin()->size1();
+    KRATOS_ERROR_IF_NOT(nr_comps == GetStrainSize())
+        << "Number of reduced base components ("<< nr_comps
+        << ") differs from strain size " << GetStrainSize() << std::endl;
 
     // Individual CLs check
     const auto nr_points = mB_vec.size();
@@ -615,5 +608,22 @@ void RVELaw::load(Serializer& rSerializer)
     rSerializer.load("mPropId_vec", mPropId_vec);
     rSerializer.load("mModesWeights", mModesWeights);
 }
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) {
+    CalculateMaterialResponseCauchy(rValues);
+}
+void RVELaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) {
+    CalculateMaterialResponseCauchy(rValues);
+}
+void RVELaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) {
+    CalculateMaterialResponseCauchy(rValues);
+}
+void RVELaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) { }
+void RVELaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) { }
+void RVELaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) { }
+void RVELaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) { }
 
 } /* namespace Kratos.*/

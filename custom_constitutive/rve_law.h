@@ -158,6 +158,14 @@ public:
         rOStream << "Multiscale HPROM constitutive law";
     };
 
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
 protected:
 
 private:
@@ -170,13 +178,12 @@ private:
 
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
 
-    void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro);
+    void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro, const ProcessInfo &process_info);
 
     std::string ReadFile(const std::string &filename) const;
 
-    void CalculateIndividualMaterialResponse(Vector &stress,
-                                             Matrix &constit,
-                                             Vector &strain,
+    void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain,
+                                             const ProcessInfo &process_info,
                                              std::size_t ip_index);
 
     void GetPropertyBlock(Kratos::Parameters Materials);
