@@ -88,6 +88,11 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
+     * @brief It initializes the material
+     */
+    void InitializeMaterial() override;
+
+    /**
      * @brief Calculate a Vector Variable on the Element Constitutive Law
      * @param rVariable: The variable we want to get
      * @param rOutput: The values obtained int the integration points

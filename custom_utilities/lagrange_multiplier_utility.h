@@ -1,5 +1,6 @@
 //
 // Created by mcaicedo on 3/29/17.
+// Created by vicente on 3/29/17.
 //
 
 #ifndef KRATOSMULTIPHYSICS_LAGRANGE_MULTIPLIER_UTILITY_H
@@ -38,6 +39,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -58,8 +61,14 @@ public:
 
     void Execute()
     {
-        Node<3>::Pointer pNode = mMainModelPart.pGetNode(1);
+        NodeType::Pointer pNode = mMainModelPart.pGetNode(1);
         mMainModelPart.GetProcessInfo()[LAGRANGE_MULTIPLIER_NODE] = pNode;
+        pNode->AddDof(LAGRANGE_MULTIPLIER_1);
+        pNode->AddDof(LAGRANGE_MULTIPLIER_2);
+        pNode->AddDof(LAGRANGE_MULTIPLIER_3);
+        pNode->AddDof(LAGRANGE_MULTIPLIER_4);
+        pNode->AddDof(LAGRANGE_MULTIPLIER_5);
+        pNode->AddDof(LAGRANGE_MULTIPLIER_6);
     }
 
     ///@}

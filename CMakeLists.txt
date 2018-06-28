@@ -25,13 +25,14 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
 
     ## CONSTITUTIVE LAW
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rve_law.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rom_rve.cpp
 
     ## CONDITIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_3D.cpp
 
     ## ELEMENTS
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_custom_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_custom.cpp
 )
 
 ###############################################################

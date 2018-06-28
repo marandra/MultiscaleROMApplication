@@ -1,0 +1,52 @@
+{  
+    "properties": [{
+        "model_part_name": "MATERIAL_HOMOGENEOUS",
+        "properties_id": 1,
+        "Material": {
+            "name": "homog",
+            "constitutive_law": {
+                "name": "LinearJ2Plasticity3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 200.0,
+                "POISSON_RATIO": 0.3,
+                "YIELD_STRESS": 0.00002,
+                "REFERENCE_HARDENING_MODULUS": 1.0,
+                "ISOTROPIC_HARDENING_MODULUS": 0.4,
+                "INFINITY_HARDENING_MODULUS": 0.0,
+                "HARDENING_EXPONENT": 1.0
+                },
+            "Tables":  {}
+            }
+    }, {
+        "model_part_name": "MATERIAL_MULTISCALE_1",
+        "properties_id": 2,
+        "Material": {
+            "name": "multiscale",
+            "constitutive_law": {
+                "name": "RVELaw",
+                "Parameters": {
+                    "rve_materials_filename": "micro1_materials.json",
+                    "rve_data_filename": "micro1_hprom_data.json"
+                }
+            },
+            "Variables": {},
+            "Tables":  {}
+            }
+    }, {
+        "model_part_name": "MATERIAL_MULTISCALE_2",
+        "properties_id": 3,
+        "Material": {
+            "name": "multiscale",
+            "constitutive_law": {
+                "name": "RVELaw",
+                "Parameters": {
+                    "rve_materials_filename": "micro2_materials.json",
+                    "rve_data_filename": "micro2_hprom_data.json"
+                }
+            },
+            "Variables": {},
+            "Tables":  {}
+            }
+    }]
+}
