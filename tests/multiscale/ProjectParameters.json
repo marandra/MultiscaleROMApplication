@@ -1,31 +1,33 @@
 {
     "problem_data": {
-        "problem_name": "Bending_beam",
+        "problem_name": "Multiscale",
         "model_part_name": "Structure",
         "domain_size": 3,
         "parallel_type": "OpenMP",
-        "time_step": 0.10,
         "start_time": 0.0,
         "end_time": 1.0,
         "echo_level": 0
         },
     "solver_settings": {
         "solver_type": "Static",
-        "echo_level": 0,
+        "echo_level": 1,
+        "time_stepping": {
+            "time_step": 0.01
+        },
         "analysis_type": "non_linear",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "macro"
+            "input_filename": "macro_model"
             },
         "material_import_settings": {
             "materials_filename" : "macro_materials.json"
             },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 1e-4,
-        "displacement_absolute_tolerance": 1e-9,
-        "residual_relative_tolerance": 1e-4,
-        "residual_absolute_tolerance": 1e-9,
+        "displacement_relative_tolerance": 1e-2,
+        "displacement_absolute_tolerance": 1e-6,
+        "residual_relative_tolerance": 1e-8,
+        "residual_absolute_tolerance": 1e-12,
         "max_iteration": 10,
         "linear_solver_settings": {
             "solver_type": "SuperLUSolver",
@@ -33,9 +35,13 @@
             "verbosity": 0
             },
         "problem_domain_sub_model_part_list": ["MACRO"],
-        "processes_sub_model_part_list": ["PINNED", "LOAD", "MATERIAL_HOMOGENEOUS", "MATERIAL_MULTISCALE"],
+        "processes_sub_model_part_list": ["PINNED", "DISPL_LOAD", "FIXED_Y", "MATERIAL_HOMOGENEOUS", "MATERIAL_MULTISCALE_1", "MATERIAL_MULTISCALE_2"],
         "rotation_dofs": false,
-        "move_mesh_flag": false
+        "compute_reactions": true,
+        "move_mesh_flag": false,
+        "block_builder": true,
+        "auxiliary_variables_list": [],
+        "auxiliary_dofs_list": []
         },
     "constraints_process_list": [{
         "python_module": "assign_vector_variable_process",
@@ -44,25 +50,42 @@
         "Parameters": {
             "model_part_name": "PINNED",
             "variable_name": "DISPLACEMENT",
-            "constrained": [true, true, true],
             "value": [0.0, 0.0, 0.0],
 	    "interval": [0.0, "End"]
             }
-        }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
-        "Parameters"            : {
-            "model_part_name" : "LOAD",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"          : 1,
-            "direction"       : [0, -1, 0],
-            "interval"        : [0.0, "End"]
+        }, {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "AssignVectorVariableProcess",
+        "Parameters": {
+            "model_part_name": "DISPL_LOAD",
+            "variable_name": "DISPLACEMENT",
+            "value": [null, "-0.0000005*t", null],
+	    "interval": [0.0, "End"]
+            }
+        }, {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "AssignVectorVariableProcess",
+        "Parameters": {
+            "model_part_name": "FIXED_Y",
+            "variable_name": "DISPLACEMENT",
+            "value": [null, 0.0, null],
+	    "interval": [0.0, "End"]
+            }
         }
-    }],
+    ],
+    "loads_process_list": [{
+        "python_module": "point_output_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "PointOutputProcess",
+        "Parameters": {
+            "model_part_name": "MACRO",
+	    "position": [0.5, 0.3, 0.3],
+            "output_variables": ["DISPLACEMENT_Y", "REACTION_Y"],
+            "output_file_name": "displacement-reaction.dat"
+            }
+        }],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -73,13 +96,13 @@
                 },
             "file_label"          : "step",
             "output_control_type" : "time",
-            "output_frequency"    : 1,
+            "output_frequency"    : 0,
             "body_output"         : true,
             "node_output"         : true,
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT", "REACTION", "POINT_LOAD"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR"]
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "PLASTIC_STRAIN"]
             },
         "point_data_configuration"  : []
         },
@@ -89,8 +112,8 @@
         "LoadRestart"      : false,
         "Restart_Step"     : 0
     },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    "constraints_data": {
+        "incremental_load": false,
+        "incremental_displacement": false
     }
 }

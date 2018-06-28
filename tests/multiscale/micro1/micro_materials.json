@@ -1,6 +1,6 @@
-{ 
+{  
     "properties": [{
-        "model_part_name": "RVE",
+        "model_part_name": "MATRIX",
         "properties_id": 1,
         "Material": {
             "name": "matrix",
@@ -8,18 +8,18 @@
                 "name": "LinearJ2Plasticity3DLaw"
             },
             "Variables": {
-                "YOUNG_MODULUS": 206.9,
-                "POISSON_RATIO": 0.29,
-                "YIELD_STRESS": 0.45,
-                "REFERENCE_HARDENING_MODULUS": 1.0,
-                "ISOTROPIC_HARDENING_MODULUS": 0.12924,
+                "YOUNG_MODULUS": 200.0,
+                "POISSON_RATIO": 0.3,
+                "YIELD_STRESS": 0.00002,
+                "REFERENCE_HARDENING_MODULUS": 0.1,
+                "ISOTROPIC_HARDENING_MODULUS": 0.1,
                 "INFINITY_HARDENING_MODULUS": 0.0,
-                "HARDENING_EXPONENT": 1.0
+                "HARDENING_EXPONENT": 0.1
                 },
             "Tables":  {}
             }
     },{
-        "model_part_name": "RVE",
+        "model_part_name": "INCLUSION",
         "properties_id": 2,
         "Material": {
             "name": "inclusion",
@@ -27,11 +27,11 @@
                 "name": "LinearJ2Plasticity3DLaw"
             },
             "Variables": {
-                "YOUNG_MODULUS": 20.9,
-                "POISSON_RATIO": 0.20,
-                "YIELD_STRESS": 4.50,
+                "YOUNG_MODULUS": 20.0,
+                "POISSON_RATIO": 0.3,
+                "YIELD_STRESS": 2.0,
                 "REFERENCE_HARDENING_MODULUS": 1.0,
-                "ISOTROPIC_HARDENING_MODULUS": 0.12924,
+                "ISOTROPIC_HARDENING_MODULUS": 0.4,
                 "INFINITY_HARDENING_MODULUS": 0.0,
                 "HARDENING_EXPONENT": 1.0
                 },
