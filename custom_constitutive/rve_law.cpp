@@ -208,30 +208,30 @@ void RVELaw::AssignPropertyBlock(Kratos::Parameters Data)
             } else {
                 KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
-        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
-            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
-            if (value.IsVector()) {
-                array_1d<double, 3> temp(3, 0.0);
-                const Vector& value_variable = value.GetVector();
-                const std::size_t iter_number = (3 < value_variable.size()) ? 3 : value_variable.size();
-                for (std::size_t index = 0; index < iter_number; index++)
-                    temp[index] = value_variable[index];
-                property.SetValue(variable, temp);
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
-        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
-            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
-            if (value.IsVector()) {
-                array_1d<double, 6> temp(6, 0.0);
-                const Vector& value_variable = value.GetVector();
-                const std::size_t iter_number = (6 < value_variable.size()) ? 6 : value_variable.size();
-                for (std::size_t index = 0; index < iter_number; index++)
-                    temp[index] = value_variable[index];
-                property.SetValue(variable, temp);
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
+//        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+//            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
+//            if (value.IsVector()) {
+//                array_1d<double, 3> temp(3, 0.0);
+//                const Vector& value_variable = value.GetVector();
+//                const std::size_t iter_number = (3 < value_variable.size()) ? 3 : value_variable.size();
+//                for (std::size_t index = 0; index < iter_number; index++)
+//                    temp[index] = value_variable[index];
+//                property.SetValue(variable, temp);
+//            } else {
+//                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+//            }
+//        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+//            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
+//            if (value.IsVector()) {
+//                array_1d<double, 6> temp(6, 0.0);
+//                const Vector& value_variable = value.GetVector();
+//                const std::size_t iter_number = (6 < value_variable.size()) ? 6 : value_variable.size();
+//                for (std::size_t index = 0; index < iter_number; index++)
+//                    temp[index] = value_variable[index];
+//                property.SetValue(variable, temp);
+//            } else {
+//                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
+//            }
         } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
             const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
             if (value.IsVector()) {
