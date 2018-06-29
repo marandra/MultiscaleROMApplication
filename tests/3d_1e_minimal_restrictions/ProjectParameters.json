@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "training",
+        "problem_name": "TestLM",
         "parallel_type": "OpenMP",
         "start_time": 0.0,
         "end_time": 1.0,
@@ -49,7 +49,6 @@
         "Parameters": {
             "model_part_name": "PINNED",
             "variable_name": "DISPLACEMENT",
-            "constrained": [true, true, true],
             "value": [0.0, 0.0, 0.0],
             "interval": [0.0, "End"]
             }
@@ -88,8 +87,8 @@
         "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsHomogenizedOutput",
         "Parameters":{
-            "model_part_name": "RVE",
-	        "filename": "homogenized_stress.dat",
+            "model_part_name": "DOMAIN",
+	    "filename": "homogenized_stress.dat",
             "variable_name": "CAUCHY_STRESS_VECTOR"
 	        }
         },{
@@ -97,7 +96,14 @@
         "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "ComputeTotalDisplacementProcess",
         "Parameters":{
-            "model_part_name": "RVE"
+            "model_part_name": "DOMAIN"
+	        }
+        },{
+        "python_module": "lagrange_multiplier_process",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "process_name": "LagrangeMultiplierProcess",
+        "Parameters":{
+            "model_part_name": "DOMAIN"
 	        }
         },{
         "python_module": "skin_detection_process",
@@ -116,7 +122,7 @@
         "process_name": "ImposeInitialStrainProcess",
         "Parameters":{
             "mesh_id": 0,
-            "model_part_name": "RVE",
+            "model_part_name": "DOMAIN",
             "variable_name": "INITIAL_STRAIN",
 	        "initial_strain": [0.001, 0.0, 0.0, 0.0, 0.0, 0.0],
 	        "lookuptable_time": [0.0, 1.0],

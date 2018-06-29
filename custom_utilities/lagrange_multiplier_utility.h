@@ -1,6 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Created by mcaicedo on 3/29/17.
-// Created by vicente on 3/29/17.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
+//                   Marcelo Raschi
 //
 
 #ifndef KRATOSMULTIPHYSICS_LAGRANGE_MULTIPLIER_UTILITY_H
@@ -30,10 +38,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief LagrangeMultiplierUtility
- * Creates blah blah blah
- */
-class LagrangeMultiplierUtility
+/**
+ * @class LagrangeMultiplierUtility
+ * @ingroup MultiscaleROMApplication
+ * @brief Add the necessary DOF to represent the lagrange multipliers
+ * @details
+ * @author Vicente Mataix Ferrandiz
+ * @author Marcelo Raschi
+*/
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) LagrangeMultiplierUtility
 {
 public:
     ///@name Type Definitions
@@ -45,12 +58,16 @@ public:
     ///@name Life Cycle
     ///@{
 
-    LagrangeMultiplierUtility(ModelPart& MainModelPart)
-        : mMainModelPart(MainModelPart)
+    /**
+     * @brief Default constructor.
+     * @param rModelPart The model part
+     */
+    LagrangeMultiplierUtility(ModelPart& rModelPart)
+        : mMainModelPart(rModelPart)
     {
-        // Hello
     }
 
+    // Destructor
     ~LagrangeMultiplierUtility()
     {
     }
@@ -63,12 +80,18 @@ public:
     {
         NodeType::Pointer pNode = mMainModelPart.pGetNode(1);
         mMainModelPart.GetProcessInfo()[LAGRANGE_MULTIPLIER_NODE] = pNode;
+
         pNode->AddDof(LAGRANGE_MULTIPLIER_1);
         pNode->AddDof(LAGRANGE_MULTIPLIER_2);
         pNode->AddDof(LAGRANGE_MULTIPLIER_3);
         pNode->AddDof(LAGRANGE_MULTIPLIER_4);
         pNode->AddDof(LAGRANGE_MULTIPLIER_5);
         pNode->AddDof(LAGRANGE_MULTIPLIER_6);
+
+        KRATOS_WATCH("DEBUG: LAGRANGE MULTIPLIER UTILITY Execute");
+        KRATOS_WATCH(mMainModelPart.HasNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_1))
+        KRATOS_WATCH(mMainModelPart.pGetNode(1)->GetDofs());
+        KRATOS_WATCH(mMainModelPart.pGetNode(2)->GetDofs());
     }
 
     ///@}

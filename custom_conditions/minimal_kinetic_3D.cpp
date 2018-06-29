@@ -1,19 +1,11 @@
 #include "minimal_kinetic_3D.hpp"
 #include "multiscale_rom_application.h"
-#include "multiscale_rom_application_variables.h"
-
-#include "includes/constitutive_law.h"
-#include "includes/define.h"
-#include "includes/element.h"
-#include "utilities/math_utils.h"
-
-/// Small Displacement Element for 3D and 2D geometries.
-
-/**
- * Implements a Small Displacement Lagrangian definition for structural
- * analysis.
- * This works for arbitrary geometries in 3D and 2D
- */
+//#include "multiscale_rom_application_variables.h"
+//
+//#include "includes/constitutive_law.h"
+//#include "includes/define.h"
+//#include "includes/element.h"
+//#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -21,31 +13,25 @@ namespace Kratos
 //************************************************************************************
 MinimalKineticCondition3D::MinimalKineticCondition3D() : Condition()
 {
+    KRATOS_WATCH("DEBUG: MINIMAL KINETIC CONDITION - DEFUALT CONSTRUCTOR");
 }
-
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
-// MinimalKineticCondition3D::MinimalKineticCondition3D(IndexType NewId, const
-// NodesArrayType& ThisNodes):
-//        Condition(NewId,ThisNodes)
-//{
-//}
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 MinimalKineticCondition3D::MinimalKineticCondition3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
+    KRATOS_WATCH("DEBUG: MINIMAL KINETIC CONDITION - SECOND CONSTRUCTOR");
 }
 
-//******************************COPY
-//CONSTRUCTOR**************************************
+//******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 MinimalKineticCondition3D::MinimalKineticCondition3D(IndexType NewId,
                                                      GeometryType::Pointer pGeometry,
                                                      PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
+    KRATOS_WATCH("DEBUG: MINIMAL KINETIC CONDITION - COPY");
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
@@ -54,20 +40,17 @@ MinimalKineticCondition3D::MinimalKineticCondition3D(MinimalKineticCondition3D c
 {
 }
 
-//****************** DESTRUCTOR
-//******************************************************
+//****************** DESTRUCTOR ******************************************************
 //************************************************************************************
 MinimalKineticCondition3D::~MinimalKineticCondition3D()
 {
 }
 
-//*******************************ASSIGMENT
-//OPERATOR***********************************
+//*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 MinimalKineticCondition3D& MinimalKineticCondition3D::operator=(MinimalKineticCondition3D const& rOther)
 {
     Condition::operator=(rOther);
-
     return *this;
 }
 
@@ -83,18 +66,16 @@ Condition::Pointer MinimalKineticCondition3D::Create(IndexType NewId,
 
 int MinimalKineticCondition3D::Check(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
-
     // return Condition::Check(rCurrentProcessInfo);
     return 0;
-
-    KRATOS_CATCH("");
 }
 
 void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                      VectorType& rRightHandSideVector,
                                                      ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_WATCH("DEBUG: MKC Calculate");
+
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int StrainComp = 6;
@@ -121,6 +102,7 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     // Auxiliar magic node
     Node<3>::Pointer pNode = rCurrentProcessInfo[LAGRANGE_MULTIPLIER_NODE];
+
 
     // Displacements
     currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -484,38 +466,6 @@ double& MinimalKineticCondition3D::CalculateIntegrationWeight(double& rIntegrati
 
 void MinimalKineticCondition3D::GetValuesVector(Vector& Values, int Step)
 {
-    /*    PeriodicVariablesContainer const& rPeriodicVariables =
-       this->GetProperties().GetValue(PERIODIC_VARIABLES);
-        const unsigned int BlockSize = rPeriodicVariables.size();
-        const unsigned int LocalSize = 2 * BlockSize; // Total contribution size
-       = 2 nodes * num dofs
-
-        if (Values.size() != LocalSize)
-            Values.resize(LocalSize,false);
-
-        unsigned int LocalIndex = 0;
-
-        for(PeriodicVariablesContainer::DoubleVariablesConstIterator itDVar =
-       rPeriodicVariables.DoubleVariablesBegin();
-                itDVar != rPeriodicVariables.DoubleVariablesEnd(); ++itDVar)
-        {
-            Values[LocalIndex] =
-       this->GetGeometry()[0].FastGetSolutionStepValue(*itDVar,Step);
-            Values[LocalIndex+BlockSize] =
-       this->GetGeometry()[1].FastGetSolutionStepValue(*itDVar,Step);
-            ++LocalIndex;
-        }
-
-        for(PeriodicVariablesContainer::VariableComponentsConstIterator itCVar =
-       rPeriodicVariables.VariableComponentsBegin();
-                itCVar != rPeriodicVariables.VariableComponentsEnd(); ++itCVar)
-        {
-            Values[LocalIndex] =
-       this->GetGeometry()[0].FastGetSolutionStepValue(*itCVar,Step);
-            Values[LocalIndex+BlockSize] =
-       this->GetGeometry()[1].FastGetSolutionStepValue(*itCVar,Step);
-            ++LocalIndex;
-        }*/
 }
 
 void MinimalKineticCondition3D::save(Serializer& rSerializer) const
