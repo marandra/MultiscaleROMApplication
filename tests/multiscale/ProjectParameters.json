@@ -5,7 +5,7 @@
         "domain_size": 3,
         "parallel_type": "OpenMP",
         "start_time": 0.0,
-        "end_time": 1.0,
+        "end_time": 0.01,
         "echo_level": 0
         },
     "solver_settings": {
@@ -80,10 +80,24 @@
         "kratos_module": "KratosMultiphysics",
         "process_name": "PointOutputProcess",
         "Parameters": {
+	    "position": [0.5, 0.3, 0.0],
             "model_part_name": "MACRO",
-	    "position": [0.5, 0.3, 0.3],
-            "output_variables": ["DISPLACEMENT_Y", "REACTION_Y"],
-            "output_file_name": "displacement-reaction.dat"
+            "output_file_settings": {
+                "file_name": "displacement-reaction.dat"
+            },
+            "output_variables": ["DISPLACEMENT", "REACTION"],
+            "entity_type": "node"
+            }
+        }, {
+        "python_module": "reconstruct_rve_state_process",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "process_name": "ReconstructRVEStateProcess",
+        "Parameters": {
+            "model_part_name": "MATERIAL_MULTISCALE_1",
+            "filename": "rve_weights.dat",
+            "variable_1": "REDUCED_MODES_WEIGHTS",
+            "element": 1,
+            "point": 1
             }
         }],
     "output_configuration"     : {
