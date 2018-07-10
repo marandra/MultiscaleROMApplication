@@ -13,7 +13,6 @@ namespace Kratos
 //************************************************************************************
 MinimalKineticCondition3D::MinimalKineticCondition3D() : Condition()
 {
-    KRATOS_WATCH("DEBUG: MINIMAL KINETIC CONDITION - DEFUALT CONSTRUCTOR");
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -21,7 +20,6 @@ MinimalKineticCondition3D::MinimalKineticCondition3D() : Condition()
 MinimalKineticCondition3D::MinimalKineticCondition3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
-    KRATOS_WATCH("DEBUG: MINIMAL KINETIC CONDITION - SECOND CONSTRUCTOR");
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -31,7 +29,6 @@ MinimalKineticCondition3D::MinimalKineticCondition3D(IndexType NewId,
                                                      PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
-    KRATOS_WATCH("DEBUG: MINIMAL KINETIC CONDITION - COPY");
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
@@ -74,8 +71,6 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
                                                      VectorType& rRightHandSideVector,
                                                      ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_WATCH("DEBUG: MKC Calculate");
-
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int StrainComp = 6;
