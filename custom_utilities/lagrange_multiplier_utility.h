@@ -87,11 +87,6 @@ public:
         pNode->AddDof(LAGRANGE_MULTIPLIER_4);
         pNode->AddDof(LAGRANGE_MULTIPLIER_5);
         pNode->AddDof(LAGRANGE_MULTIPLIER_6);
-
-        KRATOS_WATCH("DEBUG: LAGRANGE MULTIPLIER UTILITY Execute");
-        KRATOS_WATCH(mMainModelPart.HasNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_1))
-        KRATOS_WATCH(mMainModelPart.pGetNode(1)->GetDofs());
-        KRATOS_WATCH(mMainModelPart.pGetNode(2)->GetDofs());
     }
 
     ///@}
