@@ -30,6 +30,7 @@ set( KRATOS_MULTISCALE_ROM_APPLICATION_SOURCES
     ## CONDITIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/minimal_kinetic_vol_3D.cpp
 
     ## ELEMENTS
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_custom.cpp

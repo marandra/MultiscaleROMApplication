@@ -18,24 +18,28 @@
 
 namespace Kratos
 {
-//model
-//ModelPart::Pointer pDummyMP = 0;
-//Parameters param = "{'w':[], 'props_id':[], 'B':[]}";
-    KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
+KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
      KratosApplication("MultiscaleROMApplication"),
       mSmallDisplacementCustom2D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
+          Element::GeometryType::Pointer(
+                  new Quadrilateral2D4<Node<3>>(
+                          Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementCustom3D8N(0,
-          Element::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(
-              Element::GeometryType::PointsArrayType(8)))),
+          Element::GeometryType::Pointer(
+                  new Hexahedra3D8<Node<3>>(
+                          Element::GeometryType::PointsArrayType(8)))),
       mMinimalKineticCondition2D3N(0,
           Condition::GeometryType::Pointer(
-              new Line2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+                  new Line2D3<Node<3>>(
+                          Condition::GeometryType::PointsArrayType(3)))),
       mMinimalKineticCondition3D4N(0,
           Condition::GeometryType::Pointer(
-              new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
-//      mRVELaw(pDummyMP, Parameters("{\"w\":[], \"props_id\":[], \"B\":[]}") )
+                  new Quadrilateral3D4<Node<3>>(
+                          Condition::GeometryType::PointsArrayType(4)))),
+      mMinimalKineticCondition3D8N(0,
+          Condition::GeometryType::Pointer(
+                  new Hexahedra3D8<Node<3>>(
+                          Condition::GeometryType::PointsArrayType(8)))),
       mRVELaw()
 {
 }
@@ -48,13 +52,10 @@ void KratosMultiscaleROMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_1);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_2);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_3);
-   // KRATOS_REGISTER_VARIABLE(NUMBER_REDUCED_MODES);
-   // KRATOS_REGISTER_VARIABLE(REDUCED_MODES_MATRIX);
-   KRATOS_REGISTER_VARIABLE(REDUCED_MODES_WEIGHTS);
-   // KRATOS_REGISTER_VARIABLE(INTEGRATION_POINT_WEIGHT);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_4);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_5);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_6);
+    KRATOS_REGISTER_VARIABLE(REDUCED_MODES_WEIGHTS);
    // KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_NODE);
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement2D4N", mSmallDisplacementCustom2D4N);
@@ -62,8 +63,8 @@ void KratosMultiscaleROMApplication::Register() {
 
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition2D3N", mMinimalKineticCondition2D3N);
     KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D4N", mMinimalKineticCondition3D4N);
+    KRATOS_REGISTER_CONDITION("MinimalKineticCondition3D8N", mMinimalKineticCondition3D8N);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("RVELaw", mRVELaw);
-    //KRATOS_REGISTER_CONSTITUTIVE_LAW("RomRve", mRomRve);
 }
 }

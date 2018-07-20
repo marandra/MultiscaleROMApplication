@@ -13,12 +13,11 @@
 
 #include "custom_conditions/minimal_kinetic_2D.hpp"
 #include "custom_conditions/minimal_kinetic_3D.hpp"
+#include "custom_conditions/minimal_kinetic_vol_3D.hpp"
 #include "custom_constitutive/rve_law.h"
-//#include "custom_constitutive/rom_rve.hpp"
-//#include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 #include "custom_elements/small_displacement_custom.hpp"
 #include "multiscale_rom_application_variables.h"
+//#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -64,11 +63,10 @@ private:
     // restrictions
     const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
     const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
+    const MinimalKineticVolCondition3D mMinimalKineticCondition3D8N;
 
     // constitutive laws
     const RVELaw mRVELaw;
-    //const RomRve mRomRve;
-    //const LinearIsotropicDamagePlaneStrain2DLaw mLinearIsotropicDamagePlaneStrain2DLaw;
     //const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
 
     // others
