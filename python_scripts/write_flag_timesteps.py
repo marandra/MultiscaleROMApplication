@@ -68,7 +68,7 @@ class WriteElementsOutputScalar(km.Process):
         if not self.inelastic_flag:
             for elem in self.model_part.Elements:
                 flag = elem.GetValuesOnIntegrationPoints(self.var, self.model_part.ProcessInfo)
-                if 1 in [x for y in flag for x in y]:
+                if True in [x for y in flag for x in y]:
                     self.inelastic_flag = True
                     self.write_results()
         self.timestep_counter = self.timestep_counter + 1

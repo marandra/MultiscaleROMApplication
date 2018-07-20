@@ -245,7 +245,8 @@ def generate_rve_params(conf, iw_list):
                     flag_elements = True
             else:
                 if "End Elements" in line:
-                    break
+                    flag_elements = False
+                    continue
                 else:
                     material[int(line.split()[0]) - 1] = int(line.split()[1])
     out = {}
