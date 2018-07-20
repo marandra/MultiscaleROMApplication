@@ -104,6 +104,45 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+   /**
+     * @brief Calculation of the Material Stiffness Matrix. Km = B^T * D *B
+     * @param rLeftHandSideMatrix The local LHS of the element
+     * @param B The deformationmmatrix
+     * @param D The constitutive matrix
+     * @param IntegrationWeight The integration weight of the corresponding Gauss point
+     */
+    void CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& D,
+        const double IntegrationWeight
+        ) override ;
+
+    /**
+     * @brief This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix The LHS
+     * @param rRightHandSideVector The RHS
+     * @param rCurrentProcessInfo The current process info instance
+     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
+     */
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
+
+    void CalculateAndAddResidualVector(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rCurrentProcessInfo,
+        const Vector& rBodyForce,
+        const Vector& rStressVector,
+        const double IntegrationWeight
+        ) override;
+
 protected:
     ///@name Protected static Member Variables
     ///@{

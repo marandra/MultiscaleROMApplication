@@ -102,6 +102,132 @@ void SmallDisplacementCustom::CalculateOnIntegrationPoints(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementCustom::CalculateAndAddKm(
+    MatrixType& rLeftHandSideMatrix,
+    const Matrix& B,
+    const Matrix& D,
+    const double IntegrationWeight
+    )
+{
+    KRATOS_TRY
+
+    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(D, B)));
+        KRATOS_WATCH("DEBUG CUSTOM ELEMENT: OVERWRITE B")
+
+    KRATOS_CATCH( "" )
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementCustom::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
+    )
+{
+    KRATOS_TRY;
+
+    KRATOS_WATCH("DEBUG CUSTOM ELEMENT: CALCULATE ALL")
+
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
+    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
+        if ( rLeftHandSideMatrix.size1() != mat_size )
+            rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
+    }
+
+    // Resizing as needed the RHS
+    if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
+        if ( rRightHandSideVector.size() != mat_size )
+            rRightHandSideVector.resize( mat_size, false );
+
+        rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
+    }
+
+    // Reading integration points and local gradients
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // If strain has to be computed inside of the constitutive law with PK2
+    Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
+
+    for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
+        // Contribution to external forces
+        const Vector body_force = this->GetBodyForce(integration_points, point_number);
+
+        // Compute element kinematics B, F, DN_DX ...
+        CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+        // Compute material reponse
+        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+        // Calculating weights for integration on the reference configuration
+        double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
+
+        if ( dimension == 2 && GetProperties().Has( THICKNESS ))
+            int_to_reference_weight *= GetProperties()[THICKNESS];
+
+        if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
+            // Contributions to stiffness matrix calculated on the reference config
+            this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
+        }
+
+        if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
+            this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
+        }
+    }
+
+    KRATOS_WATCH("DEBUG ******* MATRIX OUTPUT")
+    KRATOS_WATCH(rLeftHandSideMatrix);
+    KRATOS_WATCH(this_kinematic_variables.B)
+    KRATOS_WATCH("DEBUG ******* ")
+    KRATOS_WATCH("DEBUG ******* ")
+    KRATOS_WATCH("DEBUG ******* ")
+
+    KRATOS_CATCH( "" )
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementCustom::CalculateAndAddResidualVector(
+    VectorType& rRightHandSideVector,
+    const KinematicVariables& rThisKinematicVariables,
+    const ProcessInfo& rCurrentProcessInfo,
+    const Vector& rBodyForce,
+    const Vector& rStressVector,
+    const double IntegrationWeight
+    )
+{
+    KRATOS_TRY
+
+    // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
+    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), rStressVector );
+
+    KRATOS_CATCH( "" )
+}
+
 //************************************************************************************
 //************************************************************************************
 
