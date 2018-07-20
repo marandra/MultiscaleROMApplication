@@ -27,20 +27,20 @@ class KratosMultiscaleROMApplication : public KratosApplication
 public:
     KRATOS_CLASS_POINTER_DEFINITION(KratosMultiscaleROMApplication);
     KratosMultiscaleROMApplication();
-    virtual ~KratosMultiscaleROMApplication()
+    ~KratosMultiscaleROMApplication() override
     {
     }
-    virtual void Register();
-    virtual std::string Info() const
+    void Register() override;
+    std::string Info() const override
     {
         return "KratosMultiscaleROMApplication";
     }
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosMultiscaleROMApplication")
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size())
