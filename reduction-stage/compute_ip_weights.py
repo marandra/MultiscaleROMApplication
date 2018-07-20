@@ -148,7 +148,8 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
         z = (np.append(z, t)).astype(int)
         y = np.delete(y, s)
         # 3. solving LS conventional problem
-        x = np.linalg.lstsq(J[:, z], b, rcond=None)[0]
+        #x = np.linalg.lstsq(J[:, z], b, rcond=None)[0] # conforms new numpy version
+        x = np.linalg.lstsq(J[:, z], b)[0] # deprecated numpy version
         if any(x < 0):
             # 3. Determime alpha for solving a NNLS
             [x, resnorm, residual] = lsqnonneg(J[:,z], b)
