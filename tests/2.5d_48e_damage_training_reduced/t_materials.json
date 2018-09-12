@@ -5,7 +5,7 @@
         "Material": {
             "name": "matrix",
             "constitutive_law": {
-                "name": "KratosMultiphysics.MultiscaleROMApplication.LinearIsotropicDamage3DLaw"
+                "name": "LinearIsotropicDamage3DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 21000.0,
@@ -16,13 +16,13 @@
                 },
             "Tables":  {}
             }
-    }, {
+    },{
         "model_part_name": "INCLUSION",
         "properties_id": 2,
         "Material": {
             "name": "inclusion",
             "constitutive_law": {
-                "name": "KratosMultiphysics.MultiscaleROMApplication.LinearIsotropicDamage3DLaw"
+                "name": "LinearIsotropicDamage3DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 210.0,

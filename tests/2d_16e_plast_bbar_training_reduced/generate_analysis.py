@@ -3,19 +3,13 @@ import time
 import main_kratos_hprom as kratos
 
 TRAJ = []
-TRAJ.append([0.001, 0.0,   0.0,   0.0,   0.0,   0.0  ])  # 0
-TRAJ.append([0.0,   0.001, 0.0,   0.0,   0.0,   0.0  ])  # 1
-TRAJ.append([0.0,   0.0,   0.001, 0.0,   0.0,   0.0  ])  # 2
-TRAJ.append([0.0,   0.0,   0.0,   0.001, 0.0,   0.0  ])  # 3
-TRAJ.append([0.0,   0.0,   0.0,   0.0,   0.001, 0.0  ])  # 4
-TRAJ.append([0.0,   0.0,   0.0,   0.0,   0.0,   0.001])  # 5
-TRAJ.append([0.001, 0.001, 0.0,   0.0,   0.0,   0.0  ])  # 6
-TRAJ.append([0.0,   0.001, 0.001, 0.0,   0.0,   0.0  ])  # 7
-TRAJ.append([0.0,   0.0,   0.001, 0.001, 0.0,   0.0  ])  # 8
-TRAJ.append([0.0,   0.0,   0.0,   0.001, 0.001, 0.0  ])  # 9
-TRAJ.append([0.0,   0.0,   0.0,   0.0,   0.001, 0.001])  # 10
-TRAJ.append([0.001, 0.001, 0.001, 0.0,   0.0,   0.0  ])  # 11
-TRAJ.append([0.0,   0.0,   0.0,   0.001, 0.001, 0.001])  # 12
+TRAJ.append([0.001, 0.0,   0.0])  # 0
+TRAJ.append([0.0,   0.001, 0.0])  # 1
+TRAJ.append([0.0,   0.0,   0.001])  # 2
+TRAJ.append([0.001, 0.001, 0.0])  # 3
+TRAJ.append([0.001, 0.0, 0.001])  # 4
+TRAJ.append([0.0,   0.001, 0.001])  # 5
+TRAJ.append([0.001, 0.001, 0.001])  # 6
 
 
 if __name__ == "__main__":
@@ -23,7 +17,7 @@ if __name__ == "__main__":
     if True:
         # HPROM
         for m in [15]:
-            for p in [190]:
+            for p in [50]:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
                 #for t in range(63):
@@ -38,13 +32,13 @@ if __name__ == "__main__":
                     with open("{}/time.dat".format(path_out), 'w') as fo:
                         fo.write("{:.2f}\n".format(t2 - t1))
 
-    if False:
+    if True:
         # ROM
-        for m in [10]:
+        for m in [15]:
             for p in ['ROM']:
                 filename = "bases/rve_{}_{}.json".format(m, p)
                 k = kratos.Kratos(filename=filename)
-                for t in [1]:
+                for t in [0]:
                     path_out ="traj_{}/m{}p{}".format(t, m, p)
                     if not os.path.exists(path_out):
                         os.makedirs(path_out)

@@ -1,39 +1,47 @@
 {
     "problem_data": {
-        "problem_name": "training",
-        "part_name": "DOMAIN",
-        "domain_size": 3,
-        "nr_time_steps": 40,
-        "end_time": 1.0,
+        "problem_name": "High_Fidelity",
+        "parallel_type": "OpenMP",
+        "start_time": 0.0,
+        "end_time": 0.99,
         "echo_level": 0
-        },
+    },
     "solver_settings": {
-        "solver_type": "structural_mechanics_static_solver",
+        "model_part_name": "Microstructure",
+        "domain_size": 3,
         "echo_level": 1,
+        "time_stepping": {
+            "time_step": 0.025
+        },
+        "solver_type": "Static",
         "analysis_type": "non_linear",
         "model_import_settings": {
-            "input_filename": "model",
-            "input_type": "mdpa"
-            },
+            "input_type": "mdpa",
+            "input_filename": "model"
+        },
         "material_import_settings": {
             "materials_filename" : "materials.json"
-            },
+        },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 1e-13,
-        "displacement_absolute_tolerance": 1e-13,
-        "residual_relative_tolerance": 1e-13,
-        "residual_absolute_tolerance": 1e-13,
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 1e-4,
+        "residual_absolute_tolerance": 1e-9,
         "max_iteration": 10,
         "linear_solver_settings": {
             "solver_type": "SuperLUSolver",
             "scaling": false,
             "verbosity": 0
-            },
+        },
         "problem_domain_sub_model_part_list": ["RVE"],
         "processes_sub_model_part_list": ["DISPLACEMENT_BC", "PLANESTRAINCOND" , "RVE", "MATRIX", "INCLUSION"],
         "rotation_dofs": false,
-        "move_mesh_flag": false
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "block_builder": true,
+        "auxiliary_variables_list": ["LAGRANGE_DISPLACEMENT"],
+        "auxiliary_dofs_list": []
         },
     "constraints_process_list": [{
         "python_module": "assign_vector_variable_process",
@@ -42,35 +50,36 @@
         "Parameters": {
             "model_part_name": "DISPLACEMENT_BC",
             "variable_name": "DISPLACEMENT",
-            "constrained": [true,true,true],
-            "value": [0.0, 0.0, 0.0]
-            }
-        },{
+            "constrained": [true, true, true],
+            "value": [0.0, 0.0, 0.0],
+	    "interval": [0.0, "End"]
+        }
+    },{
         "python_module": "assign_scalar_variable_process",
         "kratos_module": "KratosMultiphysics",
         "process_name": "AssignScalarVariableProcess",
         "Parameters": {
-            "model_part_name" : "PLANESTRAINCOND",
-            "variable_name"   : "DISPLACEMENT_Z",
-            "constrained"     : true,
-            "value"           : 0.0
+            "model_part_name": "PLANESTRAINCOND",
+            "variable_name": "DISPLACEMENT_Z",
+            "constrained": true,
+            "value": 0.0,
+	    "interval": [0.0, "End"]
             }
-        }],
-    "loads_process_list"       : [{
-        "implemented_in_file"   : "impose_initial_strain_process",
-        "implemented_in_module" : "KratosMultiphysics.MultiscaleROMApplication",
-        "help": "",
+    }],
+    "loads_process_list": [{
+        "python_module": "impose_initial_strain_process",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "ImposeInitialStrainProcess",
         "Parameters": {
             "model_part_name": "RVE",
             "variable_name": "INITIAL_STRAIN",
-	    "initial_strain": M4VAR_INITIALSTRAIN,
-	    "lookuptable_time": [0.0, 1.0],
-	    "lookuptable_mult": [0.0, 1.0]
-	    }
-    },{
-        "implemented_in_file": "write_elements_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+            "initial_strain": M4VAR_INITIALSTRAIN,
+            "lookuptable_time": [0.0, 1.0],
+            "lookuptable_mult": [0.0, 1.0]
+            }
+        },{
+        "python_module": "write_elements_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutput",
         "Parameters": {
             "model_part_name": "RVE",
@@ -79,44 +88,45 @@
             "write_mode": "binary"
             }
         },{                                                                     
-        "implemented_in_file": "write_elements_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_elements_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutput",                            
         "Parameters": {                                                         
             "model_part_name": "RVE",                                           
             "filename": "strain",                                        
             "variable_name": "GREEN_LAGRANGE_STRAIN_VECTOR",
-            "write_mode": "binary"
+            "write_mode": "binary",
+	    "variable_location": "MultiscaleROMApplication"
             }                                                                   
         },{
-        "implemented_in_file": "write_elements_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_elements_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "integration_weight",
+            "filename": "integration_weight",
             "variable_name": "INTEGRATION_WEIGHT",
             "write_frequency": "last_timestep"
-	    }
+            }
         },{
-        "implemented_in_file": "write_flag_timesteps",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_flag_timesteps",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteGlobalOutputScalarApplication",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "elastic_timesteps",
+            "filename": "elastic_timesteps",
             "flag_name": "INELASTIC_FLAG",
             "flag_location": "StructuralMechanicsApplication"
 	    }
         },{
-        "implemented_in_file": "write_elements_homogenized_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_elements_homogenized_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsHomogenizedOutput",
         "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "homogenized_stress.dat",
+            "filename": "homogenized_stress.dat",
             "variable_name": "CAUCHY_STRESS_VECTOR"
-	    }
+            }
         },{
         "implemented_in_file": "calculate_total_displacement_process",
         "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
@@ -125,7 +135,7 @@
             "model_part_name": "RVE"
 	    }
         }],
-    "output_configuration"     : {
+    "output_configuration": {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",
@@ -133,26 +143,26 @@
                 "WriteConditionsFlag"   : "WriteConditions",
                 "MultiFileFlag"         : "SingleFile"
                 },
-            "file_label"          : "step",
-            "output_control_type" : "time",
-            "output_frequency"    : 0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT", "LAGRANGE_DISPLACEMENT", "REACTION"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY", "DAMAGE_VARIABLE"]
+            "file_label": "step",
+            "output_control_type": "time",
+            "output_frequency": 0,
+            "body_output": true,
+            "node_output": true,
+            "skin_output": false,
+            "plane_output": [],
+            "nodal_results": ["DISPLACEMENT", "LAGRANGE_DISPLACEMENT"],
+            "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY", "PLASTIC_STRAIN"]
             },
         "point_data_configuration"  : []
         },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-        },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-        }
+    "restart_options": {
+        "SaveRestart": false,
+        "RestartFrequency": 0,
+        "LoadRestart": false,
+        "Restart_Step": 0
+    },
+    "constraints_data": {
+        "incremental_load": false,
+        "incremental_displacement": false
     }
+}

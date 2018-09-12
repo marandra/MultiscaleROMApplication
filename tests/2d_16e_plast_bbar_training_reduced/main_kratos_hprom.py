@@ -30,10 +30,9 @@ class Kratos:
     def init_case(self, strain, path_out="."):
         self.path_out = path_out
         #nr_comp = self.cl.GetStrainSize()
-        nr_comp = 6
+        nr_comp = 3
         self.init_strain_macro = km.Vector(nr_comp)
         for i, e in enumerate(strain):
-            #print(i, e)
             self.init_strain_macro[i] = e
         print(self.init_strain_macro)
     
@@ -41,7 +40,7 @@ class Kratos:
         node1 = self.model_part_rve.CreateNewNode(1,0.0,0.0,0.0)
         geom = km.Triangle2D3(node1, node1, node1) # create point geom
         #nr_comp = self.cl.GetStrainSize()
-        nr_comp = 6
+        nr_comp = 3
         homog_stress = km.Vector(nr_comp)
         homog_constit = km.Matrix(nr_comp, nr_comp)
         cl_params = km.ConstitutiveLawParameters()

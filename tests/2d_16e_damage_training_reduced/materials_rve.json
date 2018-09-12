@@ -5,33 +5,31 @@
         "Material": {
             "name": "matrix",
             "constitutive_law": {
-                "name": "KratosMultiphysics.MultiscaleROMApplication.LinearIsotropicDamagePlaneStrain2DLaw"
+                "name": "LinearIsotropicDamagePlaneStrain2DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 21000.0,
                 "POISSON_RATIO": 0.3,
                 "YIELD_STRESS": 5.5,
-                "KratosMultiphysics.MultiscaleROMApplication.INFINITY_YIELD_STRESS": 100000,
-                "KratosMultiphysics.MultiscaleROMApplication.ISOTROPIC_DAMAGE_MODULUS": 0.001,
-                "KratosMultiphysics.MultiscaleROMApplication.FLOW_RULE_IS_TRACTION_ONLY": false
+                "INFINITY_YIELD_STRESS": 100000,
+                "ISOTROPIC_HARDENING_MODULUS": 0.001
                 },
             "Tables":  {}
             }
-    }, {
+    },{
         "model_part_name": "RVE",
         "properties_id": 2,
         "Material": {
             "name": "inclusion",
             "constitutive_law": {
-                "name": "KratosMultiphysics.MultiscaleROMApplication.LinearIsotropicDamagePlaneStrain2DLaw"
+                "name": "LinearIsotropicDamagePlaneStrain2DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 210.0,
                 "POISSON_RATIO": 0.2,
                 "YIELD_STRESS": 2.5,
-                "KratosMultiphysics.MultiscaleROMApplication.INFINITY_YIELD_STRESS": 100000,
-                "KratosMultiphysics.MultiscaleROMApplication.ISOTROPIC_DAMAGE_MODULUS": 0.001,
-                "KratosMultiphysics.MultiscaleROMApplication.FLOW_RULE_IS_TRACTION_ONLY": false
+                "INFINITY_YIELD_STRESS": 100000,
+                "ISOTROPIC_HARDENING_MODULUS": 0.001
                 },
             "Tables":  {}
             }

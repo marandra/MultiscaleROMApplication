@@ -1,6 +1,6 @@
 export OMP_NUM_THREADS=1
 echo "OMP_NUM_THREADS="$OMP_NUM_THREADS
-for i in 00 01 02 03 04 05 06 07 08 09 10 11 12
+for i in 0 1 2 3 4 5 6
 do
     TRJ="trajectory_"$i
    	cd $TRJ
