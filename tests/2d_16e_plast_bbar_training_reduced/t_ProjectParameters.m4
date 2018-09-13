@@ -64,8 +64,8 @@
             "variable_name": "INITIAL_STRAIN",
             "initial_strain": M4VAR_INITIALSTRAIN,
             "lookuptable_time": [0.0, 1.0],
-	    "lookuptable_mult": [0.0, 1.0]
-	    }
+            "lookuptable_mult": [0.0, 1.0]
+            }
         },{
         "python_module": "write_elements_output",
         "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
@@ -115,10 +115,10 @@
             "model_part_name": "RVE",
             "filename": "homogenized_stress.dat",
             "variable_name": "CAUCHY_STRESS_VECTOR"
-	    }
+            }
         },{
-        "implemented_in_file": "calculate_total_displacement_process",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "calculate_total_displacement_process",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "ComputeTotalDisplacementProcess",
         "Parameters": {
             "model_part_name": "RVE"

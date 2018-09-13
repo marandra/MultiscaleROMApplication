@@ -128,8 +128,8 @@
             "variable_name": "CAUCHY_STRESS_VECTOR"
             }
         },{
-        "implemented_in_file": "calculate_total_displacement_process",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "calculate_total_displacement_process",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "ComputeTotalDisplacementProcess",
         "Parameters": {
             "model_part_name": "RVE"
