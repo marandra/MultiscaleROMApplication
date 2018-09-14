@@ -11,8 +11,8 @@
 
 #include "containers/flags.h"
 
-#include "custom_conditions/minimal_kinetic_2D.hpp"
-#include "custom_conditions/minimal_kinetic_3D.hpp"
+//#include "custom_conditions/minimal_kinetic_2D.hpp"
+//#include "custom_conditions/minimal_kinetic_3D.hpp"
 #include "custom_conditions/minimal_kinetic_vol_3D.hpp"
 #include "custom_constitutive/rve_law.h"
 #include "custom_elements/small_displacement_custom.hpp"
@@ -60,8 +60,8 @@ private:
     const SmallDisplacementCustom mSmallDisplacementCustom3D8N;
 
     // restrictions
-    const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
-    const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
+    //const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
+    //const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
     const MinimalKineticVolCondition3D mMinimalKineticCondition3D8N;
 
     // constitutive laws
