@@ -4,17 +4,11 @@
 
 // Project includes
 #include "includes/variables.h"
-//#include "includes/mat_variables.h"
 #include "multiscale_rom_application.h"
-//#include "multiscale_rom_application_variables.h"
 
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_3.h"
-//#include "geometries/line_3d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
-
-//#include "geometries/quadrilateral_3d_4.h"
-//#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {

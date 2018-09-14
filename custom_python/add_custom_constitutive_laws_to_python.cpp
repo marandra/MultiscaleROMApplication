@@ -7,9 +7,6 @@
 //#include "includes/define_python.h":
 #include "includes/constitutive_law.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_isotropic_damage_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_isotropic_damage_3D_law.hpp"
 #include "custom_constitutive/rve_law.h"
 
 // For RVELaw
@@ -27,18 +24,6 @@ using namespace pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-    //class_<LinearIsotropicDamagePlaneStrain2DLaw, typename LinearIsotropicDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw>
-    //        (m, "LinearIsotropicDamagePlaneStrain2DLaw").def(init<>() )
-    //        ;
-
-    //class_<ExponentialIsotropicDamagePlaneStrain2DLaw, typename ExponentialIsotropicDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw>
-    //        (m, "ExponentialIsotropicDamagePlaneStrain2DLaw").def(init<>() )
-    //        ;
-
-    //class_<LinearIsotropicDamage3DLaw, typename LinearIsotropicDamage3DLaw::Pointer, ConstitutiveLaw>
-    //        (m, "LinearIsotropicDamage3DLaw").def(init<>() )
-    //        ;
-
     class_<RVELaw, typename RVELaw::Pointer, ConstitutiveLaw>
     (m, "RVELaw").def(init<>() )
     ;

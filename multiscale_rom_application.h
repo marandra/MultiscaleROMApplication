@@ -17,7 +17,6 @@
 #include "custom_constitutive/rve_law.h"
 #include "custom_elements/small_displacement_custom.hpp"
 #include "multiscale_rom_application_variables.h"
-//#include "custom_constitutive/exponential_isotropic_damage_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -67,7 +66,6 @@ private:
 
     // constitutive laws
     const RVELaw mRVELaw;
-    //const ExponentialIsotropicDamagePlaneStrain2DLaw mExponentialIsotropicDamagePlaneStrain2DLaw;
 
     // others
     KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
