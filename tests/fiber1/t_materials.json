@@ -39,7 +39,7 @@
         "Material": {
             "name": "inclusion",
             "constitutive_law": {
-                "name": "ation.LinearJ2Plasticity3DLaw"
+                "name": "LinearJ2Plasticity3DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 21000.0,

@@ -2563,7 +2563,6 @@ End SubModelPart
 
 Begin SubModelPart FIXED_X
     Begin SubModelPartNodes 
-    23
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -2584,6 +2583,7 @@ End SubModelPart
 
 Begin SubModelPart FIXED_Z
     Begin SubModelPartNodes  
+    23
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements

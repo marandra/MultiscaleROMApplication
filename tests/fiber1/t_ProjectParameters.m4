@@ -1,45 +1,45 @@
 {
     "problem_data": {
-        "problem_name": "TestMC",
+        "problem_name": "High_Fidelity",
         "parallel_type": "OpenMP",
         "start_time": 0.0,
-        "end_time": 1.0,
+        "end_time": 0.99,
         "echo_level": 0
-        },
+    },
     "solver_settings": {
-        "model_part_name": "DOMAIN",
+        "model_part_name": "Microstructure",
         "domain_size": 3,
-        "solver_type": "Static",
         "echo_level": 1,
         "time_stepping": {
             "time_step": 0.025
         },
+        "solver_type": "Static",
         "analysis_type": "non_linear",
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename": "model"
-            },
+        },
         "material_import_settings": {
             "materials_filename" : "materials.json"
-            },
+        },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 0.0001,
+        "displacement_relative_tolerance": 1e-4,
         "displacement_absolute_tolerance": 1e-9,
-        "residual_relative_tolerance": 0.0001,
+        "residual_relative_tolerance": 1e-4,
         "residual_absolute_tolerance": 1e-9,
         "max_iteration": 10,
         "linear_solver_settings": {
             "solver_type": "SuperLUSolver",
             "scaling": false,
             "verbosity": 0
-            },
+        },
         "problem_domain_sub_model_part_list": ["RVE"],
         "processes_sub_model_part_list": ["RVE", "PINNED", "FIXED_X", "FIXED_Y", "FIXED_Z", "MATRIX", "INCLUSION", "COHESIVE"],
         "rotation_dofs": false,
         "compute_reactions": false,
         "move_mesh_flag": false,
-        "block_builder": false,
+        "block_builder": true,
         "auxiliary_variables_list": ["LAGRANGE_MULTIPLIER_1", "LAGRANGE_MULTIPLIER_2", "LAGRANGE_MULTIPLIER_3", "LAGRANGE_MULTIPLIER_4", "LAGRANGE_MULTIPLIER_5", "LAGRANGE_MULTIPLIER_6", "LAGRANGE_DISPLACEMENT"]
         },
     "constraints_process_list": [{
@@ -49,10 +49,11 @@
         "Parameters": {
             "model_part_name": "PINNED",
             "variable_name": "DISPLACEMENT",
+            "constrained": [true, true, true],
             "value": [0.0, 0.0, 0.0],
-            "interval": [0.0, "End"]
-            }
-        },{
+	    "interval": [0.0, "End"]
+        }
+    },{
         "python_module": "assign_scalar_variable_process",
         "kratos_module": "KratosMultiphysics",
         "process_name": "AssignScalarVariableProcess",
@@ -60,31 +61,34 @@
             "model_part_name": "FIXED_X",
             "variable_name": "DISPLACEMENT_X",
             "constrained": true,
-            "value": 0.0
+            "value": 0.0,
+	    "interval": [0.0, "End"]
             }
         },{
         "python_module": "assign_scalar_variable_process",
         "kratos_module": "KratosMultiphysics",
         "process_name": "AssignScalarVariableProcess",
-        "Parameters":{
+        "Parameters": {
             "model_part_name": "FIXED_Y",
             "variable_name": "DISPLACEMENT_Y",
             "constrained": true,
-            "value": 0.0
+            "value": 0.0,
+	    "interval": [0.0, "End"]
             }
         },{
         "python_module": "assign_scalar_variable_process",
         "kratos_module": "KratosMultiphysics",
         "process_name": "AssignScalarVariableProcess",
-        "Parameters":{
+        "Parameters": {
             "model_part_name": "FIXED_Z",
             "variable_name": "DISPLACEMENT_Z",
             "constrained": true,
-            "value": 0.0
+            "value": 0.0,
+	    "interval": [0.0, "End"]
             }
         },{
-        "implemented_in_file": "write_elements_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_elements_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
@@ -93,8 +97,8 @@
             "write_frequency": "last_timestep"
             }
         },{
-        "implemented_in_file": "write_flag_timesteps",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_flag_timesteps",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementOutputScalar",
         "Parameters": {
             "model_part_name": "RVE",
@@ -106,9 +110,9 @@
         "python_module": "write_elements_homogenized_output",
         "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsHomogenizedOutput",
-        "Parameters":{
+        "Parameters": {
             "model_part_name": "RVE",
-	    "filename": "homogenized_stress.dat",
+            "filename": "homogenized_stress.dat",
             "variable_name": "CAUCHY_STRESS_VECTOR"
 	        }
         },{
@@ -139,8 +143,8 @@
             "model_part_name": "RVE"
 	        }
         },{
-        "implemented_in_file": "write_elements_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_elements_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutput",
         "Parameters": {
             "model_part_name": "RVE",
@@ -149,8 +153,8 @@
             "write_mode": "binary"
             }
         },{                                                                     
-        "implemented_in_file": "write_elements_output",
-        "implemented_in_module": "KratosMultiphysics.MultiscaleROMApplication",
+        "python_module": "write_elements_output",
+        "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
         "process_name": "WriteElementsOutput",                            
         "Parameters": {                                                         
             "model_part_name": "RVE",                                           
@@ -171,10 +175,10 @@
             "output_control_type": "time",
             "output_frequency": 0,
             "body_output": true,
-            "node_output": false,
+            "node_output": true,
             "skin_output": false,
             "plane_output": [],
-            "nodal_results": ["DISPLACEMENT", "LAGRANGE_DISPLACEMENT", "LAGRANGE_MULTIPLIER_1", "LAGRANGE_MULTIPLIER_2", "LAGRANGE_MULTIPLIER_3", "LAGRANGE_MULTIPLIER_4", "LAGRANGE_MULTIPLIER_5", "LAGRANGE_MULTIPLIER_6"],
+            "nodal_results": ["DISPLACEMENT", "LAGRANGE_DISPLACEMENT"],
             "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY", "PLASTIC_STRAIN"]
             },
         "point_data_configuration": []
@@ -184,9 +188,9 @@
         "RestartFrequency": 0,
         "LoadRestart": false,
         "Restart_Step": 0
-        },
+    },
     "constraints_data": {
         "incremental_load": false,
         "incremental_displacement": false
-        }
     }
+}

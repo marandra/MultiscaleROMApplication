@@ -151,7 +151,7 @@
             "skin_output": false,
             "plane_output": [],
             "nodal_results": ["DISPLACEMENT", "LAGRANGE_DISPLACEMENT"],
-            "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY", "PLASTIC_STRAIN"]
+            "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "STRAIN_ENERGY", "DAMAGE_VARIABLE"]
             },
         "point_data_configuration"  : []
         },
