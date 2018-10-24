@@ -20,8 +20,13 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     {
         "name": "constitutive law name",
         "Parameters" : {
-            "rve_materials_filename" : "please specify the file to be opened",
-            "rve_data_filename" : "please specify the file to be opened"
+            "rve_materials_filename": "please specify the file to be opened",
+            "rve_data_filename": "please specify the file to be opened",
+            "convergence_criterion": "residual_criterion",
+            "residual_relative_tolerance": 1e-4,
+            "residual_absolute_tolerance": 1e-9,
+            "max_iteration": 10,
+            "verbose": 0
         }
     }  )"
     );
@@ -32,6 +37,10 @@ RVELaw::RVELaw(Kratos::Parameters Params)
             ReadFile(Params["Parameters"]["rve_materials_filename"].GetString()));
     Kratos::Parameters data_params(
             ReadFile(Params["Parameters"]["rve_data_filename"].GetString()));
+    mRelativeTolerance = Params["Parameters"]["residual_relative_tolerance"].GetDouble();
+    mAbsoluteTolerance = Params["Parameters"]["residual_absolute_tolerance"].GetDouble();
+    mMaxIteration = Params["Parameters"]["max_iteration"].GetInt();
+    mVerbose = Params["Parameters"]["verbose"].GetInt();
 
     // Parse material parameters and populate mpProperties
     GetPropertyBlock(materials_params);
@@ -352,18 +361,24 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     Vector Dx(nr_modes);
 
     Accumulate(A, res, strain_macro, process_info);
-    double norm_res = 1.;
-    int it = 1;
-    // TODO(marcelo): Hardcoded tolerance and iteration number. Change it.
-    while (norm_res > 1e-9 and it < 10)
+    double residual = norm_2(res);
+    double current_residual = residual;
+    double ratio = 1.0;
+    std::size_t it = 1;
+
+    while (residual > mAbsoluteTolerance and ratio > mRelativeTolerance and it < mMaxIteration)
     {
         Solve(A, res, Dx);
         mModesWeights -= Dx;
         Accumulate(A, res, strain_macro, process_info);
-        norm_res = norm_2(res);
-        //KRATOS_INFO("RVE Law") << "Iteration " << it << " Residual: " << norm_res << std::endl;
+        KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it << " Residual: " << residual
+                               << " Relative:" << ratio <<std::endl;
+        current_residual = norm_2(res);
+        ratio = current_residual / residual;
+        residual = current_residual;
         it++;
     }
+    KRATOS_INFO_IF("RVE Law", mVerbose) << std::endl;
 
     // Homogenize stress and constitutive tensor
     Matrix homog_C_taylor = ZeroMatrix(nr_comps, nr_comps);

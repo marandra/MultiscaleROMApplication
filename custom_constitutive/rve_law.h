@@ -175,6 +175,10 @@ private:
     std::vector<ConstitutiveLaw::Pointer> mCL_vec;
     std::vector<int> mPropId_vec;
     Vector mModesWeights;
+    std::size_t mMaxIteration;
+    double mRelativeTolerance;
+    double mAbsoluteTolerance;
+    int mVerbose;
 
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
 
