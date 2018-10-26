@@ -6,85 +6,6 @@ import numpy as np
 import logging
 import json
 
-def lsqnonneg(C, d, x0=None, tol=None, itmax_factor=10):
-    '''Linear least squares with nonnegativity constraints.
-    (x, resnorm, residual) = lsqnonneg(C,d) returns the vector x that minimizes norm(d-C*x)
-    subject to x >= 0, C and d must be real
-    '''
- 
-    eps = 2.22e-16    # from matlab
-
-    def norm1(x):
-        return abs(x).sum().max()
-
- 
-    def msize(x, dim):
-        s = x.shape
-        if dim >= len(s):
-            return 1
-        else:
-            return s[dim]
-
-    if tol is None:
-        tol = 10 * eps * norm1(C) * (max(C.shape) + 1)
-    C = np.asarray(C)
-    (m,n) = C.shape
-    P = np.zeros(n)
-    Z = np.arange(1, n + 1)
-    if x0 is None:
-        x = P
-    else:
-        if any(x0 < 0):
-            x = P
-        else:
-            x = x0
-    ZZ = Z
-    resid = d - np.dot(C, x)
-    w = np.dot(C.T, resid)
-    outeriter = 0
-    it = 0
-    itmax = itmax_factor * n
-    exitflag = 1
-
-    # outer loop to put variables into set to hold positive coefficients
-    while np.any(Z) and np.any(w[ZZ - 1] > tol):
-        outeriter += 1
-        t = w[ZZ - 1].argmax()
-        t = ZZ[t]
-        P[t - 1] = t
-        Z[t - 1] = 0
-        PP = np.where(P != 0)[0] + 1
-        ZZ = np.where(Z != 0)[0] + 1
-        CP = np.zeros(C.shape)
-        CP[:, PP - 1] = C[:, PP - 1]
-        CP[:, ZZ - 1] = np.zeros((m, msize(ZZ, 1)))
-        z = np.dot(np.linalg.pinv(CP), d)
-        z[ZZ - 1] = np.zeros((msize(ZZ, 1), msize(ZZ, 0)))
-
-        # inner loop to remove elements from the positve set which no longer belong
-        while np.any(z[PP-1] <= tol):
-            it += 1
-            if it > itmax:
-                max_error = z[PP - 1].max()
-                raise Exception('Exiting: Iteration count (=%d) exceeded\n Try raising the \
-                                 tolerance tol. (max_error=%d)' % (it, max_error))
-            QQ = np.where((z <= tol) & (P != 0))[0]
-            alpha = min(x[QQ] / (x[QQ] - z[QQ]))
-            x = x + alpha * (z - x)
-            ij = np.where((abs(x) < tol) & (P != 0))[0] + 1
-            Z[ij - 1] = ij
-            P[ij - 1] = np.zeros(max(ij.shape))
-            PP = np.where(P != 0)[0] + 1
-            ZZ = np.where(Z != 0)[0] + 1
-            CP[:, PP - 1] = C[:, PP - 1]
-            CP[:, ZZ - 1] = np.zeros((m, msize(ZZ, 1)))
-            z=np.dot(np.linalg.pinv(CP), d)
-            z[ZZ - 1] = np.zeros((msize(ZZ, 1), msize(ZZ, 0)))
-        x = z
-        resid = d - np.dot(C, x)
-        w = np.dot(C.T, resid)
-    return (x, sum(resid * resid), resid)
-
 
 def ComputeJandb(Modes, weights, factorLEQ=1.0):
 
@@ -126,71 +47,85 @@ def UpdateWeightsInverse(A, Aast, a, xold, r):
     c = np.linalg.dot(A.T, a)
     d = Aast * c
     s = np.linalg.dot(a.T, a) - np.linalg.dot(c.T, d)
-    Bast = [[Aast + (d * d.T) / s,  -d / s], [-d.T / s, 1 /s]]
+    Bast = vstack(hstack(Aast + (d * d.T)/s,  -d/s), hstack(-d.T/s, 1/s))
     v = np.linalg.dot(a.T, r) / s
-    x = [(xold - d * v), v]
+    x = hstack((xold - d * v), v)
     return Bast, x
 
 
-def MultiUpdateInverseHermitian(Binv, jrowMAT):
+def MultiUpdateInverseHermitian(Binv, jrowMAT, a, xold, r):
+#def MultiUpdateInverseHermitian(Binv, jrowMAT):
     jrowMAT = sort(jrowMAT)
     BinvOLD = Binv
-    for i = 1:length(jrowMAT)
-        jrow = jrowMAT(i)-i+1
-        Ahinv = UpdateInverseHermitian(BinvOLD,jrow)
+    for i in range(np.size(jrowMAT)):
+        jrow = jrowMAT(i)-i+1 # i or i+1???
+        #Ahinv = UpdateInverseHermitian(BinvOLD,jrow)
+        Ahinv = UpdateWeightsInverse(BinvOLD, jrow, a, xold, r)
         BinvOLD = Ahinv
     return Ahinv
-    
+
 
 def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
-    [J, b] = ComputeJandb(Modes, weights, factorLEQ)[:2]
-    #M = len(weights)
+    #[J, b] = ComputeJandb(Modes, weights, factorLEQ)[:2]
+    J = Modes.T
+    b = np.dot(J, np.sqrt(weights))
+
     y = np.arange(len(weights))
 
-    # resudual vector, initial guess
-    r = b
-
-    # number of iterations
-    it = 0
-    mPOS = 0
+    r = b  # residual vector, initial guess
+    it = 0  # number of iterations
+    mPOS = 0  # number of non-zero weights
     z = []
     Jnorm = np.sqrt(sum(np.multiply(J, J), 0))
 
-    # point Selection Algorithm
+    # point selection algorithm
     while (np.linalg.norm(r) / np.linalg.norm(b) > tol) and (mPOS <= nGP):
         # 1. Compute new point
         ObjFun = np.dot((J[:, y]).T, r)
         div = np.multiply(Jnorm[y], np.linalg.norm(r))
         ObjFun = np.divide(ObjFun, div)
         s = ObjFun.argmax()
-        t = y[s]
-        # 2. Update alpha(=x) and H (unrestricted least squares)
-        if it == 0:
-            alpha = np.linalg.solve(J[:, t], b)
-            H = 1 / np.dot((J[:, t]).T, J[:, t])
-        else:
-            H, alpha = UpdateWeightsInverse(J[:, z], H, J[:, t], alpha, r)
-        # 2. Move i from set y to set z
-        z = (np.append(z, t)).astype(int)
-        y = np.delete(y, s)
-        # 3. solving LS conventional problem
+        i = y[s]
+        # 2. Update alpha and H (unrestricted least squares)
         #x = np.linalg.lstsq(J[:, z], b, rcond=None)[0] # conforms new numpy version
-        x = np.linalg.lstsq(J[:, z], b)[0] # deprecated numpy version
-        if any(x < 0):
-            # 3. Determime alpha for solving a NNLS
-            [x, resnorm, residual] = lsqnonneg(J[:,z], b)
-        # 4. Update the residual
-        r = b - np.dot(J[:,z],x)
-        # 5. Update mPOS and k
-        mPOS = len(np.where(x>0)[0])
-        #TODO: is iterator really needed? Iteration counter
+        #x = np.linalg.lstsq(J[:, z], b)[0] # deprecated numpy version
+        if it == 0:
+            #alpha = np.linalg.solve(J[:, i], b)
+            alpha = np.divide(J[:, i], b)
+            H = 1 / np.dot((J[:, i]).T, J[:, i])
+        else:
+            H, alpha = UpdateWeightsInverse(J[:, z], H, J[:, i], alpha, r)
+        # 3. Move i from set y to set z
+        print("ACA")
+        z = (np.append(z, i)).astype(int)
+        print(z)
+        y = np.delete(y, s)
+        print(y)
+        print(alpha)
+        # 4. Find possible negative weights
+        if any(alpha < 0):
+            # 5. Determime alpha for solving a NNLS
+            #[x, resnorm, residual] = lsqnonneg(J[:,z], b)
+            n = np.where(alpha <= 0.)
+            print(n)
+            y = np.append(y, z[n])
+            np.delete(z, n)
+            H = MultiUpdateInverseHermitian(H, n, J[:, i], alpha, r)
+            # Recomputing alpha
+            alpha = H * np.linalg.dot(J[:, z], b)
+
+        # 6. Update the residual
+        r = b - np.dot(J[:, z], alpha)
+        # 7. Update mPOS and k
+        #mPOS = len(np.where(alpha > 0)[0])
+        mPOS = np.size(z)
         it = it + 1
         logger.debug("k = {}, mPOS = {}, error = {:.2f}%".format(it, mPOS, np.linalg.norm(r)/np.linalg.norm(b) * 100))
     # 6. Postprocess of points - neglecting null weights
-    INDzero = np.where(x == 0)[0]
-    if any(INDzero):
-        z = np.delete(z, INDzero)
-    w = np.multiply(x, np.sqrt(weights[z]))
+    #INDzero = np.where(x == 0)[0]
+    #if any(INDzero):
+    #    z = np.delete(z, INDzero)
+    w = np.multiply(alpha, np.sqrt(weights[z]))
     logger.debug("Reduced Weights: {}".format(w))
     logger.debug("sum of reduced weights: {}".format(np.sum(w)))
     logger.debug("GP's index (elems and ip starting from zero): {}".format(z))
