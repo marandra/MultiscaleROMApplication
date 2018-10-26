@@ -44,12 +44,14 @@ def ComputeJandb(Modes, weights, factorLEQ=1.0):
 
 
 def UpdateWeightsInverse(A, Aast, a, xold, r):
-    c = np.linalg.dot(A.T, a)
+    c = np.dot(A.T, a)
     d = Aast * c
-    s = np.linalg.dot(a.T, a) - np.linalg.dot(c.T, d)
-    Bast = vstack(hstack(Aast + (d * d.T)/s,  -d/s), hstack(-d.T/s, 1/s))
-    v = np.linalg.dot(a.T, r) / s
-    x = hstack((xold - d * v), v)
+    s = np.dot(a.T, a) - np.dot(c.T, d)
+    aux1 = np.hstack([Aast + np.dot(d, d.T)/s, -d/s])
+    aux2 = np.hstack([-d.T/s, 1/s])
+    Bast = np.vstack([aux1, aux2])
+    v = np.dot(a.T, r) / s
+    x = np.hstack([(xold - d * v), v])
     return Bast, x
 
 
@@ -66,9 +68,7 @@ def MultiUpdateInverseHermitian(Binv, jrowMAT, a, xold, r):
 
 
 def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
-    #[J, b] = ComputeJandb(Modes, weights, factorLEQ)[:2]
-    J = Modes.T
-    b = np.dot(J, np.sqrt(weights))
+    [J, b] = ComputeJandb(Modes, weights, factorLEQ)[:2]
 
     y = np.arange(len(weights))
 
@@ -86,29 +86,26 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
         ObjFun = np.divide(ObjFun, div)
         s = ObjFun.argmax()
         i = y[s]
+        # 3. Move i from set y to set z
+        z = (np.append(z, i)).astype(int)
+        y = np.delete(y, s)
         # 2. Update alpha and H (unrestricted least squares)
-        #x = np.linalg.lstsq(J[:, z], b, rcond=None)[0] # conforms new numpy version
-        #x = np.linalg.lstsq(J[:, z], b)[0] # deprecated numpy version
         if it == 0:
-            #alpha = np.linalg.solve(J[:, i], b)
-            alpha = np.divide(J[:, i], b)
+            #alpha = np.linalg.solve(J[:, z], b)
+            alpha = np.linalg.lstsq(J[:, z], b, rcond=None)[0] # conforms new numpy version
             H = 1 / np.dot((J[:, i]).T, J[:, i])
         else:
             H, alpha = UpdateWeightsInverse(J[:, z], H, J[:, i], alpha, r)
-        # 3. Move i from set y to set z
-        print("ACA")
-        z = (np.append(z, i)).astype(int)
-        print(z)
-        y = np.delete(y, s)
-        print(y)
-        print(alpha)
         # 4. Find possible negative weights
         if any(alpha < 0):
             # 5. Determime alpha for solving a NNLS
             #[x, resnorm, residual] = lsqnonneg(J[:,z], b)
             n = np.where(alpha <= 0.)
             print(n)
-            y = np.append(y, z[n])
+            print(y)
+            print(z)
+            print(z[n])
+            y = np.append(y, (z[n]).T)
             np.delete(z, n)
             H = MultiUpdateInverseHermitian(H, n, J[:, i], alpha, r)
             # Recomputing alpha
