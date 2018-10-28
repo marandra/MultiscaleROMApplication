@@ -18,11 +18,14 @@ def homogenization_function(self):
     nr_comp = len(stress_ref[0])
     stress_accum = [0.0] * nr_comp
     strain_accum = [0.0] * nr_comp
+    tensor_accum = [0.0] * int((nr_comp + 1) * nr_comp / 2)
     volume = 0.0
 
     for e, elem in enumerate(self.model_part.Elements):
         stress = elem.GetValuesOnIntegrationPoints(self.stress, self.model_part.ProcessInfo)
         strain = elem.GetValuesOnIntegrationPoints(self.strain, self.model_part.ProcessInfo)
+        #tensor = elem.GetValuesOnIntegrationPoints(self.tensor, self.model_part.ProcessInfo)
+        tensor = [0.0] * int((nr_comp + 1) * nr_comp / 2)
         weights = elem.GetValuesOnIntegrationPoints(km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo)
         weights = [x[0] for x in weights] # to unpack received list-inside-list
         for i, w in enumerate(weights):
@@ -32,11 +35,17 @@ def homogenization_function(self):
             for j in range(nr_comp):
                 stress_accum[j] += stress[i][j] * w
                 strain_accum[j] += strain[i][j] * w
+                index = 0
+                for k in range(j, nr_comp):
+                    #tensor_accum[index] += tensor[i][j][k] * w
+                    tensor_accum[index] += tensor[index] * w # debug
+                    index += 1
             volume += w
     for i in range(nr_comp):
         stress_accum[i] /= volume
         strain_accum[i] /= volume
-    return stress_accum, strain_accum
+        tensor_accum[i] /= volume
+    return stress_accum, strain_accum, tensor_accum
 
 def compute_vonmisses_stress(hs):
     s = (hs[0] + hs[1] + hs[2]) / 3
@@ -61,23 +70,25 @@ class WriteElementsHomogenizedOutput(km.Process):
         self.tensor = f(km)
 
     def write_results(self, filename):
-        homog_stress, homog_strain = homogenization_function(self)
-        line = "{:<4} "\
-               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  "\
-               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
+        homog_stress, homog_strain, const_tensor = homogenization_function(self)
+        line = "{:<5} "\
+               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
+               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
+               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
+               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
+               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
+               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
+               "{:<+1.4e}  {:<+1.4e}  " \
+               "{:<+1.4e}\n".format(
             0,
-            homog_strain[0],
-            homog_strain[1],
-            homog_strain[2],
-            homog_strain[3],
-            homog_strain[4],
-            homog_strain[5],
-            homog_stress[0],
-            homog_stress[1],
-            homog_stress[2],
-            homog_stress[3],
-            homog_stress[4],
-            homog_stress[5]
+            homog_strain[0], homog_strain[1], homog_strain[2], homog_strain[3], homog_strain[4], homog_strain[5],
+            homog_stress[0], homog_stress[1], homog_stress[2], homog_stress[3], homog_stress[4], homog_stress[5],
+            const_tensor[0], const_tensor[1], const_tensor[2], const_tensor[3], const_tensor[4], const_tensor[5],
+            const_tensor[6], const_tensor[7], const_tensor[8], const_tensor[9], const_tensor[10],
+            const_tensor[11], const_tensor[12], const_tensor[13], const_tensor[14],
+            const_tensor[15], const_tensor[16], const_tensor[17],
+            const_tensor[18], const_tensor[19],
+            const_tensor[20]
         )
         with open(filename, 'a') as ofile:
             ofile.write(line)
@@ -88,17 +99,27 @@ class WriteElementsHomogenizedOutput(km.Process):
         except OSError:
             pass
         with open(self.filename, "w") as fo:
-            fo.write("#    {:<78}{:<30}\n".format("Strain", "Stress"))
-            fo.write("#1   "
-                      "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
-                      "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
-                      "2", "3", "4", "5" , "6", "7",
-                      "8", "9", "10", "11" , "12", "13"))
-            fo.write("#    "
-                      "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
-                      "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
-                      "XX", "YY", "ZZ", "XY" , "YZ", "XZ",
-                      "XX", "YY", "ZZ", "XY" , "YZ", "XZ"))
+            fo.write("#col: "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12}\n".format(
+                     "2", "3", "4", "5" , "6", "7",  # strain
+                     "8", "9", "10", "11" , "12", "13", # stress
+                     "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24",
+                     "25", "26", "27", "28", "29", "30", "31", "32", "33", "34"))
+            fo.write("#     "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                     "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
+                      "strain XX", "YY", "ZZ", "XY" , "YZ", "XZ",
+                      "stress XX", "YY", "ZZ", "XY" , "YZ", "XZ",
+                      "CT 11", "12", "13", "14" , "15", "16", "22", "23", "24", "25" , "26",
+                      "33", "34", "35", "36" , "44", "45", "46", "55", "56", "66"))
 
     def ExecuteInitializeSolutionStep(self):
         pass
