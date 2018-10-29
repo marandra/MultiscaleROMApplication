@@ -45,14 +45,42 @@ def ComputeJandb(Modes, weights, factorLEQ=1.0):
 
 def UpdateWeightsInverse(A, Aast, a, xold, r):
     c = np.dot(A.T, a)
-    d = Aast * c
-    s = np.dot(a.T, a) - np.dot(c.T, d)
-    aux1 = np.hstack([Aast + np.dot(d, d.T)/s, -d/s])
-    aux2 = np.hstack([-d.T/s, 1/s])
+    if np.size(xold) == 1:
+        d = np.dot(Aast, c)
+        s = np.dot(a.T, a) - np.dot(c.T, d)
+        aux1 = np.hstack([Aast + d*d/s, -d/s])
+        aux2 = np.hstack([-d.T/s, 1/s])
+    else:
+        d = np.dot(Aast, c).reshape(-1, 1)
+        s = np.dot(a.T, a) - np.dot(c.T, d)
+    #print("OUTER", np.outer(d, d)/s)
+    #print("squeezed", np.squeeze(np.outer(d, d)/s))
+    #print("AUX 1 A", (Aast + np.squeeze(np.outer(d, d.T)/s)))
+    #print(np.size(Aast + np.outer(d, d.T)/s))
+    #print("AUX 1 B", -d.T/s)
+    #print(np.size(-d/s))
+    #aux1 = np.hstack([(Aast + np.squeeze(np.outer(d, d.T)/s)), -d.T/s])
+        aux11 = Aast + np.outer(d, d)/s
+        aux12 = -d/s
+        aux1 = np.hstack([aux11, aux12])
+        print("AUX 1", aux1)
+        aux2 = np.hstack([np.squeeze(-d.T/s), 1/s])
+        print("AUX 2", aux2)
+
     Bast = np.vstack([aux1, aux2])
+    print("BAST ", Bast)
+
     v = np.dot(a.T, r) / s
-    x = np.hstack([(xold - d * v), v])
-    return Bast, x
+    print(xold)
+    print(v)
+    print(d)
+    xold_t = np.squeeze(xold.reshape(-1, 1))
+    print(xold_t)
+    x = np.hstack([(xold_t - d * v), v])
+    x_t =  np.squeeze(x.reshape(-1, 1))
+    print(x_t)
+    #x = np.vstack([(xold - d * v), v])
+    return Bast, x_t
 
 
 def MultiUpdateInverseHermitian(Binv, jrowMAT, a, xold, r):
@@ -86,25 +114,26 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
         ObjFun = np.divide(ObjFun, div)
         s = ObjFun.argmax()
         i = y[s]
-        # 3. Move i from set y to set z
-        z = (np.append(z, i)).astype(int)
-        y = np.delete(y, s)
         # 2. Update alpha and H (unrestricted least squares)
         if it == 0:
-            #alpha = np.linalg.solve(J[:, z], b)
-            alpha = np.linalg.lstsq(J[:, z], b, rcond=None)[0] # conforms new numpy version
+            #alpha = b / J[:, i]
+            alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0] # conforms new numpy version
             H = 1 / np.dot((J[:, i]).T, J[:, i])
         else:
             H, alpha = UpdateWeightsInverse(J[:, z], H, J[:, i], alpha, r)
+        # 3. Move i from set y to set z
+        z = (np.append(z, i)).astype(int)
+        y = np.delete(y, s)
         # 4. Find possible negative weights
+        print("ALPHA:", alpha)
         if any(alpha < 0):
+            print("NEGATIVO")
             # 5. Determime alpha for solving a NNLS
             #[x, resnorm, residual] = lsqnonneg(J[:,z], b)
             n = np.where(alpha <= 0.)
             print(n)
             print(y)
             print(z)
-            print(z[n])
             y = np.append(y, (z[n]).T)
             np.delete(z, n)
             H = MultiUpdateInverseHermitian(H, n, J[:, i], alpha, r)
@@ -112,7 +141,11 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
             alpha = H * np.linalg.dot(J[:, z], b)
 
         # 6. Update the residual
+        #print(b)
+        #print(z)
+        #print(J[:, z])
         r = b - np.dot(J[:, z], alpha)
+        #r = b - np.dot((J[:, z]).T, alpha)
         # 7. Update mPOS and k
         #mPOS = len(np.where(alpha > 0)[0])
         mPOS = np.size(z)
@@ -223,7 +256,7 @@ def generate_rve_params(conf, iw_list):
         out_B.append(B.tolist())
         out_w.append(w)
         out_prop.append(material[e])
-        
+
     out['props_id'] = out_prop
     out['w'] = out_w
     out['B'] = out_B
