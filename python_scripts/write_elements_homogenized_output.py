@@ -6,26 +6,19 @@ import math
 def Factory(settings, Model):
     return WriteElementsHomogenizedOutput(settings["Parameters"], Model)
 
-def parameters_get_list_int(ilist):
-    olist = []
-    for i in range(ilist.size()):
-        olist.append(ilist[i].GetInt())
-    return olist
-
 
 def homogenization_function(self):
     stress_ref = self.model_part.Elements[1].GetValuesOnIntegrationPoints(self.stress,self.model_part.ProcessInfo)
     nr_comp = len(stress_ref[0])
     stress_accum = [0.0] * nr_comp
     strain_accum = [0.0] * nr_comp
-    tensor_accum = [0.0] * int((nr_comp + 1) * nr_comp / 2)
+    tensor_accum = [0.0] * nr_comp * nr_comp
     volume = 0.0
 
     for e, elem in enumerate(self.model_part.Elements):
         stress = elem.GetValuesOnIntegrationPoints(self.stress, self.model_part.ProcessInfo)
         strain = elem.GetValuesOnIntegrationPoints(self.strain, self.model_part.ProcessInfo)
-        #tensor = elem.GetValuesOnIntegrationPoints(self.tensor, self.model_part.ProcessInfo)
-        tensor = [0.0] * int((nr_comp + 1) * nr_comp / 2)
+        tensor = elem.GetValuesOnIntegrationPoints(self.tensor, self.model_part.ProcessInfo)
         weights = elem.GetValuesOnIntegrationPoints(km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo)
         weights = [x[0] for x in weights] # to unpack received list-inside-list
         for i, w in enumerate(weights):
@@ -35,11 +28,8 @@ def homogenization_function(self):
             for j in range(nr_comp):
                 stress_accum[j] += stress[i][j] * w
                 strain_accum[j] += strain[i][j] * w
-                index = 0
-                for k in range(j, nr_comp):
-                    #tensor_accum[index] += tensor[i][j][k] * w
-                    tensor_accum[index] += tensor[index] * w # debug
-                    index += 1
+            for j in range(nr_comp * nr_comp):
+                tensor_accum[j] += tensor[i][j] * w
             volume += w
     for i in range(nr_comp):
         stress_accum[i] /= volume
@@ -62,12 +52,9 @@ class WriteElementsHomogenizedOutput(km.Process):
         #self.vname = param['variable_name'].GetString()
         #f = operator.attrgetter(self.vname)
         #self.Var = f(km)
-        f = operator.attrgetter("CAUCHY_STRESS_VECTOR")
-        self.stress = f(km)
-        f = operator.attrgetter("GREEN_LAGRANGE_STRAIN_VECTOR")
-        self.strain = f(km)
-        f = operator.attrgetter("CONSTITUTIVE_MATRIX")
-        self.tensor = f(km)
+        self.stress = km.CAUCHY_STRESS_VECTOR
+        self.strain = km.GREEN_LAGRANGE_STRAIN_VECTOR
+        self.tensor = km.CONSTITUTIVE_MATRIX
 
     def write_results(self, filename):
         homog_stress, homog_strain, const_tensor = homogenization_function(self)
@@ -81,14 +68,14 @@ class WriteElementsHomogenizedOutput(km.Process):
                "{:<+1.4e}  {:<+1.4e}  " \
                "{:<+1.4e}\n".format(
             0,
-            homog_strain[0], homog_strain[1], homog_strain[2], homog_strain[3], homog_strain[4], homog_strain[5],
-            homog_stress[0], homog_stress[1], homog_stress[2], homog_stress[3], homog_stress[4], homog_stress[5],
-            const_tensor[0], const_tensor[1], const_tensor[2], const_tensor[3], const_tensor[4], const_tensor[5],
-            const_tensor[6], const_tensor[7], const_tensor[8], const_tensor[9], const_tensor[10],
-            const_tensor[11], const_tensor[12], const_tensor[13], const_tensor[14],
-            const_tensor[15], const_tensor[16], const_tensor[17],
-            const_tensor[18], const_tensor[19],
-            const_tensor[20]
+            homog_strain[ 0], homog_strain[ 1], homog_strain[ 2], homog_strain[ 3], homog_strain[ 4], homog_strain[ 5],
+            homog_stress[ 0], homog_stress[ 1], homog_stress[ 2], homog_stress[ 3], homog_stress[ 4], homog_stress[ 5],
+            const_tensor[ 0], const_tensor[ 1], const_tensor[ 2], const_tensor[ 3], const_tensor[ 4], const_tensor[ 5],
+                              const_tensor[ 7], const_tensor[ 8], const_tensor[ 9], const_tensor[10], const_tensor[11],
+                                                const_tensor[14], const_tensor[15], const_tensor[16], const_tensor[17],
+                                                                  const_tensor[21], const_tensor[22], const_tensor[23],
+                                                                                    const_tensor[28], const_tensor[29],
+                                                                                                      const_tensor[35]
         )
         with open(filename, 'a') as ofile:
             ofile.write(line)
