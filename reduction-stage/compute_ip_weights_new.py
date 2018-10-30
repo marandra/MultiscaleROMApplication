@@ -53,53 +53,45 @@ def UpdateWeightsInverse(A, Aast, a, xold, r):
     else:
         d = np.dot(Aast, c).reshape(-1, 1)
         s = np.dot(a.T, a) - np.dot(c.T, d)
-    #print("OUTER", np.outer(d, d)/s)
-    #print("squeezed", np.squeeze(np.outer(d, d)/s))
-    #print("AUX 1 A", (Aast + np.squeeze(np.outer(d, d.T)/s)))
-    #print(np.size(Aast + np.outer(d, d.T)/s))
-    #print("AUX 1 B", -d.T/s)
-    #print(np.size(-d/s))
-    #aux1 = np.hstack([(Aast + np.squeeze(np.outer(d, d.T)/s)), -d.T/s])
         aux11 = Aast + np.outer(d, d)/s
         aux12 = -d/s
         aux1 = np.hstack([aux11, aux12])
-        print("AUX 1", aux1)
         aux2 = np.hstack([np.squeeze(-d.T/s), 1/s])
-        print("AUX 2", aux2)
 
     Bast = np.vstack([aux1, aux2])
-    print("BAST ", Bast)
 
     v = np.dot(a.T, r) / s
-    print(xold)
-    print(v)
-    print(d)
-    xold_t = np.squeeze(xold.reshape(-1, 1))
-    print(xold_t)
-    x = np.hstack([(xold_t - d * v), v])
-    x_t =  np.squeeze(x.reshape(-1, 1))
-    print(x_t)
-    #x = np.vstack([(xold - d * v), v])
-    return Bast, x_t
+    x = np.vstack([(xold - d * v), v])
+    return Bast, x
 
 
-def MultiUpdateInverseHermitian(Binv, jrowMAT, a, xold, r):
-#def MultiUpdateInverseHermitian(Binv, jrowMAT):
-    jrowMAT = sort(jrowMAT)
+def UpdateInverseHermitian(Binv, jrow):
+    if jrow == np.shape(Binv)[1]:
+        aux = (Binv[0:-1, -1] * Binv[-1, 0:-1]) / Binv(-1, -1)
+        Ahinv = Binv[:-1, :-1] - aux
+    else:
+        aux1 = np.hstack([Binv[:, 0:jrow], Binv[:, jrow+1:], Binv[:, jrow].reshape(-1,1)])
+        aux2 = np.vstack([aux1[0:jrow, :], aux1[jrow+1:, :], aux1[jrow, :]])
+        Ahinv = aux2[0:-1, 0:-1] - (aux2[0:-1, -1] * aux2[-1,0:-1]) / aux2[-1, -1]
+    return Ahinv
+
+
+def MultiUpdateInverseHermitian(Binv, jrowMAT):
+    jrowMAT = np.sort(jrowMAT)
     BinvOLD = Binv
     for i in range(np.size(jrowMAT)):
-        jrow = jrowMAT(i)-i+1 # i or i+1???
-        #Ahinv = UpdateInverseHermitian(BinvOLD,jrow)
-        Ahinv = UpdateWeightsInverse(BinvOLD, jrow, a, xold, r)
+        #jrow = jrowMAT(i)-i+1 # i or i+1???
+        jrow = jrowMAT[i]
+        Ahinv = UpdateInverseHermitian(BinvOLD, jrow)
         BinvOLD = Ahinv
     return Ahinv
 
 
 def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
-    [J, b] = ComputeJandb(Modes, weights, factorLEQ)[:2]
+    [J, bT] = ComputeJandb(Modes, weights, factorLEQ)[:2]
+    b = bT.reshape(-1, 1)
 
     y = np.arange(len(weights))
-
     r = b  # residual vector, initial guess
     it = 0  # number of iterations
     mPOS = 0  # number of non-zero weights
@@ -110,13 +102,12 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
     while (np.linalg.norm(r) / np.linalg.norm(b) > tol) and (mPOS <= nGP):
         # 1. Compute new point
         ObjFun = np.dot((J[:, y]).T, r)
-        div = np.multiply(Jnorm[y], np.linalg.norm(r))
+        div = np.multiply(Jnorm[y], np.linalg.norm(r)).reshape(-1,1)
         ObjFun = np.divide(ObjFun, div)
         s = ObjFun.argmax()
         i = y[s]
         # 2. Update alpha and H (unrestricted least squares)
         if it == 0:
-            #alpha = b / J[:, i]
             alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0] # conforms new numpy version
             H = 1 / np.dot((J[:, i]).T, J[:, i])
         else:
@@ -125,27 +116,17 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
         z = (np.append(z, i)).astype(int)
         y = np.delete(y, s)
         # 4. Find possible negative weights
-        print("ALPHA:", alpha)
         if any(alpha < 0):
             print("NEGATIVO")
             # 5. Determime alpha for solving a NNLS
-            #[x, resnorm, residual] = lsqnonneg(J[:,z], b)
-            n = np.where(alpha <= 0.)
-            print(n)
-            print(y)
-            print(z)
+            n = np.where(alpha <= 0.)[0]
             y = np.append(y, (z[n]).T)
-            np.delete(z, n)
-            H = MultiUpdateInverseHermitian(H, n, J[:, i], alpha, r)
-            # Recomputing alpha
-            alpha = H * np.linalg.dot(J[:, z], b)
+            z = np.delete(z, n)
+            H = MultiUpdateInverseHermitian(H, n)
+            alpha = H * np.dot(J[:, z].T, b)
 
         # 6. Update the residual
-        #print(b)
-        #print(z)
-        #print(J[:, z])
         r = b - np.dot(J[:, z], alpha)
-        #r = b - np.dot((J[:, z]).T, alpha)
         # 7. Update mPOS and k
         #mPOS = len(np.where(alpha > 0)[0])
         mPOS = np.size(z)
@@ -155,7 +136,7 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
     #INDzero = np.where(x == 0)[0]
     #if any(INDzero):
     #    z = np.delete(z, INDzero)
-    w = np.multiply(alpha, np.sqrt(weights[z]))
+    w = np.multiply(alpha, np.sqrt(weights[z]).reshape(-1, 1))
     logger.debug("Reduced Weights: {}".format(w))
     logger.debug("sum of reduced weights: {}".format(np.sum(w)))
     logger.debug("GP's index (elems and ip starting from zero): {}".format(z))
