@@ -1,68 +1,47 @@
-import time
 import configparser
 import argparse
-import glob
 import numpy as np
 import logging
 import json
 
 
 def ComputeJandb(Modes, weights, factorLEQ=1.0):
-
     eps = 2.22e-16    # from matlab
-
     # Exact integral - numerical integration
     INTexact = np.dot(Modes.T, weights)
-
     # Total microscale volume
     vol = np.sum(weights)
     sqrtVol = np.sqrt(weights)
-
     # Matrix of modified modes (with zero integral)
     Xf = np.zeros(Modes.shape)
-
     # Loops over the initial modes
     Xf = np.subtract(Modes, INTexact / vol)
     Xf = np.multiply(Xf.T, sqrtVol).T
-
     # Singular Value Decomposition
     [Lambda,SValues,VValues] = np.linalg.svd(Xf,full_matrices=False)
-
     # fixed tolerance to define the reduced modified set of modes
     tol = np.max(Modes.shape) * eps * np.max(SValues)
     RankXf = sum(i > tol for i in SValues)
     Lambda = Lambda[:,0:RankXf]
     J = Lambda.T
     Jw = factorLEQ * sqrtVol / np.sqrt(vol)
-
     # Adding last row related with the sqrt of gauss integration weigths
     J = np.vstack([J, Jw.T])
-
     # Initializing the RHS vector for the optimization problem
     b = np.append(np.zeros(Lambda.T.shape[0]), factorLEQ * np.sqrt(vol))
     return J, b, INTexact
 
 
-def UpdateWeightsInverse(A, Aast, a, xold, r):
-    c = np.dot(A.T, a)
-    if np.size(xold) == 1:
-        d = np.dot(Aast, c)
-        s = np.dot(a.T, a) - np.dot(c.T, d)
-        aux1 = np.hstack([Aast + d*d/s, -d/s])
-        aux2 = np.hstack([-d.T/s, 1/s])
-    else:
-        d = np.dot(Aast, c).reshape(-1, 1)
-        s = np.dot(a.T, a) - np.dot(c.T, d)
-        aux11 = Aast + np.outer(d, d)/s
-        aux12 = -d/s
-        aux1 = np.hstack([aux11, aux12])
-        aux2 = np.hstack([np.squeeze(-d.T/s), 1/s])
-
-    Bast = np.vstack([aux1, aux2])
-
-    v = np.dot(a.T, r) / s
-    x = np.vstack([(xold - d * v), v])
-    return Bast, x
+def UpdateWeightsInverse(H, alpha, bases_current, base_new, r):
+    c = np.dot(bases_current.T, base_new)
+    d = np.dot(H, c).reshape(-1, 1)
+    s = np.dot(base_new.T, base_new) - np.dot(c.T, d)
+    aux1 = np.hstack([H + np.outer(d, d)/s, -d/s])
+    aux2 = np.hstack([np.squeeze(-d.T/s), 1/s])
+    H_new = np.vstack([aux1, aux2])
+    v = np.dot(base_new.T, r) / s
+    alpha = np.vstack([(alpha - d * v), v])
+    return H_new, alpha
 
 
 def UpdateInverseHermitian(Binv, jrow):
@@ -76,15 +55,21 @@ def UpdateInverseHermitian(Binv, jrow):
     return Ahinv
 
 
-def MultiUpdateInverseHermitian(Binv, jrowMAT):
+#def MultiUpdateInverseHermitian(Binv, jrowMAT):
+#    jrowMAT = np.sort(jrowMAT)
+#    BinvOLD = Binv
+#    for i in range(np.size(jrowMAT)):
+#        jrow = jrowMAT[i] - i
+#        Ahinv = UpdateInverseHermitian(BinvOLD, jrow)
+#        BinvOLD = Ahinv
+#    return Ahinv
+
+def MultiUpdateInverseHermitian(H, jrowMAT):
     jrowMAT = np.sort(jrowMAT)
-    BinvOLD = Binv
     for i in range(np.size(jrowMAT)):
-        #jrow = jrowMAT(i)-i+1 # i or i+1???
         jrow = jrowMAT[i] - i
-        Ahinv = UpdateInverseHermitian(BinvOLD, jrow)
-        BinvOLD = Ahinv
-    return Ahinv
+        H = UpdateInverseHermitian(H, jrow)
+    return H
 
 
 def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
@@ -108,35 +93,31 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
         i = y[s]
         # 2. Update alpha and H (unrestricted least squares)
         if it == 0:
-            alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0] # conforms new numpy version
+            # complies with newer versions of numpy
+            #alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0]
+            alpha = np.linalg.lstsq(J[:, [i]], b)[0]
             H = 1 / np.dot((J[:, i]).T, J[:, i])
         else:
-            H, alpha = UpdateWeightsInverse(J[:, z], H, J[:, i], alpha, r)
+            H, alpha = UpdateWeightsInverse(H, alpha, J[:, z], J[:, i], r)
         # 3. Move i from set y to set z
         z = (np.append(z, i)).astype(int)
         y = np.delete(y, s)
         # 4. Find possible negative weights
         if any(alpha < 0):
-            # 5. Determime alpha for solving a NNLS
-            print("NEGATIVO:")
-            n = np.where(alpha <= 0.)[0]
-            y = np.append(y, (z[n]).T)
-            z = np.delete(z, n)
-            H = MultiUpdateInverseHermitian(H, n)
-            #print(alpha)
+            print("WARNING: NEGATIVE weight found")
+            indexes_neg_weight = np.where(alpha <= 0.)[0]
+            y = np.append(y, (z[indexes_neg_weight]).T)
+            z = np.delete(z, indexes_neg_weight)
+            H = MultiUpdateInverseHermitian(H, indexes_neg_weight)
             alpha = H @ np.dot(J[:, z].T, b)
 
         # 6. Update the residual
         r = b - np.dot(J[:, z], alpha)
         # 7. Update mPOS and k
-        #mPOS = len(np.where(alpha > 0)[0])
         mPOS = np.size(z)
         it = it + 1
         logger.debug("k = {}, mPOS = {}, error = {:.2f}%".format(it, mPOS, np.linalg.norm(r)/np.linalg.norm(b) * 100))
     # 6. Postprocess of points - neglecting null weights
-    #INDzero = np.where(x == 0)[0]
-    #if any(INDzero):
-    #    z = np.delete(z, INDzero)
     w = np.multiply(alpha, np.sqrt(weights[z]).reshape(-1, 1))
     logger.debug("Reduced Weights: {}".format(w.T))
     logger.debug("sum of reduced weights: {}".format(np.sum(w)))
