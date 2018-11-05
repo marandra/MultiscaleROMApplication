@@ -5,34 +5,29 @@ import logging
 import json
 
 
-def ComputeJandb(Modes, weights, factorLEQ=1.0):
-    eps = 2.22e-16    # from matlab
-    # Exact integral - numerical integration
-    INTexact = np.dot(Modes.T, weights)
+def remove_exact_integral_energy(modes, weights):
+    eps = np.finfo(float).eps # 2.22044604925e-16
     # Total microscale volume
-    vol = np.sum(weights)
-    sqrtVol = np.sqrt(weights)
+    total_weight = np.sum(weights)
+    sqrt_total_weight = np.sqrt(total_weight)
+    sqrt_weights = np.sqrt(weights)
+    # Normalized exact integral
+    norm_exact_integral = modes.T @ weights / total_weight
     # Matrix of modified modes (with zero integral)
-    Xf = np.zeros(Modes.shape)
-    # Loops over the initial modes
-    Xf = np.subtract(Modes, INTexact / vol)
-    Xf = np.multiply(Xf.T, sqrtVol).T
-    # Singular Value Decomposition
-    [Lambda,SValues,VValues] = np.linalg.svd(Xf,full_matrices=False)
-    # fixed tolerance to define the reduced modified set of modes
-    tol = np.max(Modes.shape) * eps * np.max(SValues)
-    RankXf = sum(i > tol for i in SValues)
-    Lambda = Lambda[:,0:RankXf]
-    J = Lambda.T
-    Jw = factorLEQ * sqrtVol / np.sqrt(vol)
+    modified_modes = (modes - norm_exact_integral) * sqrt_weights.reshape(-1,1)
+    [modified_modes, bases_weights] = np.linalg.svd(modified_modes, full_matrices=False)[:2]
+    # filter the reduced modified set of modes
+    tolerance = np.max(modes.shape) * eps * np.max(bases_weights)
+    rank_mod_modes = sum(i > tolerance for i in bases_weights)
+    modified_modes = modified_modes[:, 0:rank_mod_modes]
     # Adding last row related with the sqrt of gauss integration weigths
-    J = np.vstack([J, Jw.T])
-    # Initializing the RHS vector for the optimization problem
-    b = np.append(np.zeros(Lambda.T.shape[0]), factorLEQ * np.sqrt(vol))
-    return J, b, INTexact
+    # and initializing the RHS vector for the optimization problem
+    J = np.vstack([modified_modes.T, (sqrt_weights / sqrt_total_weight).T])
+    b = np.vstack([np.zeros((modified_modes.T.shape[0], 1)), sqrt_total_weight])
+    return J, b
 
 
-def UpdateWeightsInverse(H, alpha, bases_current, base_new, r):
+def update_weights_inverse(H, alpha, bases_current, base_new, r):
     c = np.dot(bases_current.T, base_new)
     d = np.dot(H, c).reshape(-1, 1)
     s = np.dot(base_new.T, base_new) - np.dot(c.T, d)
@@ -44,38 +39,27 @@ def UpdateWeightsInverse(H, alpha, bases_current, base_new, r):
     return H_new, alpha
 
 
-def UpdateInverseHermitian(Binv, jrow):
-    if jrow == np.shape(Binv)[1]:
-        aux = (Binv[0:-1, -1] * Binv[-1, 0:-1]) / Binv(-1, -1)
-        Ahinv = Binv[:-1, :-1] - aux
+def update_inverse_hermitian(invH, neg_index):
+    if neg_index == np.shape(invH)[1]:
+        aux = (invH[0:-1, -1] * invH[-1, 0:-1]) / invH(-1, -1)
+        invH_new = invH[:-1, :-1] - aux
     else:
-        aux1 = np.hstack([Binv[:, 0:jrow], Binv[:, jrow+1:], Binv[:, jrow].reshape(-1,1)])
-        aux2 = np.vstack([aux1[0:jrow, :], aux1[jrow+1:, :], aux1[jrow, :]])
-        Ahinv = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1,0:-1])/aux2[-1, -1]
-    return Ahinv
+        aux1 = np.hstack([invH[:, 0:neg_index], invH[:, neg_index + 1:], invH[:, neg_index].reshape(-1, 1)])
+        aux2 = np.vstack([aux1[0:neg_index, :], aux1[neg_index + 1:, :], aux1[neg_index, :]])
+        invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1,0:-1])/aux2[-1, -1]
+    return invH_new
 
 
-#def MultiUpdateInverseHermitian(Binv, jrowMAT):
-#    jrowMAT = np.sort(jrowMAT)
-#    BinvOLD = Binv
-#    for i in range(np.size(jrowMAT)):
-#        jrow = jrowMAT[i] - i
-#        Ahinv = UpdateInverseHermitian(BinvOLD, jrow)
-#        BinvOLD = Ahinv
-#    return Ahinv
-
-def MultiUpdateInverseHermitian(H, jrowMAT):
-    jrowMAT = np.sort(jrowMAT)
-    for i in range(np.size(jrowMAT)):
-        jrow = jrowMAT[i] - i
-        H = UpdateInverseHermitian(H, jrow)
-    return H
+def multiupdate_inverse_hermitian(invH, neg_indexes):
+    neg_indexes = np.sort(neg_indexes)
+    for i in range(np.size(neg_indexes)):
+        neg_index = neg_indexes[i] - i
+        invH = update_inverse_hermitian(invH, neg_index)
+    return invH
 
 
-def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
-    [J, bT] = ComputeJandb(Modes, weights, factorLEQ)[:2]
-    b = bT.reshape(-1, 1)
-
+def compute_roq(Modes, weights, nGP, tol):
+    J, b = remove_exact_integral_energy(Modes, weights)
     y = np.arange(len(weights))
     r = b  # residual vector, initial guess
     it = 0  # number of iterations
@@ -98,7 +82,7 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
             alpha = np.linalg.lstsq(J[:, [i]], b)[0]
             H = 1 / np.dot((J[:, i]).T, J[:, i])
         else:
-            H, alpha = UpdateWeightsInverse(H, alpha, J[:, z], J[:, i], r)
+            H, alpha = update_weights_inverse(H, alpha, J[:, z], J[:, i], r)
         # 3. Move i from set y to set z
         z = (np.append(z, i)).astype(int)
         y = np.delete(y, s)
@@ -108,8 +92,8 @@ def ComputeROQ(Modes, weights, nGP, factorLEQ, tol):
             indexes_neg_weight = np.where(alpha <= 0.)[0]
             y = np.append(y, (z[indexes_neg_weight]).T)
             z = np.delete(z, indexes_neg_weight)
-            H = MultiUpdateInverseHermitian(H, indexes_neg_weight)
-            alpha = H @ np.dot(J[:, z].T, b)
+            H = multiupdate_inverse_hermitian(H, indexes_neg_weight)
+            alpha = np.dot(H, np.dot(J[:, z].T, b))
 
         # 6. Update the residual
         r = b - np.dot(J[:, z], alpha)
@@ -147,8 +131,8 @@ def compute_reduced_set(conf):
     else:
         energy_modes = np.load(energy_bases_filename)[:,:nr_roq_points]
 
-    [w, z] = ComputeROQ(energy_modes, integration_weights,
-                        nr_roq_points, factorLEQ=1.0, tol=1.e-14)
+    [w, z] = compute_roq(energy_modes, integration_weights,
+                         nr_roq_points, tol=1.e-14)
     roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
     roq_list = []
     for x, igg in enumerate(z):
