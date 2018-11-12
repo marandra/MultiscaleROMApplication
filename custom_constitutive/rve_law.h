@@ -106,6 +106,10 @@ public:
     bool Has(const Variable<Vector>& rThisVariable) override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    void SetValue(
+            const Variable<Vector>& rThisVariable,
+            const Vector& rValue,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * This is to be called at the very beginning of the calculation

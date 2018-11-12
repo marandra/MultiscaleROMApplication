@@ -1,6 +1,9 @@
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
 #include <multiscale_rom_application_variables.h>
+
+#include "custom_constitutive/linear_j2_plasticity_3d.h"
+
 namespace Kratos
 {
 /***********************************************************************************/
@@ -532,6 +535,8 @@ bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
         return true;
+    if (rThisVariable == INTERNAL_VARIABLES)
+        return true;
     return false;
 }
 
@@ -541,7 +546,41 @@ Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
         rValue = mModesWeights;
+    if (rThisVariable == INTERNAL_VARIABLES)
+    {
+        int count = 0;
+        for (int i = 0; i < mCL_vec.size(); i++)
+        {
+            Vector rValue_i;
+            mCL_vec[i]->GetValue(INTERNAL_VARIABLES, rValue_i);
+            rValue.resize(count+rValue_i.size(), true);
+            for (int j = 0; j < rValue_i.size(); j++) {
+                rValue[count++] = rValue_i[j];
+            }
+        }
+    }
     return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+void RVELaw::SetValue(
+        const Variable<Vector>& rThisVariable,
+        const Vector& rValue,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rThisVariable == INTERNAL_VARIABLES)
+    {
+        int count = 0;
+        for (auto i = 0; i < mCL_vec.size(); i++)
+        {
+            int rsize = mCL_vec[i]->GetValue((const Variable<int>&)INTERNAL_VARIABLES, rsize);
+            Vector rValue_i(rsize);
+            for (auto j = 0; j < rsize; j++)
+                rValue_i(j) = rValue(count++);
+            mCL_vec[i]->SetValue(rThisVariable, rValue_i, rCurrentProcessInfo);
+        }
+    }
 }
 
 /***********************************************************************************/
