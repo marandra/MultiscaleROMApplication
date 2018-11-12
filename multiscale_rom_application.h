@@ -64,12 +64,12 @@ private:
     //const MinimalKineticCondition3D mMinimalKineticCondition3D4N;
     const MinimalKineticVolCondition3D mMinimalKineticCondition3D8N;
 
-    // constitutive laws
-    const RVELaw mRVELaw;
-
     // others
     KratosMultiscaleROMApplication& operator=(KratosMultiscaleROMApplication const& rOther);
     KratosMultiscaleROMApplication(KratosMultiscaleROMApplication const& rOther);
+    
+    // constitutive laws
+    const RVELaw mRVELaw;
 };
 }
 #endif

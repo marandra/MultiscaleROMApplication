@@ -39,7 +39,17 @@ KratosMultiscaleROMApplication::KratosMultiscaleROMApplication():
 void KratosMultiscaleROMApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosMultiscaleROMApplication...  " << std::endl;
+
+    //KRATOS_INFO("") << "     _____     _ _   _             _     _____ _____ _____ _____ _____ " << std::endl
+    //                << "    |     |_ _| | |_|_|___ ___ ___| |___|  |  |  _  | __  |     |     |" << std::endl
+    //                << "    | | | | | | |  _| |_ -|  _| .'| | -_|     |   __|    -|  |  | | | |" << std::endl
+    //                << "    |_|_|_|___|_|_| |_|___|___|__,|_|___|__|__|__|  |__|__|_____|_|_|_|" << std::endl
+    //                << "                                                             TECHNOLOGY" << std::endl;
+
+    KRATOS_INFO("") << "               ___    __   __             ___          __   __   __       " << std::endl
+                    << "|\\/| |  | |     |  | /__` /  `  /\\  |    |__     |__| |__) |__) /  \\  |\\/|" << std::endl
+                    << "|  | \\__/ |___  |  | .__/ \\__, /~~\\ |___ |___    |  | |    |  \\ \\__/  |  |" << std::endl
+                    << "                                                                TECHNOLOGY" << std::endl;
 
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_1);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_2);
