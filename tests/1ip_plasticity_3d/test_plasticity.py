@@ -167,9 +167,7 @@ def generic_constitutive_law_test(model_part, deformation_test):
     # Set the parameters to be employed
     dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': False,
                     'COMPUTE_STRESS': True,
-                    'COMPUTE_CONSTITUTIVE_TENSOR': True,
-                    'FINITE_STRAINS': True,
-                    'ISOTROPIC': True,
+                    'COMPUTE_CONSTITUTIVE_TENSOR': True
                     }
     cl_options = _set_cl_options(dict_options)
 
