@@ -17,6 +17,8 @@ def parameters_get_list_int(ilist):
 class WriteElementsOutputScalar(km.Process):
     def __init__(self, settings, Model):
 
+        km.Process.__init__(self)
+
         default_settings = km.Parameters("""
         {
             "mesh_id": 0,

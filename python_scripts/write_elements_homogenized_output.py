@@ -47,6 +47,9 @@ def compute_vonmisses_stress(hs):
 
 class WriteElementsHomogenizedOutput(km.Process):
     def __init__(self, param, Model):
+
+        km.Process.__init__(self)
+
         self.model_part = Model[param['model_part_name'].GetString()]
         self.filename = param['filename'].GetString()
         #self.vname = param['variable_name'].GetString()
