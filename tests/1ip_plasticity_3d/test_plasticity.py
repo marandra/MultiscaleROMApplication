@@ -165,7 +165,7 @@ def generic_constitutive_law_test(model_part, deformation_test):
     _cl_check(cl, properties, geom, model_part, deformation_test.cl.dim)
 
     # Set the parameters to be employed
-    dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': False,
+    dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': True,
                     'COMPUTE_STRESS': True,
                     'COMPUTE_CONSTITUTIVE_TENSOR': True
                     }
@@ -188,15 +188,42 @@ def generic_constitutive_law_test(model_part, deformation_test):
     deformation_test.initialize_reference_stress(cl.GetStrainSize())
 
     output = Output("strain-stress.dat")
+
+    print()
+    print("Has INELASTIC_FLAG: ", cl.Has(km.StructuralMechanicsApplication.INELASTIC_FLAG))
+    print("Has PLASTIC_STRAIN: ", cl.Has(km.PLASTIC_STRAIN))
+    print("Has STRAIN_ENERGY: ", cl.Has(km.STRAIN_ENERGY))
+    print("Has STRAIN: ", cl.Has(km.STRAIN))
+    print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
+    zero_vector = km.Vector(6)
+    zero_vector[0] = 0.
+    zero_vector[1] = 0.
+    zero_vector[2] = 0.
+    zero_vector[3] = 0.
+    zero_vector[4] = 0.
+    zero_vector[5] = 0.
+    model_part.ProcessInfo[km.INITIAL_STRAIN] = zero_vector
+    print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
+    print()
     for i in range(deformation_test.nr_timesteps):
         deformation_test.set_deformation(cl_params, i)
 
         # Chauchy
+        model_part.ProcessInfo[km.INITIAL_STRAIN] = cl_params.GetStrainVector()
+        zero_vector = km.Vector(6)
+        zero_vector[0] = 0.
+        zero_vector[1] = 0.
+        zero_vector[2] = 0.
+        zero_vector[3] = 0.
+        zero_vector[4] = 0.
+        zero_vector[5] = 0.
+        cl_params.SetStrainVector(zero_vector)
+
+        cl.InitializeMaterialResponseCauchy(cl_params)
         cl.CalculateMaterialResponseCauchy(cl_params)
         cl.FinalizeMaterialResponseCauchy(cl_params)
-        #cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
-        #output.printout(i, cl_params)
+        output.printout(i, cl_params)
         #output.write(i, cl_params)
 
         reference_stress = deformation_test.get_reference_stress(i)
@@ -204,7 +231,12 @@ def generic_constitutive_law_test(model_part, deformation_test):
         print("Step ", i)
         print("Reference: ", reference_stress)
         print("Stress:    ", stress)
+        print("INELASTIC_FLAG: ", cl.GetValue(km.StructuralMechanicsApplication.INELASTIC_FLAG, bool()))
+        print("PLASTIC_STRAIN: ", cl.GetValue(km.PLASTIC_STRAIN, float()))
+        print("STRAIN_ENERGY: ", cl.CalculateValue(cl_params, km.STRAIN_ENERGY, float()))
+        print("STRAIN: ", cl.CalculateValue(cl_params, km.STRAIN, km.Vector()))
         print()
+
 
 class LinearJ2Plasticity():
     def __init__(self):
