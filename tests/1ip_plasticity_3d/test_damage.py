@@ -161,7 +161,7 @@ def generic_constitutive_law_test(model_part, deformation_test):
     properties = deformation_test.cl.create_properties(model_part)
 
     # Construct a constitutive law
-    cl = deformation_test.cl.create_constitutive_Law()
+    cl = deformation_test.cl.create_constitutive_law()
     _cl_check(cl, properties, geom, model_part, deformation_test.cl.dim)
 
     # Set the parameters to be employed
@@ -191,9 +191,9 @@ def generic_constitutive_law_test(model_part, deformation_test):
 
     print()
     print("Has INELASTIC_FLAG: ", cl.Has(km.StructuralMechanicsApplication.INELASTIC_FLAG))
-    print("Has PLASTIC_STRAIN: ", cl.Has(km.PLASTIC_STRAIN))
+    print("Has DAMAGE_VARIABLE: ", cl.Has(km.DAMAGE_VARIABLE))
     print("Has STRAIN_ENERGY: ", cl.Has(km.STRAIN_ENERGY))
-    print("Has STRAIN: ", cl.Has(km.GREEN_LAGRANGE_STRAIN_VECTOR))
+    print("Has STRAIN: ", cl.Has(km.STRAIN))
     print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
     zero_vector = km.Vector(6)
     zero_vector[0] = 0.
@@ -223,7 +223,7 @@ def generic_constitutive_law_test(model_part, deformation_test):
         cl.CalculateMaterialResponseCauchy(cl_params)
         cl.FinalizeMaterialResponseCauchy(cl_params)
 
-        output.printout(i, cl_params)
+        #output.printout(i, cl_params)
         #output.write(i, cl_params)
 
         reference_stress = deformation_test.get_reference_stress(i)
@@ -232,21 +232,20 @@ def generic_constitutive_law_test(model_part, deformation_test):
         print("Reference: ", reference_stress)
         print("Stress:    ", stress)
         print("INELASTIC_FLAG: ", cl.GetValue(km.StructuralMechanicsApplication.INELASTIC_FLAG, bool()))
-        print("PLASTIC_STRAIN: ", cl.GetValue(km.PLASTIC_STRAIN, float()))
+        print("DAMAGE_VARIABLE: ", cl.CalculateValue(cl_params, km.DAMAGE_VARIABLE, float()))
         print("STRAIN_ENERGY: ", cl.CalculateValue(cl_params, km.STRAIN_ENERGY, float()))
         print("STRAIN: ", cl.CalculateValue(cl_params, km.STRAIN, km.Vector()))
         print()
 
 
-class LinearJ2Plasticity():
+class LinearIsotropicDamage3D():
     def __init__(self):
-        self.young_modulus = 21000
+        self.dim = 3
+        self.young_modulus = 3000
         self.poisson_ratio = 0.3
-        self.yield_stress = 5.5
-        self.reference_hardening_modulus = 1.0
-        self.isotropic_hardening_modulus = 0.12924
-        self.infinity_hardening_modulus = 0.0
-        self.hardening_exponent = 1.0
+        self.yield_stress = 2.0
+        self.infinity_yield_stress = 3.0
+        self.isotropic_hardening_modulus = 0.3
 
     def create_properties(self, model_part):
         prop_id = 0
@@ -254,20 +253,12 @@ class LinearJ2Plasticity():
         properties.SetValue(km.YOUNG_MODULUS, self.young_modulus)
         properties.SetValue(km.POISSON_RATIO, self.poisson_ratio)
         properties.SetValue(km.YIELD_STRESS, self.yield_stress)
-        properties.SetValue(km.REFERENCE_HARDENING_MODULUS, self.reference_hardening_modulus)
+        properties.SetValue(km.StructuralMechanicsApplication.INFINITY_YIELD_STRESS, self.infinity_yield_stress)
         properties.SetValue(km.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
-        properties.SetValue(km.INFINITY_HARDENING_MODULUS, self.infinity_hardening_modulus)
-        properties.SetValue(km.HARDENING_EXPONENT, self.hardening_exponent)
         return properties
 
-
-class LinearJ2Plasticity3D(LinearJ2Plasticity):
-    def __init__(self):
-        LinearJ2Plasticity.__init__(self)
-        self.dim = 3
-
-    def create_constitutive_Law(self):
-        return km.StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
+    def create_constitutive_law(self):
+        return km.StructuralMechanicsApplication.LinearIsotropicDamage3DLaw()
 
 
 class Deformation():
@@ -297,10 +288,10 @@ class Deformation():
         cl_params.SetDeterminantF(detF)
 
 
-class DeformationLinearJ2Plasticity3D(Deformation):
+class DeformationLinearIsotropicDamage3D(Deformation):
     def __init__(self, parameters):
         Deformation.__init__(self, parameters)
-        self.cl = LinearJ2Plasticity3D()
+        self.cl = LinearIsotropicDamage3D()
 
     def set_deformation(self, cl_params, i):
         self.strain = (i+1)/ self.nr_timesteps * self.initial_strain
@@ -318,16 +309,16 @@ class DeformationLinearJ2Plasticity3D(Deformation):
         r_stress = []
         for i in range(self.nr_timesteps):
             r_stress.append(km.Vector(strain_size))
-        r_stress[0][0] = 4.03846; r_stress[0][1] = 4.03846; r_stress[0][2] = 2.42308; r_stress[0][3] = 0.80769; r_stress[0][4] = 0.0; r_stress[0][5] = 0.80769
-        r_stress[1][0] = 8.07692; r_stress[1][1] = 8.07692; r_stress[1][2] = 4.84615; r_stress[1][3] = 1.61538; r_stress[1][4] = 0.0; r_stress[1][5] = 1.61538
-        r_stress[2][0] = 11.6595; r_stress[2][1] = 11.6595; r_stress[2][2] = 8.18099; r_stress[2][3] = 1.73926; r_stress[2][4] = 0.0; r_stress[2][5] = 1.73926
-        r_stress[3][0] = 15.1595; r_stress[3][1] = 15.1595; r_stress[3][2] = 11.681 ; r_stress[3][3] = 1.73926; r_stress[3][4] = 0.0; r_stress[3][5] = 1.73926
-        r_stress[4][0] = 18.6595; r_stress[4][1] = 18.6595; r_stress[4][2] = 15.181 ; r_stress[4][3] = 1.73926; r_stress[4][4] = 0.0; r_stress[4][5] = 1.73926
-        r_stress[5][0] = 22.1595; r_stress[5][1] = 22.1595; r_stress[5][2] = 18.681 ; r_stress[5][3] = 1.73927; r_stress[5][4] = 0.0; r_stress[5][5] = 1.73927
-        r_stress[6][0] = 25.6595; r_stress[6][1] = 25.6595; r_stress[6][2] = 22.181 ; r_stress[6][3] = 1.73927; r_stress[6][4] = 0.0; r_stress[6][5] = 1.73927
-        r_stress[7][0] = 29.1595; r_stress[7][1] = 29.1595; r_stress[7][2] = 25.681 ; r_stress[7][3] = 1.73928; r_stress[7][4] = 0.0; r_stress[7][5] = 1.73928
-        r_stress[8][0] = 32.6595; r_stress[8][1] = 32.6595; r_stress[8][2] = 29.181 ; r_stress[8][3] = 1.73928; r_stress[8][4] = 0.0; r_stress[8][5] = 1.73928
-        r_stress[9][0] = 36.1595; r_stress[9][1] = 36.1595; r_stress[9][2] = 32.681 ; r_stress[9][3] = 1.73929; r_stress[9][4] = 0.0; r_stress[9][5] = 1.73929
+        r_stress[0][0] = 0.57692; r_stress[0][1] = 0.57692; r_stress[0][2] = 0.34615; r_stress[0][3] = 0.11538; r_stress[0][4] = 0.0; r_stress[0][5] = 0.11538
+        r_stress[1][0] = 1.15384; r_stress[1][1] = 1.15384; r_stress[1][2] = 0.69231; r_stress[1][3] = 0.23077; r_stress[1][4] = 0.0; r_stress[1][5] = 0.23077
+        r_stress[2][0] = 1.73076; r_stress[2][1] = 1.73076; r_stress[2][2] = 1.03850; r_stress[2][3] = 0.34615; r_stress[2][4] = 0.0; r_stress[2][5] = 0.34615
+        r_stress[3][0] = 1.94550; r_stress[3][1] = 1.94550; r_stress[3][2] = 1.16730; r_stress[3][3] = 0.38910; r_stress[3][4] = 0.0; r_stress[3][5] = 0.38910
+        r_stress[4][0] = 2.11858; r_stress[4][1] = 2.11858; r_stress[4][2] = 1.27120; r_stress[4][3] = 0.42372; r_stress[4][4] = 0.0; r_stress[4][5] = 0.42372
+        r_stress[5][0] = 2.29166; r_stress[5][1] = 2.29166; r_stress[5][2] = 1.37500; r_stress[5][3] = 0.45833; r_stress[5][4] = 0.0; r_stress[5][5] = 0.45833
+        r_stress[6][0] = 2.46473; r_stress[6][1] = 2.46473; r_stress[6][2] = 1.47880; r_stress[6][3] = 0.49295; r_stress[6][4] = 0.0; r_stress[6][5] = 0.49295
+        r_stress[7][0] = 2.63781; r_stress[7][1] = 2.63781; r_stress[7][2] = 1.58270; r_stress[7][3] = 0.52756; r_stress[7][4] = 0.0; r_stress[7][5] = 0.52756
+        r_stress[8][0] = 2.68543; r_stress[8][1] = 2.68543; r_stress[8][2] = 1.61130; r_stress[8][3] = 0.53709; r_stress[8][4] = 0.0; r_stress[8][5] = 0.53709
+        r_stress[9][0] = 2.68543; r_stress[9][1] = 2.68543; r_stress[9][2] = 1.61130; r_stress[9][3] = 0.53709; r_stress[9][4] = 0.0; r_stress[9][5] = 0.53709
         self.reference_stress = r_stress
 
     def get_reference_stress(self, i):
@@ -345,5 +336,5 @@ if __name__ == "__main__":
     model_part = km.Model().CreateModelPart("test")
 
     # Test plasticity
-    deformation_test = DeformationLinearJ2Plasticity3D(parameters)
+    deformation_test = DeformationLinearIsotropicDamage3D(parameters)
     generic_constitutive_law_test(model_part, deformation_test)
