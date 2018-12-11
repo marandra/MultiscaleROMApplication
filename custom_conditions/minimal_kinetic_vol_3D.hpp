@@ -6,7 +6,9 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <algorithm>
 
+#include "containers/vector_map.h"
 #include "geometries/geometry.h"
 #include "includes/condition.h"
 #include "includes/define.h"
