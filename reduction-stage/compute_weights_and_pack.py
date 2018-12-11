@@ -109,9 +109,17 @@ def compute_roq(Modes, weights, nGP, tol):
     return w, z
 
 
-def compute_hprom_weights(conf):
+def write_bases(filename, U):
+    #file_format = conf['Parameters']['roq_file_format']
+    #if file_format == 'ascii':
+    #else:
+    np.savetxt(filename, U)
+    return
+
+
+def compute_reduced_set(conf):
     nr_roq_points = int(conf['Parameters']['nr_roq_points'])
-    #nr_elements = int(conf['Parameters']['nr_elements'])
+    nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
     energy_bases_filename = conf['Parameters']['energy_bases_filename']
     integration_weights_filename = conf['Parameters']['integration_weights_filename']
@@ -125,26 +133,82 @@ def compute_hprom_weights(conf):
 
     [w, z] = compute_roq(energy_modes, integration_weights,
                          nr_roq_points, tol=1.e-14)
+    roq_weigths = -1 * np.ones([nr_elements, nr_integration_points])
     roq_list = []
     for x, igg in enumerate(z):
         e = int(igg / nr_integration_points)
         ig = igg % nr_integration_points
+        roq_weigths[e][ig] = w[x]
         roq_list.append([e, ig, w[x]])
-    return roq_list
+    return roq_weigths, roq_list
 
 
-def compute_rom_weights(conf):
+def create_rom_weights(conf):
     integration_weights_filename = conf['Parameters']['integration_weights_filename']
     integration_weights = np.loadtxt(integration_weights_filename)
-    #nr_elements = int(conf['Parameters']['nr_elements'])
+    nr_elements = int(conf['Parameters']['nr_elements'])
     nr_integration_points = int(conf['Parameters']['nr_integration_points'])
+
     roq_list = []
     for x, ipw in enumerate(integration_weights):
         e = int(x / nr_integration_points)
         ip = x % nr_integration_points
         roq_list.append([e, ip, ipw])
-    return roq_list
 
+    roq_weights = integration_weights.reshape((nr_elements, -1))
+
+    return roq_weights, roq_list
+
+
+def generate_rve_params(conf, iw_list):
+    strain_bases_filename = conf['Parameters']['strain_bases_filename']
+    nr_ip = int(conf['Parameters']['nr_integration_points'])
+    nr_comps = int(conf['Parameters']['nr_strain_components'])
+    nr_modes = int(conf['Parameters']['nr_active_modes'])
+    rve_mdpa_filename = conf['Parameters']['rve_mdpa_filename']
+    nr_dofs = nr_ip * nr_comps
+    strain_bases = np.load(strain_bases_filename, mmap_mode='r')
+    strain_bases = strain_bases[:,:nr_modes]
+
+    # read model materials
+    material = {}
+    flag_elements = False
+    with open(rve_mdpa_filename, 'r') as fi:
+        for line in fi.readlines():
+            if not flag_elements:
+                if "Begin Elements" not in line:
+                    continue
+                else:
+                    flag_elements = True
+            else:
+                if "End Elements" in line:
+                    flag_elements = False
+                    continue
+                else:
+                    material[int(line.split()[0]) - 1] = int(line.split()[1])
+    out = {}
+    out_B = []
+    out_w = []
+    out_prop = []
+    B = np.empty((nr_comps, nr_modes))
+    for list in iw_list:
+        e = int(list[0])
+        i = int(list[1])
+        w = float(list[2])
+
+        # get B
+        index = e * nr_ip * nr_comps + i * nr_comps
+        B = strain_bases[index:index + nr_comps, :]
+
+        out_B.append(B.tolist())
+        out_w.append(w)
+        out_prop.append(material[e])
+
+    out['props_id'] = out_prop
+    out['w'] = out_w
+    out['B'] = out_B
+
+    return out
 
 #######################################
 # Main
@@ -176,11 +240,17 @@ if __name__ == '__main__':
     logger.info("Reduced Order Quadrature")
     if args.rom:
         logger.info("Computing ROM")
-        roq_list = compute_rom_weights(conf)
+        roq_mask, roq_list = create_rom_weights(conf)
     else:
         logger.info("Computing HPROM")
-        roq_list = compute_hprom_weights(conf)
+        roq_mask, roq_list = compute_reduced_set(conf)
     logger.info("Generating RVE parameters for CL")
+    rve_params = generate_rve_params(conf, roq_list)
+    # output
+    logging.debug("ROQ mask size {}".format(np.shape(roq_mask)))
     logging.debug("ROQ list size {}".format(np.shape(roq_list)))
     #filename = conf['Parameters']['roq_weights_filename']
-    np.savetxt("roq_list.dat", roq_list)
+    #np.savetxt(filename, roq_mask)
+    #np.savetxt("roq_list.dat", roq_list)
+    with open("rve.json", 'w') as fo:
+        json.dump(rve_params, fo, indent=2)
