@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import os
-import operator
 import math
+
 
 def Factory(settings, Model):
     return WriteElementsHomogenizedOutput(settings["Parameters"], Model)
@@ -37,13 +37,6 @@ def homogenization_function(self):
         tensor_accum[i] /= volume
     return stress_accum, strain_accum, tensor_accum
 
-def compute_vonmisses_stress(hs):
-    s = (hs[0] + hs[1] + hs[2]) / 3
-    d = [hs[0] - s, hs[1] - s, hs[2] - s, hs[3], hs[4], hs[5]]
-    dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + \
-         d[3] * d[3] + d[4] * d[4] + d[5] * d[5]
-    vm = math.sqrt(dd)
-    return vm
 
 class WriteElementsHomogenizedOutput(km.Process):
     def __init__(self, param, Model):
@@ -52,9 +45,6 @@ class WriteElementsHomogenizedOutput(km.Process):
 
         self.model_part = Model[param['model_part_name'].GetString()]
         self.filename = param['filename'].GetString()
-        #self.vname = param['variable_name'].GetString()
-        #f = operator.attrgetter(self.vname)
-        #self.Var = f(km)
         self.stress = km.CAUCHY_STRESS_VECTOR
         self.strain = km.GREEN_LAGRANGE_STRAIN_VECTOR
         self.tensor = km.CONSTITUTIVE_MATRIX

@@ -1,7 +1,5 @@
 import KratosMultiphysics as km
-import KratosMultiphysics.MultiscaleROMApplication as msr
 import bisect
-import os
 
 
 def Factory(settings, Model):
@@ -29,7 +27,7 @@ def get_scaling_factor(self):
 
 
 class Interpolate(object):
-  
+
     def __init__(self, x_list, y_list):
         if any([y - x <= 0 for x, y in zip(x_list, x_list[1:])]):
             raise ValueError("x_list must be in strictly ascending order!")
@@ -44,7 +42,7 @@ class Interpolate(object):
             i = len(self.slopes) - 1
         return self.y_list[i] + self.slopes[i] * (x - self.x_list[i])
 
-        
+
 class ImposeInitialStrainProcess(km.Process):
 
     def __init__(self, Model, settings):
@@ -60,8 +58,6 @@ class ImposeInitialStrainProcess(km.Process):
         self.initial_strain = km.Vector(len(initial_strain_list))
         for i, s in enumerate(initial_strain_list):
             self.initial_strain[i] = s
-        # TODO set it early so CL can check correct size. Not actually working.
-        #self.model_part.ProcessInfo[msr.INITIAL_STRAIN_VECTOR] = self.initial_strain
 
     def ExecuteInitialize(self):
         self.model_part.ProcessInfo[km.INITIAL_STRAIN] = self.initial_strain
