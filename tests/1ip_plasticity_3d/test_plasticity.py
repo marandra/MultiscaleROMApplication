@@ -210,6 +210,7 @@ def generic_constitutive_law_test(model_part, deformation_test):
 
         # Chauchy
         model_part.ProcessInfo[km.INITIAL_STRAIN] = cl_params.GetStrainVector()
+
         zero_vector = km.Vector(6)
         zero_vector[0] = 0.
         zero_vector[1] = 0.
@@ -218,9 +219,26 @@ def generic_constitutive_law_test(model_part, deformation_test):
         zero_vector[4] = 0.
         zero_vector[5] = 0.
         cl_params.SetStrainVector(zero_vector)
-
         cl.InitializeMaterialResponseCauchy(cl_params)
+
+        zero_vector = km.Vector(6)
+        zero_vector[0] = 0.
+        zero_vector[1] = 0.
+        zero_vector[2] = 0.
+        zero_vector[3] = 0.
+        zero_vector[4] = 0.
+        zero_vector[5] = 0.
+        cl_params.SetStrainVector(zero_vector)
         cl.CalculateMaterialResponseCauchy(cl_params)
+
+        zero_vector = km.Vector(6)
+        zero_vector[0] = 0.
+        zero_vector[1] = 0.
+        zero_vector[2] = 0.
+        zero_vector[3] = 0.
+        zero_vector[4] = 0.
+        zero_vector[5] = 0.
+        cl_params.SetStrainVector(zero_vector)
         cl.FinalizeMaterialResponseCauchy(cl_params)
 
         output.printout(i, cl_params)
@@ -233,8 +251,26 @@ def generic_constitutive_law_test(model_part, deformation_test):
         print("Stress:    ", stress)
         print("INELASTIC_FLAG: ", cl.GetValue(km.StructuralMechanicsApplication.INELASTIC_FLAG, bool()))
         print("PLASTIC_STRAIN: ", cl.GetValue(km.PLASTIC_STRAIN, float()))
+
+        zero_vector = km.Vector(6)
+        zero_vector[0] = 0.
+        zero_vector[1] = 0.
+        zero_vector[2] = 0.
+        zero_vector[3] = 0.
+        zero_vector[4] = 0.
+        zero_vector[5] = 0.
+        cl_params.SetStrainVector(zero_vector)
         print("STRAIN_ENERGY: ", cl.CalculateValue(cl_params, km.STRAIN_ENERGY, float()))
-        print("STRAIN: ", cl.CalculateValue(cl_params, km.STRAIN, km.Vector()))
+
+        zero_vector = km.Vector(6)
+        zero_vector[0] = 0.
+        zero_vector[1] = 0.
+        zero_vector[2] = 0.
+        zero_vector[3] = 0.
+        zero_vector[4] = 0.
+        zero_vector[5] = 0.
+        cl_params.SetStrainVector(zero_vector)
+        print("STRAIN: ", cl.CalculateValue(cl_params, km.GREEN_LAGRANGE_STRAIN_VECTOR, km.Vector()))
         print()
 
 
