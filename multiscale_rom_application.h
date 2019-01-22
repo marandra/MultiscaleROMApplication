@@ -15,7 +15,7 @@
 //#include "custom_conditions/minimal_kinetic_3D.hpp"
 #include "custom_conditions/minimal_kinetic_vol_3D.hpp"
 #include "custom_constitutive/rve_law.h"
-#include "custom_elements/small_displacement_custom.hpp"
+#include "custom_elements/small_displacement_custom.h"
 #include "multiscale_rom_application_variables.h"
 
 namespace Kratos
