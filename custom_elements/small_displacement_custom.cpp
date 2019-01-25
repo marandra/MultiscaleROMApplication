@@ -69,8 +69,6 @@ void SmallDisplacementCustom::CalculateAll(
 {
     KRATOS_TRY;
 
-    KRATOS_WATCH("DEBUG CUSTOM ELEMENT: CALCULATE ALL")
-
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
@@ -136,13 +134,6 @@ void SmallDisplacementCustom::CalculateAll(
         }
     }
 
-    KRATOS_WATCH("DEBUG ******* MATRIX OUTPUT")
-    KRATOS_WATCH(rLeftHandSideMatrix);
-    KRATOS_WATCH(this_kinematic_variables.B)
-    KRATOS_WATCH("DEBUG ******* ")
-    KRATOS_WATCH("DEBUG ******* ")
-    KRATOS_WATCH("DEBUG ******* ")
-
     KRATOS_CATCH( "" )
 }
 
@@ -158,8 +149,10 @@ void SmallDisplacementCustom::CalculateAndAddKm(
 {
     KRATOS_TRY
 
-    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(D, B)));
-        KRATOS_WATCH("DEBUG CUSTOM ELEMENT: OVERWRITE B")
+    //noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(D, B)));
+    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod(trans(B), D);
+    //noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod(trans(B), B);
+    //KRATOS_WATCH("DEBUG CUSTOM ELEMENT: OVERWRITE B")
 
     KRATOS_CATCH( "" )
 }

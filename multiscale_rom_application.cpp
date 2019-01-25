@@ -40,12 +40,6 @@ void KratosMultiscaleROMApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    //KRATOS_INFO("") << "     _____     _ _   _             _     _____ _____ _____ _____ _____ " << std::endl
-    //                << "    |     |_ _| | |_|_|___ ___ ___| |___|  |  |  _  | __  |     |     |" << std::endl
-    //                << "    | | | | | | |  _| |_ -|  _| .'| | -_|     |   __|    -|  |  | | | |" << std::endl
-    //                << "    |_|_|_|___|_|_| |_|___|___|__,|_|___|__|__|__|  |__|__|_____|_|_|_|" << std::endl
-    //                << "                                                             TECHNOLOGY" << std::endl;
-
     KRATOS_INFO("") << "               ___    __   __             ___          __   __   __       " << std::endl
                     << "|\\/| |  | |     |  | /__` /  `  /\\  |    |__     |__| |__) |__) /  \\  |\\/|" << std::endl
                     << "|  | \\__/ |___  |  | .__/ \\__, /~~\\ |___ |___    |  | |    |  \\ \\__/  |  |" << std::endl
@@ -58,6 +52,9 @@ void KratosMultiscaleROMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_5);
     KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_6);
     KRATOS_REGISTER_VARIABLE(REDUCED_MODES_WEIGHTS);
+    KRATOS_REGISTER_VARIABLE(MODE_NUMBER)
+    KRATOS_REGISTER_VARIABLE(MODES_MATRIX)
+    KRATOS_REGISTER_VARIABLE(ROM_MODES_MATRIX)
    // KRATOS_REGISTER_VARIABLE(LAGRANGE_MULTIPLIER_NODE);
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementCustomElement2D4N", mSmallDisplacementCustom2D4N);
