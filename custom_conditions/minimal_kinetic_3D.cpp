@@ -128,9 +128,9 @@ void MinimalKineticCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     // Vector V2(dimension, 0.0);
     // Vector V3(dimension, 0.0);
 
-    array_1d<double, 3> V1(dimension, 0.0);
-    array_1d<double, 3> V2(dimension, 0.0);
-    array_1d<double, 3> V3(dimension, 0.0);
+    array_1d<double, 3> V1(dimension);
+    array_1d<double, 3> V2(dimension);
+    array_1d<double, 3> V3(dimension);
 
     // Unitary normal vector V1
     V1(0) = geom[1].X0() - geom[0].X0();
@@ -290,7 +290,7 @@ void MinimalKineticCondition3D::EquationIdVector(EquationIdVectorType& rResult,
                           6; // 6 = Num components of (u_fl tens n)^s
 
     if (rResult.size() != n_dofs)
-        rResult.resize(n_dofs);
+        rResult.resize(n_dofs, false);
     GeometryType& geom = GetGeometry();
 
     rResult[0] = geom[0].GetDof(DISPLACEMENT_X).EquationId();
@@ -334,7 +334,7 @@ void MinimalKineticCondition3D::GetDofList(DofsVectorType& rConditionDofList,
 
     // rConditionDofList.resize(0);
     if (rConditionDofList.size() != nr_dofs)
-        rConditionDofList.resize(nr_dofs);
+        rConditionDofList.resize(nr_dofs, false);
 
     // first node
     // rConditionDofList.push_back(geom[0].pGetDof(DISPLACEMENT_X));

@@ -86,7 +86,7 @@ void MinimalKineticCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     currentValues(5) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2);
     currentValues(6) = geom[2].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3);
 
-    array_1d<double, 2> V1(dimension, 0.0);
+    array_1d<double, 2> V1(dimension);
     // Unitary normal vector V1
     V1(0) = geom[1].X0()-geom[0].X0();
     V1(1) = geom[1].Y0()-geom[0].Y0();
@@ -148,7 +148,7 @@ void MinimalKineticCondition2D::EquationIdVector(EquationIdVectorType& rResult,
     unsigned int n_dofs = 4 + n_lag_dofs;
 
     if (rResult.size() != n_dofs)
-        rResult.resize(n_dofs);
+        rResult.resize(n_dofs, false);
     GeometryType& geom = GetGeometry();
     rResult[0] = geom[0].GetDof(DISPLACEMENT_X).EquationId();
     rResult[1] = geom[0].GetDof(DISPLACEMENT_Y).EquationId();
@@ -170,7 +170,7 @@ void MinimalKineticCondition2D::GetDofList(DofsVectorType& rConditionDofList,
 
     // rConditionDofList.resize(0);
     if (rConditionDofList.size() != nr_dofs)
-        rConditionDofList.resize(nr_dofs);
+        rConditionDofList.resize(nr_dofs, false);
 
     // first node
     // rConditionDofList.push_back(geom[0].pGetDof(DISPLACEMENT_X));

@@ -60,7 +60,7 @@ Vector& ExponentialIsotropicDamagePlaneStrain2DLaw::GetValue(const Variable<Vect
     if (rThisVariable == INITIAL_STRAIN)
     {
         if (rValue.size() != m_init_strain.size())
-            rValue.resize(m_init_strain.size());
+            rValue.resize(m_init_strain.size(), false);
         noalias(rValue) = m_init_strain;
     }
     return (rValue);
