@@ -1,9 +1,3 @@
-//
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
-//
-//
-
 // System includes
 
 // External includes
@@ -31,11 +25,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     // base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    //typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
     typedef ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
-    //typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
-
-    // custom builder_and_solver types
     typedef ResidualBasedBlockBuilderAndSolverCustom<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverCustomType;
 
     //********************************************************************

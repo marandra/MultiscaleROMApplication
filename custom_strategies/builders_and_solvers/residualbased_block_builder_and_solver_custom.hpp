@@ -189,10 +189,13 @@ public:
         KRATOS_TRY
 
         // Iterating over the modes
-        const auto p_prop = rModelPart.pGetProperties(1);
-        KRATOS_ERROR_IF_NOT(p_prop->Has(MODES_MATRIX)) << "MODES_MATRIX not computed" << std::endl;
+        const auto p_prop = rModelPart.pGetProcessInfo();
+        //const auto p_prop = rModelPart.pGetProperties(1);
+        KRATOS_ERROR_IF_NOT(p_prop->Has(MODES_MATRIX)) << "MODES_MATRIX not loaded" << std::endl;
         const Matrix& r_matrix_modes =  p_prop->GetValue(MODES_MATRIX);
         const int number_of_modes = static_cast<int>(r_matrix_modes.size2());
+        KRATOS_WATCH(r_matrix_modes)
+        KRATOS_WATCH(number_of_modes)
 
         int& r_mode_number = p_prop->GetValue(MODE_NUMBER);
         Matrix& r_ROM_modes= p_prop->GetValue(ROM_MODES_MATRIX);

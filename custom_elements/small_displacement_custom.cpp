@@ -150,9 +150,7 @@ void SmallDisplacementCustom::CalculateAndAddKm(
     KRATOS_TRY
 
     //noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(D, B)));
-    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod(trans(B), D);
-    //noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod(trans(B), B);
-    //KRATOS_WATCH("DEBUG CUSTOM ELEMENT: OVERWRITE B")
+    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod(trans(B), B);
 
     KRATOS_CATCH( "" )
 }

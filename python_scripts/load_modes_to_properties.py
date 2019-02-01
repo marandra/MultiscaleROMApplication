@@ -1,0 +1,70 @@
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.MultiscaleROMApplication as MSA
+import os
+import struct
+import numpy
+
+
+def Factory(settings, model):
+    return LoadModesToProperties(settings["Parameters"], model)
+
+
+class LoadModesToProperties(Kratos.Process):
+    def __init__(self, settings, model):
+        Kratos.Process.__init__(self)
+
+        default_settings = Kratos.Parameters("""
+        {
+            "mesh_id": 0,
+            "model_part_name": "unset_model_part_name",
+            "modes_filename": "unset_filename",
+            "modes_file_format": "binary",
+            "number_modes_to_load": 0
+        }
+        """)
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.model_part = model[settings['model_part_name'].GetString()]
+        self.modes_filename = settings['modes_filename'].GetString()
+        self.modes_file_format = settings['modes_file_format'].GetString()
+        self.nr_modes = settings['number_modes_to_load'].GetInt()
+
+    def ExecuteInitialize(self):
+        def read_modes(filename, file_format, nr_modes):
+            if file_format == 'binary':
+                modes = numpy.load(filename)[:, :nr_modes]
+            else:
+                modes = numpy.loadtxt(filename)[:, :nr_modes]
+            return modes
+
+        modes_numpy = read_modes(self.modes_filename, self.modes_file_format, self.nr_modes)
+        nr_rows = numpy.shape(modes_numpy)[0]
+        nr_cols = numpy.shape(modes_numpy)[1]
+        modes_matrix = Kratos.Matrix(nr_rows, nr_cols)
+        for r in range(nr_rows):
+            for c in range(nr_cols):
+                modes_matrix[r, c] = modes_numpy[r, c]
+        self.model_part.ProcessInfo[MSA.MODES_MATRIX] = modes_matrix
+        #self.model_part.Properties[1].SetValue(MSA.MODES_MATRIX, modes_matrix)
+
+    def ExecuteInitializeSolutionStep(self):
+        print ("aca")
+        #prop = self.model_part.Properties[1].GetValue(MSA.MODES_MATRIX)
+        prop = self.model_part.ProcessInfo[MSA.MODES_MATRIX]
+        print(prop)
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
+
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteBeforeSolutionLoop(self):
+        pass
+
+    def ExecuteFinalizeSolutionStep(self):
+        pass
+
+    def ExecuteFinalize(self):
+        pass
