@@ -9,10 +9,29 @@ def Factory(settings, model):
     return LoadModesToProperties(settings["Parameters"], model)
 
 
+def numpy_to_kratos(np_matrix):
+    nr_rows = numpy.shape(np_matrix)[0]
+    nr_cols = numpy.shape(np_matrix)[1]
+    k_matrix = Kratos.Matrix(nr_rows, nr_cols)
+    for r in range(nr_rows):
+        for c in range(nr_cols):
+            k_matrix[r, c] = np_matrix[r, c]
+    return k_matrix
+
+
+def kratos_to_numpy(k_matrix):
+    nr_rows = k_matrix.Size1()
+    nr_cols = k_matrix.Size2()
+    np_matrix = numpy.empty((nr_rows, nr_cols))
+    for r in range(nr_rows):
+        for c in range(nr_cols):
+           np_matrix[r, c] = k_matrix[r, c]
+    return np_matrix
+
+
 class LoadModesToProperties(Kratos.Process):
     def __init__(self, settings, model):
         Kratos.Process.__init__(self)
-
         default_settings = Kratos.Parameters("""
         {
             "mesh_id": 0,
@@ -23,7 +42,6 @@ class LoadModesToProperties(Kratos.Process):
         }
         """)
         settings.ValidateAndAssignDefaults(default_settings)
-
         self.model_part = model[settings['model_part_name'].GetString()]
         self.modes_filename = settings['modes_filename'].GetString()
         self.modes_file_format = settings['modes_file_format'].GetString()
@@ -36,22 +54,21 @@ class LoadModesToProperties(Kratos.Process):
             else:
                 modes = numpy.loadtxt(filename)[:, :nr_modes]
             return modes
-
+        # Create global modes matrix
         modes_numpy = read_modes(self.modes_filename, self.modes_file_format, self.nr_modes)
-        nr_rows = numpy.shape(modes_numpy)[0]
-        nr_cols = numpy.shape(modes_numpy)[1]
-        modes_matrix = Kratos.Matrix(nr_rows, nr_cols)
-        for r in range(nr_rows):
-            for c in range(nr_cols):
-                modes_matrix[r, c] = modes_numpy[r, c]
-        self.model_part.ProcessInfo[MSA.MODES_MATRIX] = modes_matrix
-        #self.model_part.Properties[1].SetValue(MSA.MODES_MATRIX, modes_matrix)
+        modes_matrix = numpy_to_kratos(modes_numpy)
+        self.model_part.ProcessInfo[MSA.GLOBAL_MODES_MATRIX] = modes_matrix
+
+        # Create LHS and RHS matrices
+        print("WARNING: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxxx")
+        print("WARNING: harcoded nr of DOFs in process")
+        print("WARNING: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxxx")
+        nr_nodes = self.model_part.NumberOfNodes(0)
+        nr_dofs = 3 * nr_nodes
+        self.model_part.ProcessInfo[MSA.RHS_MATRIX] = Kratos.Matrix(nr_dofs, self.nr_modes)
+        self.model_part.ProcessInfo[MSA.LHS_MATRIX] = Kratos.Matrix(nr_dofs, nr_dofs)
 
     def ExecuteInitializeSolutionStep(self):
-        print ("aca")
-        #prop = self.model_part.Properties[1].GetValue(MSA.MODES_MATRIX)
-        prop = self.model_part.ProcessInfo[MSA.MODES_MATRIX]
-        print(prop)
         pass
 
     def ExecuteAfterOutputStep(self):
@@ -67,4 +84,17 @@ class LoadModesToProperties(Kratos.Process):
         pass
 
     def ExecuteFinalize(self):
-        pass
+        def save_matrix(filename, file_format, matrix):
+            if file_format == 'binary':
+                modes = numpy.save(filename, matrix)
+            else:
+                modes = numpy.savetxt(filename, matrix)
+            return modes
+
+        rhs_matrix = self.model_part.ProcessInfo[MSA.RHS_MATRIX]
+        filename = self.modes_filename.rsplit(".", 1)[0]+ "_rhs"
+        save_matrix(filename, self.modes_file_format, kratos_to_numpy(rhs_matrix))
+
+        lhs_matrix = self.model_part.ProcessInfo[MSA.LHS_MATRIX]
+        filename = self.modes_filename.rsplit(".", 1)[0]+ "_lhs"
+        save_matrix(filename, self.modes_file_format, kratos_to_numpy(lhs_matrix))

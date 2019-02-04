@@ -67,32 +67,20 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverCustom);
 
-
     typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
     typedef typename BaseType::TSchemeType TSchemeType;
-
     typedef typename BaseType::TDataType TDataType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
     typedef Node<3> NodeType;
-
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
     ///@}
@@ -137,19 +125,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
-//std::string ReadFile(const std::string &filename) const;
-//std::string ReadFile(const std::string &filename) const
-//{
-//std::ifstream infile(filename);
-//KRATOS_ERROR_IF_NOT(infile.good()) << "File " << filename << " cannot be found" << std::endl;
-//std::stringstream buffer;
-//buffer << infile.rdbuf();
-//return buffer.str();
-//}
 
     /**
      * @brief Function to perform the building and solving phase at the same time.
-     * @details It is ideally the fastest and safer function to use when it is possible to solve
+     * @details It is ideally the fastest and safer function to use when it is
+     * possible to solve
      * just after building
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -167,12 +147,22 @@ public:
         // Computing LHS (only once)
         BaseType::BuildLHS(pScheme, rModelPart, rA);
 
+        const auto p_process = rModelPart.pGetProcessInfo();
+        Matrix& r_LHS_matrix= p_process->GetValue(LHS_MATRIX);
+        #pragma omp parallel for
+            for (int i_save = 0; i_save < rA.size1(); ++i_save) {
+                for (int j_save = 0; j_save < rA.size2(); ++j_save) {
+                    r_LHS_matrix(i_save, j_save) = rA(i_save, j_save);
+                }
+            }
+
         // Build RHSs
         BuildRHSAndSolve(pScheme, rModelPart, rA, rb, rDx);
     }
 
     /**
-     * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
+     * @brief Corresponds to the previews, but the System's matrix is considered
+     * already built and only the RHS is built again
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param A The LHS matrix
@@ -189,27 +179,21 @@ public:
         KRATOS_TRY
 
         // Iterating over the modes
-        const auto p_prop = rModelPart.pGetProcessInfo();
-        //const auto p_prop = rModelPart.pGetProperties(1);
-        KRATOS_ERROR_IF_NOT(p_prop->Has(MODES_MATRIX)) << "MODES_MATRIX not loaded" << std::endl;
-        const Matrix& r_matrix_modes =  p_prop->GetValue(MODES_MATRIX);
+        const auto p_process = rModelPart.pGetProcessInfo();
+        KRATOS_ERROR_IF_NOT(p_process->Has(GLOBAL_MODES_MATRIX))
+            << "GLOBAL_MODES_MATRIX not loaded" << std::endl;
+        const Matrix& r_matrix_modes =  p_process->GetValue(GLOBAL_MODES_MATRIX);
         const int number_of_modes = static_cast<int>(r_matrix_modes.size2());
-        KRATOS_WATCH(r_matrix_modes)
-        KRATOS_WATCH(number_of_modes)
+        int& r_mode_number = p_process->GetValue(MODE_INDEX);
+        Matrix& r_RHS_matrix= p_process->GetValue(RHS_MATRIX);
 
-        int& r_mode_number = p_prop->GetValue(MODE_NUMBER);
-        Matrix& r_ROM_modes= p_prop->GetValue(ROM_MODES_MATRIX);
-        for (int i_mode = 0; i_mode < number_of_modes; ++i_mode) {
+            for (int i_mode = 0; i_mode < number_of_modes; ++i_mode) {
             r_mode_number = i_mode;
-
             BaseType::BuildRHS(pScheme, rModelPart, rb);
-            // SystemSolve(rA, rDx, rb); // We should solve, but not, with the RHS we are happy :)
-
-            // We save
             #pragma omp parallel for
             for (int i_save = 0; i_save < rb.size(); ++i_save) {
-                 r_ROM_modes(i_save, i_mode) = rb[i_save];
-             }
+                 r_RHS_matrix(i_save, i_mode) = rb[i_save];
+            }
         }
 
         KRATOS_CATCH("")

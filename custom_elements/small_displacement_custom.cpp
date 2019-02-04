@@ -4,6 +4,7 @@
 
 // Project includes
 #include "custom_elements/small_displacement_custom.h"
+#include "multiscale_rom_application_variables.h"
 
 namespace Kratos
 {
@@ -168,8 +169,17 @@ void SmallDisplacementCustom::CalculateAndAddResidualVector(
 {
     KRATOS_TRY
 
+    const Matrix& r_global_modes = rCurrentProcessInfo.GetValue(GLOBAL_MODES_MATRIX);
+    const int& r_mode_number = rCurrentProcessInfo.GetValue(MODE_INDEX);
+    const SizeType nr_components = rStressVector.size();
+    const IndexType element_index = this->Id();
+    const int global_index = (element_index - 1) * nr_components;
+    Vector mode(nr_components);
+    for (int i_component = 0; i_component < nr_components; ++i_component) {
+        mode[i_component] = r_global_modes(global_index + i_component, r_mode_number);
+    }
     // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
-    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), rStressVector );
+    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), mode);
 
     KRATOS_CATCH( "" )
 }
