@@ -187,7 +187,7 @@ public:
         int& r_mode_number = p_process->GetValue(MODE_INDEX);
         Matrix& r_RHS_matrix= p_process->GetValue(RHS_MATRIX);
 
-            for (int i_mode = 0; i_mode < number_of_modes; ++i_mode) {
+        for (int i_mode = 0; i_mode < number_of_modes; ++i_mode) {
             r_mode_number = i_mode;
             BaseType::BuildRHS(pScheme, rModelPart, rb);
             #pragma omp parallel for

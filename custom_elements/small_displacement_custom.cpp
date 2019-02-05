@@ -113,6 +113,15 @@ void SmallDisplacementCustom::CalculateAll(
         // Contribution to external forces
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
 
+        const Matrix& r_global_modes = rCurrentProcessInfo.GetValue(GLOBAL_MODES_MATRIX);
+        const int& r_mode_index = rCurrentProcessInfo.GetValue(MODE_INDEX);
+        const IndexType element_index = this->Id();
+        const int nr_components = this_constitutive_variables.StressVector.size();
+        const int global_index = (element_index - 1) * nr_components * integration_points.size() + point_number * nr_components;
+        Vector ip_mode(nr_components);
+        for (int i_component = 0; i_component < nr_components; ++i_component) {
+            ip_mode[i_component] = r_global_modes(global_index + i_component, r_mode_index);
+        }
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
@@ -131,7 +140,7 @@ void SmallDisplacementCustom::CalculateAll(
         }
 
         if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
-            this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
+            this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, ip_mode, int_to_reference_weight);
         }
     }
 
@@ -163,23 +172,23 @@ void SmallDisplacementCustom::CalculateAndAddResidualVector(
     const KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rCurrentProcessInfo,
     const Vector& rBodyForce,
-    const Vector& rStressVector,
+    const Vector& r_ip_mode,
     const double IntegrationWeight
     ) const
 {
     KRATOS_TRY
 
-    const Matrix& r_global_modes = rCurrentProcessInfo.GetValue(GLOBAL_MODES_MATRIX);
-    const int& r_mode_number = rCurrentProcessInfo.GetValue(MODE_INDEX);
-    const SizeType nr_components = rStressVector.size();
-    const IndexType element_index = this->Id();
-    const int global_index = (element_index - 1) * nr_components;
-    Vector mode(nr_components);
-    for (int i_component = 0; i_component < nr_components; ++i_component) {
-        mode[i_component] = r_global_modes(global_index + i_component, r_mode_number);
-    }
+    //const Matrix& r_global_modes = rCurrentProcessInfo.GetValue(GLOBAL_MODES_MATRIX);
+    //const int& r_mode_number = rCurrentProcessInfo.GetValue(MODE_INDEX);
+    //const SizeType nr_components = rStressVector.size();
+    //const IndexType element_index = this->Id();
+    //const int global_index = (element_index - 1) * nr_components;
+    //Vector mode(nr_components);
+    //for (int i_component = 0; i_component < nr_components; ++i_component) {
+    //    mode[i_component] = r_ip_mode[i_component];
+    //}
     // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
-    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), mode);
+    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), r_ip_mode);
 
     KRATOS_CATCH( "" )
 }
