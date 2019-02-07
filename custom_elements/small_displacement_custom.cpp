@@ -171,7 +171,7 @@ void SmallDisplacementCustom::CalculateAndAddResidualVector(
     VectorType& rRightHandSideVector,
     const KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rCurrentProcessInfo,
-    const Vector& rBodyForce,
+    const array_1d<double, 3>& rBodyForce,
     const Vector& r_ip_mode,
     const double IntegrationWeight
     ) const
