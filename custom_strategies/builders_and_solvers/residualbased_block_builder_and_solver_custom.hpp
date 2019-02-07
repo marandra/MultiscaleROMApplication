@@ -147,14 +147,14 @@ public:
         // Computing LHS (only once)
         BaseType::BuildLHS(pScheme, rModelPart, rA);
 
-        const auto p_process = rModelPart.pGetProcessInfo();
-        Matrix& r_LHS_matrix= p_process->GetValue(LHS_MATRIX);
-        #pragma omp parallel for
-            for (int i_save = 0; i_save < rA.size1(); ++i_save) {
-                for (int j_save = 0; j_save < rA.size2(); ++j_save) {
-                    r_LHS_matrix(i_save, j_save) = rA(i_save, j_save);
-                }
-            }
+        //const auto p_process = rModelPart.pGetProcessInfo();
+        //Matrix& r_LHS_matrix= p_process->GetValue(LHS_MATRIX);
+        //#pragma omp parallel for
+        //    for (int i_save = 0; i_save < rA.size1(); ++i_save) {
+        //        for (int j_save = 0; j_save < rA.size2(); ++j_save) {
+        //            r_LHS_matrix(i_save, j_save) = rA(i_save, j_save);
+        //        }
+        //    }
 
         // Build RHSs
         BuildRHSAndSolve(pScheme, rModelPart, rA, rb, rDx);
@@ -190,6 +190,7 @@ public:
         for (int i_mode = 0; i_mode < number_of_modes; ++i_mode) {
             r_mode_number = i_mode;
             BaseType::BuildRHS(pScheme, rModelPart, rb);
+            BaseType::SystemSolve(rA, rDx, rb);
             #pragma omp parallel for
             for (int i_save = 0; i_save < rb.size(); ++i_save) {
                  r_RHS_matrix(i_save, i_mode) = rb[i_save];

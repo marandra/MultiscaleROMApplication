@@ -9,11 +9,12 @@
 // External includes
 
 // Project includes
-//#include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+
 // Utilities
 #include "custom_utilities/lagrange_multiplier_utility.h"
+#include "custom_utilities/modes_to_nodes_matrix_utility.hpp"
 
 namespace Kratos
 {
@@ -26,6 +27,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     class_<LagrangeMultiplierUtility>(m, "LagrangeMultiplierUtility")
     .def(init<ModelPart&>())
     .def("Execute", &LagrangeMultiplierUtility::Execute)
+    ;
+
+    class_<ModesToNodesMatrixUtility>(m, "ModeToNodeMatrixUtility")
+    .def(init<ModelPart&>())
+    .def("Execute", &ModesToNodesMatrixUtility::Execute)
     ;
 }
 
