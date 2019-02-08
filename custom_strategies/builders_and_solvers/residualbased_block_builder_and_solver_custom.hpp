@@ -190,10 +190,11 @@ public:
         for (int i_mode = 0; i_mode < number_of_modes; ++i_mode) {
             r_mode_number = i_mode;
             BaseType::BuildRHS(pScheme, rModelPart, rb);
+            BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
             BaseType::SystemSolve(rA, rDx, rb);
             #pragma omp parallel for
             for (int i_save = 0; i_save < rb.size(); ++i_save) {
-                 r_RHS_matrix(i_save, i_mode) = rb[i_save];
+                 r_RHS_matrix(i_save, i_mode) = rDx[i_save];
             }
         }
 

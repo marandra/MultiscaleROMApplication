@@ -50,4 +50,8 @@ if __name__ == '__main__':
         logger.info("Timestep {}".format(t))
         filename = "fluctuant_displacement-{:0>3d}".format(t)
         displacement = numpy.dot(mode_node_matrix, weights[t, :])
-        numpy.savetxt(filename, displacement)
+        displacement_form = numpy.reshape(displacement, (-1, 3))
+        nnode = displacement_form.shape[0]
+        print(nnode)
+        gid_output = numpy.hstack([numpy.arange(1, nnode+1).reshape(-1,1).astype(int), displacement_form])
+        numpy.savetxt(filename, gid_output)

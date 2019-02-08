@@ -158,9 +158,9 @@ void SmallDisplacementCustom::CalculateAndAddKm(
     ) const
 {
     KRATOS_TRY
-
-    //noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(D, B)));
-    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod(trans(B), B);
+    Matrix identity = IdentityMatrix(6);
+    //noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod(trans(B), B);
+    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(identity, B)));
 
     KRATOS_CATCH( "" )
 }
@@ -178,17 +178,7 @@ void SmallDisplacementCustom::CalculateAndAddResidualVector(
 {
     KRATOS_TRY
 
-    //const Matrix& r_global_modes = rCurrentProcessInfo.GetValue(GLOBAL_MODES_MATRIX);
-    //const int& r_mode_number = rCurrentProcessInfo.GetValue(MODE_INDEX);
-    //const SizeType nr_components = rStressVector.size();
-    //const IndexType element_index = this->Id();
-    //const int global_index = (element_index - 1) * nr_components;
-    //Vector mode(nr_components);
-    //for (int i_component = 0; i_component < nr_components; ++i_component) {
-    //    mode[i_component] = r_ip_mode[i_component];
-    //}
-    // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
-    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), r_ip_mode);
+    noalias( rRightHandSideVector ) += IntegrationWeight * prod( trans( rThisKinematicVariables.B ), r_ip_mode);
 
     KRATOS_CATCH( "" )
 }
