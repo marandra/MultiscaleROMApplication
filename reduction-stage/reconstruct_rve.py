@@ -3,6 +3,27 @@ import logging
 import numpy
 #import meshio
 
+
+def write_gid_header(filename):
+    header = '''
+    GiD Post Results File 1.0
+    GaussPoints "hex8_element_gp" ElemType Hexahedra
+    Number Of Gauss Points: 8
+    Natural Coordinates: Internal
+    End GaussPoints
+    '''
+    fo = open(filename)
+    fo.write(header)
+    return fo
+
+
+def write_gid_vector_field(fo, field):
+    fo.write('Results "{}" "{}" {} Vector OnNodes'.format)("DISPLACEMENT" "Kratos", time, 'Vector OnNodes'))
+    for i, e in enumerate(field):
+        fo.write('{} {} {} {}'.format(i, e[0], e[1], e[2]))
+    fo.write('End Values')
+
+
 #######################################
 # Main
 #######################################
@@ -10,12 +31,11 @@ import numpy
 # parse command line arguments
 parser = argparse.ArgumentParser(description="Reconstructs RVE displacement"
                                              " field from strain mode weights")
-parser.add_argument('mesh_file', help="RVE mesh file (kratos mdpa format)")
+parser.add_argument('mesh_file', help="gid output mesh file (.msh ascii format)")
 parser.add_argument('mode_node_file', help="modes_displacement file (BtB matrix")
-parser.add_argument('weights_file', help="mode weights and macro strain file."
-                         " Format: first column correspond macro strain,"
-                         " following columsn are mode weights sorted by mode."
-                         " Each row is a timestep.")
+parser.add_argument('macro_strain_file', help="macro strain file per timestep"
+parser.add_argument('weights_file', help="mode weights file."
+                         "Each row is a timestep, columns are mode weights")
 parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
 args = parser.parse_args()
 
