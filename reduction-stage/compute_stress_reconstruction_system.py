@@ -59,8 +59,16 @@ if __name__ == '__main__':
     logger.info("Nr of modes: {}".format(numpy.shape(reduced_energy_modes)[1]))
     #logger.debug(reduced_energy_modes)
 
-    A = numpy.dot(numpy.multiply(reduced_energy_modes.T, reduced_ip_weights.reshape(-1, 1)), reduced_energy_modes)
-    logger.info("A: {}".format(numpy.shape(A)))
-    logger.debug("{}".format(A))
+    logger.info("Computing system")
+    logger.debug("- A = reduced modes T * weights * reduced modes")
+    weighted_reduced_energy_modes_transposed = numpy.multiply(reduced_energy_modes.T, reduced_ip_weights.reshape(-1, 1))
+    A = numpy.dot(weighted_reduced_energy_modes_transposed, reduced_energy_modes)
+    logger.debug("A: {}".format(numpy.shape(A)))
+    logger.debug("- inverse A")
+    Ainv = numpy.linalg.inv(A)
+    logger.debug("- modes * invA * reduced modes * weights ")
+    A = numpy.dot(Ainv, weighted_reduced_energy_modes_transposed)
+    A = numpy.dot(energy_modes, A)
 
-
+    logger.info("Saving system")
+    util.write_numpy_file('reconstruct_stress.npy', 'ascii', A)
