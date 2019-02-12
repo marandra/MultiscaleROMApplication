@@ -165,6 +165,10 @@ public:
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
     void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
     void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
     void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
     void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
     void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;

@@ -675,6 +675,47 @@ void RVELaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) 
 void RVELaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) {
     CalculateMaterialResponseCauchy(rValues);
 }
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::InitializeMaterialResponseCauchy(
+        Kratos::ConstitutiveLaw::Parameters &rValues)
+{
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::InitializeMaterialResponsePK2(
+        Kratos::ConstitutiveLaw::Parameters &rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::InitializeMaterialResponsePK1(
+        Kratos::ConstitutiveLaw::Parameters &rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::InitializeMaterialResponseKirchhoff(
+        Kratos::ConstitutiveLaw::Parameters &rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
 void RVELaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) { }
 void RVELaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) { }
 void RVELaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) { }
