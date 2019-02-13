@@ -88,12 +88,17 @@ RVELaw::RVELaw(PropertiesMap pProperties,
                std::vector<Matrix> B_list,
                std::vector<double> IW_list,
                std::vector<ConstitutiveLaw::Pointer> CL_list,
-               std::vector<int> prop_id_list)
+               std::vector<int> prop_id_list,
+               double abs_tol, double rel_tol, int max_iter, int verbose)
     : mProperties_map(pProperties),
       mB_vec(B_list),
       mIW_vec(IW_list),
       mCL_vec(CL_list),
-      mPropId_vec(prop_id_list)
+      mPropId_vec(prop_id_list),
+      mAbsoluteTolerance(abs_tol),
+      mRelativeTolerance(rel_tol),
+      mMaxIteration(max_iter),
+      mVerbose(verbose)
 {
     const std::size_t nr_modes = mB_vec[0].size2();
     // preserve = false -> new elements (all of them in this case) not initialized
@@ -121,7 +126,9 @@ ConstitutiveLaw::Pointer RVELaw::Create(Kratos::Parameters Params) const
 /***********************************************************************************/
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
-    RVELaw::Pointer p_clone(new RVELaw(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
+    //RVELaw::Pointer p_clone(new RVELaw(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
+    RVELaw::Pointer p_clone(new RVELaw(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec,
+            mAbsoluteTolerance, mRelativeTolerance, mMaxIteration, mVerbose));
     return p_clone;
 }
 

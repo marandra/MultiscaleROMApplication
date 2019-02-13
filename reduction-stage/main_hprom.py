@@ -5,29 +5,16 @@ import KratosMultiphysics.MultiscaleROMApplication as MultiscaleROMApplication
 import os
 
 def _create_geometry(model_part, dim):
-    # Create new nodes
     node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
     node2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
     node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
-
-    if (dim == 2):
-        nnodes = 3
-
-        # Allocate a geometry
-        geom = KratosMultiphysics.Triangle2D3(node1,node2,node3)
-    elif (dim == 3):
-        nnodes = 4
-        node4 = model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
-
-        # Allocate a geometry
-        geom = KratosMultiphysics.Tetrahedra3D4(node1,node2,node3,node4)
-    else:
-        raise Exception("Error: bad dimension value: ", dim)
+    node4 = model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
+    nnodes = 4
+    geom = KratosMultiphysics.Tetrahedra3D4(node1,node2,node3,node4)
     return [geom, nnodes]
 
 
 def _set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part, properties, geom):
-    # Setting the parameters - note that a constitutive law may not need them all!
     cl_params = KratosMultiphysics.ConstitutiveLawParameters()
     cl_params.SetOptions(cl_options)
     cl_params.SetDeformationGradientF(F)
@@ -71,7 +58,7 @@ def _set_cl_options(dict_options):
     if ("FINALIZE_MATERIAL_RESPONSE" in dict_options):
         cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, dict_options["FINALIZE_MATERIAL_RESPONSE"])
 
-    # From here below it should be an otput not an input
+    # From here below it should be an output not an input
     if ("FINITE_STRAINS" in dict_options):
         cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, dict_options["FINITE_STRAINS"])
     if ("INFINITESIMAL_STRAINS" in dict_options):

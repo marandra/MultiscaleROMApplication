@@ -60,7 +60,8 @@ public:
            std::vector<Matrix> B_list,
            std::vector<double> IW_list,
            std::vector<ConstitutiveLaw::Pointer> CL_list,
-           std::vector<int> prop_id_list);
+           std::vector<int> prop_id_list,
+           double abs_tol, double rel_tol, int max_iter, int verbose);
 
     /**
      * @brief Copy constructor
@@ -183,9 +184,9 @@ private:
     std::vector<ConstitutiveLaw::Pointer> mCL_vec;
     std::vector<int> mPropId_vec;
     Vector mModesWeights;
-    std::size_t mMaxIteration;
-    double mRelativeTolerance;
     double mAbsoluteTolerance;
+    double mRelativeTolerance;
+    std::size_t mMaxIteration;
     int mVerbose;
 
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
