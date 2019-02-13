@@ -52,23 +52,33 @@ if __name__ == '__main__':
     # add a last mode corresponding to a volumetric reduced IP
     logger.info("Reading complete set integration weights")
     integration_weights_filename = conf['Parameters']['integration_weights_filename']
-    integration_weights = util.read_numpy_file(integration_weights_filename, 'ascii')[reduced_ip_set]
+    integration_weights = util.read_numpy_file(integration_weights_filename, 'ascii')
     volumetric_mode = numpy.sqrt(integration_weights.reshape(-1, 1))
-    reduced_energy_modes = numpy.hstack([reduced_energy_modes, volumetric_mode])
+    energy_modes = numpy.hstack([energy_modes, volumetric_mode])
+    reduced_integration_weights = util.read_numpy_file(integration_weights_filename, 'ascii')[reduced_ip_set]
+    reduced_volumetric_mode = numpy.sqrt(reduced_integration_weights.reshape(-1, 1))
+    reduced_energy_modes = numpy.hstack([reduced_energy_modes, reduced_volumetric_mode])
     logger.info("Added volumetric mode")
-    logger.info("Nr of modes: {}".format(numpy.shape(reduced_energy_modes)[1]))
+    logger.info("Nr of modes: {}".format(numpy.shape(energy_modes)[1]))
+    logger.info("Nr of modes (reduced): {}".format(numpy.shape(reduced_energy_modes)[1]))
     #logger.debug(reduced_energy_modes)
 
     logger.info("Computing system")
-    logger.debug("- A = reduced modes T * weights * reduced modes")
+    logger.debug("-- A = reduced modes T * weights * reduced modes")
     weighted_reduced_energy_modes_transposed = numpy.multiply(reduced_energy_modes.T, reduced_ip_weights.reshape(-1, 1))
     A = numpy.dot(weighted_reduced_energy_modes_transposed, reduced_energy_modes)
+    rankA = numpy.linalg.matrix_rank(A)
     logger.debug("A: {}".format(numpy.shape(A)))
-    logger.debug("- inverse A")
+    logger.debug("rank A: {}".format(numpy.linalg.matrix_rank(A)))
+    if rankA != nr_ips:
+        logger.info("Matrix rank not complete. Aborting.")
+        exit()
+    logger.debug("-- inverse A")
     Ainv = numpy.linalg.inv(A)
-    logger.debug("- modes * invA * reduced modes * weights ")
+    logger.debug("-- modes * invA * reduced modes * weights ")
     A = numpy.dot(Ainv, weighted_reduced_energy_modes_transposed)
     A = numpy.dot(energy_modes, A)
 
     logger.info("Saving system")
-    util.write_numpy_file('reconstruct_stress.npy', 'ascii', A)
+    util.write_numpy_file('reconstruct_stress_ascii.npy', 'ascii', A)
+    util.write_numpy_file('reconstruct_stress_binary.npy', 'binary', A)
