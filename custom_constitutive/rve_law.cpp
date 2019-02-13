@@ -2,7 +2,7 @@
 #include "custom_utilities/qr_utility.h"
 #include <multiscale_rom_application_variables.h>
 
-#include "custom_constitutive/linear_j2_plasticity_3d.h"
+#include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 
 namespace Kratos
 {
