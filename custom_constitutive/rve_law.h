@@ -126,17 +126,6 @@ public:
                             const Vector& rShapeFunctionsValues) override;
 
     /**
-     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                              const GeometryType& rElementGeometry,
-                              const Vector& rShapeFunctionsValues,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-    /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -191,13 +180,17 @@ private:
 
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
 
-    void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro, const ProcessInfo &process_info);
+    //void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro, const ProcessInfo &process_info);
+    void Accumulate(Matrix &A, Vector &residual, ConstitutiveLaw::Parameters& rValues);
 
     std::string ReadFile(const std::string &filename) const;
 
-    void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain,
-                                             const ProcessInfo &process_info,
-                                             std::size_t ip_index);
+    //void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain, const ProcessInfo &process_info, std::size_t ip_index);
+
+    void SetIndividualCLParameters(
+        ConstitutiveLaw::Parameters& rParams,
+        std::size_t ip_index,
+        ConstitutiveLaw::Parameters& rIndividualParams);
 
     void GetPropertyBlock(Kratos::Parameters Materials);
 
