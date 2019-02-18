@@ -576,7 +576,6 @@ void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx)
         parameters.SetStressVector(stress);
         parameters.SetConstitutiveMatrix(constit);
         SetIndividualCLParameters(rValues, i, parameters);
-        const Properties& mat = parameters.GetMaterialProperties();
         mCL_vec[i]->CalculateMaterialResponseCauchy(parameters);
 
 
@@ -625,7 +624,7 @@ void RVELaw::SetIndividualCLParameters(
     //rIndividualParams.SetConstitutiveMatrix(constit);
     rIndividualParams.SetShapeFunctionsValues(N);
     rIndividualParams.SetShapeFunctionsDerivatives(DN_DX);
-    //rIndividualParams.SetMaterialProperties(material_props);
+    rIndividualParams.SetMaterialProperties(material_props);
     rIndividualParams.SetProcessInfo(process_info);
     // TODO(marcelo): needs HF elem geom. Currently not used in our individual CLs.
     // rIndividualParams.SetElementGeometry();
