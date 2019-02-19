@@ -667,36 +667,194 @@ void RVELaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rVa
 void RVELaw::InitializeMaterialResponseCauchy(
         Kratos::ConstitutiveLaw::Parameters &rValues)
 {
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_comps = GetStrainSize();
+    const auto dim = WorkingSpaceDimension();
+    const Vector& strain_macro = rValues.GetStrainVector(); // input
+    const ProcessInfo& process_info = rValues.GetProcessInfo();
+
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        Flags cl_flags;
+        cl_flags.Set(COMPUTE_STRESS, true);
+        cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+        Vector N(dim);
+        Matrix DN_DX(dim, 2);
+        Matrix F(dim, dim);
+        F(0, 0) = 1.0 + strain(0);
+        F(0, 1) = 0.5 * strain(3);
+        F(0, 2) = 0.5 * strain(5);
+        F(1, 0) = 0.5 * strain(3);
+        F(1, 1) = 1.0 + strain(1);
+        F(1, 2) = 0.5 * strain(4);
+        F(2, 0) = 0.5 * strain(5);
+        F(2, 1) = 0.5 * strain(4);
+        F(2, 2) = 1.0 + strain(2);
+        double detF = MathUtils<double>::Det(F);
+        ConstitutiveLaw::Parameters cl_params;
+        cl_params.SetOptions(cl_flags);
+        cl_params.SetDeformationGradientF(F);
+        cl_params.SetDeterminantF(detF);
+        cl_params.SetStrainVector(strain);
+        cl_params.SetStressVector(stress);
+        cl_params.SetConstitutiveMatrix(constit);
+        cl_params.SetShapeFunctionsValues(N);
+        cl_params.SetShapeFunctionsDerivatives(DN_DX);
+        const Properties material_props = mProperties_map[mPropId_vec[i]];
+        cl_params.SetMaterialProperties(material_props);
+        cl_params.SetProcessInfo(process_info);
+        // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
+        // cl_params.SetElementGeometry();
+
+        mCL_vec[i]->InitializeMaterialResponseCauchy(cl_params);
+    }
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void RVELaw::InitializeMaterialResponsePK2(
-        Kratos::ConstitutiveLaw::Parameters &rValues)
+void RVELaw::InitializeMaterialResponsePK2(Kratos::ConstitutiveLaw::Parameters &rValues)
 {
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_comps = GetStrainSize();
+    const auto dim = WorkingSpaceDimension();
+    const Vector& strain_macro = rValues.GetStrainVector(); // input
+    const ProcessInfo& process_info = rValues.GetProcessInfo();
+
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        Flags cl_flags;
+        cl_flags.Set(COMPUTE_STRESS, true);
+        cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+        Vector N(dim);
+        Matrix DN_DX(dim, 2);
+        Matrix F(dim, dim);
+        F(0, 0) = 1.0 + strain(0);
+        F(0, 1) = 0.5 * strain(3);
+        F(0, 2) = 0.5 * strain(5);
+        F(1, 0) = 0.5 * strain(3);
+        F(1, 1) = 1.0 + strain(1);
+        F(1, 2) = 0.5 * strain(4);
+        F(2, 0) = 0.5 * strain(5);
+        F(2, 1) = 0.5 * strain(4);
+        F(2, 2) = 1.0 + strain(2);
+        double detF = MathUtils<double>::Det(F);
+        ConstitutiveLaw::Parameters cl_params;
+        cl_params.SetOptions(cl_flags);
+        cl_params.SetDeformationGradientF(F);
+        cl_params.SetDeterminantF(detF);
+        cl_params.SetStrainVector(strain);
+        cl_params.SetStressVector(stress);
+        cl_params.SetConstitutiveMatrix(constit);
+        cl_params.SetShapeFunctionsValues(N);
+        cl_params.SetShapeFunctionsDerivatives(DN_DX);
+        const Properties material_props = mProperties_map[mPropId_vec[i]];
+        cl_params.SetMaterialProperties(material_props);
+        cl_params.SetProcessInfo(process_info);
+        // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
+        // cl_params.SetElementGeometry();
+
+        mCL_vec[i]->InitializeMaterialResponsePK2(cl_params);
+    }
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void RVELaw::InitializeMaterialResponsePK1(
-        Kratos::ConstitutiveLaw::Parameters &rValues)
+void RVELaw::InitializeMaterialResponsePK1(Kratos::ConstitutiveLaw::Parameters &rValues)
 {
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_comps = GetStrainSize();
+    const auto dim = WorkingSpaceDimension();
+    const Vector& strain_macro = rValues.GetStrainVector(); // input
+    const ProcessInfo& process_info = rValues.GetProcessInfo();
+
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        Flags cl_flags;
+        cl_flags.Set(COMPUTE_STRESS, true);
+        cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+        Vector N(dim);
+        Matrix DN_DX(dim, 2);
+        Matrix F(dim, dim);
+        F(0, 0) = 1.0 + strain(0);
+        F(0, 1) = 0.5 * strain(3);
+        F(0, 2) = 0.5 * strain(5);
+        F(1, 0) = 0.5 * strain(3);
+        F(1, 1) = 1.0 + strain(1);
+        F(1, 2) = 0.5 * strain(4);
+        F(2, 0) = 0.5 * strain(5);
+        F(2, 1) = 0.5 * strain(4);
+        F(2, 2) = 1.0 + strain(2);
+        double detF = MathUtils<double>::Det(F);
+        ConstitutiveLaw::Parameters cl_params;
+        cl_params.SetOptions(cl_flags);
+        cl_params.SetDeformationGradientF(F);
+        cl_params.SetDeterminantF(detF);
+        cl_params.SetStrainVector(strain);
+        cl_params.SetStressVector(stress);
+        cl_params.SetConstitutiveMatrix(constit);
+        cl_params.SetShapeFunctionsValues(N);
+        cl_params.SetShapeFunctionsDerivatives(DN_DX);
+        const Properties material_props = mProperties_map[mPropId_vec[i]];
+        cl_params.SetMaterialProperties(material_props);
+        cl_params.SetProcessInfo(process_info);
+        // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
+        // cl_params.SetElementGeometry();
+
+        mCL_vec[i]->InitializeMaterialResponsePK1(cl_params);
+    }
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void RVELaw::InitializeMaterialResponseKirchhoff(
-        Kratos::ConstitutiveLaw::Parameters &rValues)
+void RVELaw::InitializeMaterialResponseKirchhoff(Kratos::ConstitutiveLaw::Parameters &rValues)
 {
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_comps = GetStrainSize();
+    const auto dim = WorkingSpaceDimension();
+    const Vector& strain_macro = rValues.GetStrainVector(); // input
+    const ProcessInfo& process_info = rValues.GetProcessInfo();
+
+    for (auto i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        Flags cl_flags;
+        cl_flags.Set(COMPUTE_STRESS, true);
+        cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+        Vector N(dim);
+        Matrix DN_DX(dim, 2);
+        Matrix F(dim, dim);
+        F(0, 0) = 1.0 + strain(0);
+        F(0, 1) = 0.5 * strain(3);
+        F(0, 2) = 0.5 * strain(5);
+        F(1, 0) = 0.5 * strain(3);
+        F(1, 1) = 1.0 + strain(1);
+        F(1, 2) = 0.5 * strain(4);
+        F(2, 0) = 0.5 * strain(5);
+        F(2, 1) = 0.5 * strain(4);
+        F(2, 2) = 1.0 + strain(2);
+        double detF = MathUtils<double>::Det(F);
+        ConstitutiveLaw::Parameters cl_params;
+        cl_params.SetOptions(cl_flags);
+        cl_params.SetDeformationGradientF(F);
+        cl_params.SetDeterminantF(detF);
+        cl_params.SetStrainVector(strain);
+        cl_params.SetStressVector(stress);
+        cl_params.SetConstitutiveMatrix(constit);
+        cl_params.SetShapeFunctionsValues(N);
+        cl_params.SetShapeFunctionsDerivatives(DN_DX);
+        const Properties material_props = mProperties_map[mPropId_vec[i]];
+        cl_params.SetMaterialProperties(material_props);
+        cl_params.SetProcessInfo(process_info);
+        // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
+        // cl_params.SetElementGeometry();
+
+        mCL_vec[i]->InitializeMaterialResponseKirchhoff(cl_params);
+    }
 }
 
 //************************************************************************************
