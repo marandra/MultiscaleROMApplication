@@ -126,17 +126,6 @@ public:
                             const Vector& rShapeFunctionsValues) override;
 
     /**
-     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                              const GeometryType& rElementGeometry,
-                              const Vector& rShapeFunctionsValues,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-    /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
