@@ -310,8 +310,10 @@ void RVELaw::AssignPropertyBlock(Kratos::Parameters Data)
     }
     mProperties_map[property_id] = property;
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
+
 void RVELaw::InitializeMaterial(const Properties& rUnusedProperties,
                                 const GeometryType& rUnusedElementGeometry,
                                 const Vector& rUnusedShapeFunctionsValues)
@@ -444,7 +446,8 @@ void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx)
 
 /***********************************************************************************/
 /***********************************************************************************/
-    void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, const ProcessInfo &process_info)
+
+void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, const ProcessInfo &process_info)
 {
     const std::size_t nr_points = mB_vec.size();
     const std::size_t nr_modes = mB_vec[0].size2();
@@ -516,6 +519,7 @@ void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx)
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
@@ -527,6 +531,7 @@ bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
@@ -549,6 +554,7 @@ Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 void RVELaw::SetValue(
         const Variable<Vector>& rThisVariable,
         const Vector& rValue,
@@ -570,6 +576,7 @@ void RVELaw::SetValue(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 int RVELaw::Check(const Properties& rUnusedProperties,
                   const GeometryType& rUnusedElementGeometry,
                   const ProcessInfo& rCurrentProcessInfo)
@@ -593,32 +600,6 @@ int RVELaw::Check(const Properties& rUnusedProperties,
 
     return 0;
 }
-//
-// void RVELaw::CalculateMaterialResponsePK1(Parameters& rValues)
-// {
-// //	CalculateMaterialResponseCauchy(rValues);
-// }
-//
-// void RVELaw::CalculateMaterialResponsePK2(Parameters& rValues)
-// {
-// //	CalculateMaterialResponseCauchy(rValues);
-// }
-//
-// void RVELaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
-// {
-// //	CalculateMaterialResponseCauchy(rValues);
-// }
-
-// void RVELaw::GetLawFeatures(Features& rFeatures)
-// {
-// 	rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
-// 	rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
-// 	rFeatures.mOptions.Set(ISOTROPIC);
-// 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-// 	rFeatures.mStrainSize = GetStrainSize();
-// 	rFeatures.mSpaceDimension = WorkingSpaceDimension();
-// }
-//
 
 //************************************************************************************
 //************************************************************************************
