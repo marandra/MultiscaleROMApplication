@@ -180,17 +180,13 @@ private:
 
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
 
-    //void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro, const ProcessInfo &process_info);
-    void Accumulate(Matrix &A, Vector &residual, ConstitutiveLaw::Parameters& rValues);
+    void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro, const ProcessInfo &process_info);
 
     std::string ReadFile(const std::string &filename) const;
 
-    //void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain, const ProcessInfo &process_info, std::size_t ip_index);
-
-    void SetIndividualCLParameters(
-        ConstitutiveLaw::Parameters& rParams,
-        std::size_t ip_index,
-        ConstitutiveLaw::Parameters& rIndividualParams);
+    void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain,
+                                             const ProcessInfo &process_info,
+                                             std::size_t ip_index);
 
     void GetPropertyBlock(Kratos::Parameters Materials);
 
