@@ -60,7 +60,8 @@ public:
            std::vector<Matrix> B_list,
            std::vector<double> IW_list,
            std::vector<ConstitutiveLaw::Pointer> CL_list,
-           std::vector<int> prop_id_list);
+           std::vector<int> prop_id_list,
+           double abs_tol, double rel_tol, int max_iter, int verbose);
 
     /**
      * @brief Copy constructor
@@ -125,17 +126,6 @@ public:
                             const Vector& rShapeFunctionsValues) override;
 
     /**
-     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                              const GeometryType& rElementGeometry,
-                              const Vector& rShapeFunctionsValues,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-    /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -183,9 +173,9 @@ private:
     std::vector<ConstitutiveLaw::Pointer> mCL_vec;
     std::vector<int> mPropId_vec;
     Vector mModesWeights;
-    std::size_t mMaxIteration;
-    double mRelativeTolerance;
     double mAbsoluteTolerance;
+    double mRelativeTolerance;
+    std::size_t mMaxIteration;
     int mVerbose;
 
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
