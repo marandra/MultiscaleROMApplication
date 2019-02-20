@@ -74,7 +74,6 @@ class LoadModesToProperties(Kratos.Process):
         # Create output matrix
         nr_dofs = 3 * self.model_part.NumberOfNodes(0)
         self.model_part.ProcessInfo[MSA.RHS_MATRIX] = Kratos.Matrix(nr_dofs, self.nr_modes)
-        #self.model_part.ProcessInfo[MSA.LHS_MATRIX] = Kratos.Matrix(nr_dofs, nr_dofs)
 
     def ExecuteInitializeSolutionStep(self):
         pass
@@ -96,7 +95,3 @@ class LoadModesToProperties(Kratos.Process):
         save_numpy_array(self.output_filename,
                          self.output_file_format,
                          kratos_to_numpy(rhs_matrix))
-
-        #lhs_matrix = self.model_part.ProcessInfo[MSA.LHS_MATRIX]
-        #filename = self.modes_filename.rsplit(".", 1)[0]+ "_lhs"
-        #save_matrix(filename, self.modes_file_format, kratos_to_numpy(lhs_matrix))
