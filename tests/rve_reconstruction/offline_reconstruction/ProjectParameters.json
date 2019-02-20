@@ -1,0 +1,117 @@
+{
+    "problem_data": {
+        "problem_name": "High_Fidelity",
+        "parallel_type": "OpenMP",
+        "start_time": 0.0,
+        "end_time": 0.99,
+        "echo_level": 0
+    },
+    "solver_settings": {
+        "model_part_name": "Microstructure",
+        "domain_size": 3,
+        "echo_level": 0,
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "Static",
+        "analysis_type": "non_linear",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "model"
+        },
+        "material_import_settings": {
+            "materials_filename" : "materials.json"
+        },
+        "line_search": false,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 1e-4,
+        "residual_absolute_tolerance": 1e-9,
+        "max_iteration": 1,
+        "linear_solver_settings": {
+            "solver_type": "ExternalSolversApplication.super_lu",
+            "scaling": false,
+            "verbosity": 0
+        },
+        "problem_domain_sub_model_part_list": ["RVE"],
+        "processes_sub_model_part_list": ["RVE", "PINNED", "FIXED_X", "FIXED_Y", "FIXED_Z"],
+        "rotation_dofs": false,
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "block_builder": true,
+        "auxiliary_variables_list": []
+        },
+    "processes":{    
+        "my_processes": [{
+            "python_module": "load_modes_to_properties",
+            "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
+            "process_name": "LoadModesToProperties",
+            "Parameters": {
+                "model_part_name": "RVE",
+                "modes_filename": "bases_strain.npy",
+                "modes_file_format": "binary",
+                "number_modes_to_load": 10,
+                "modes_to_nodes_matrix_filename": "modes_to_nodes.npy",
+                "modes_to_nodes_matrix_file_format": "ascii"
+                }
+            }],
+        "list_initial_processes": [],
+        "list_boundary_processes": [{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "PINNED",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [true, true, true],
+                    "value": [0.0, 0.0, 0.0],
+	            "interval": [0.0, "End"]
+                }
+            },{
+        "python_module": "assign_scalar_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "AssignScalarVariableProcess",
+        "Parameters": {
+            "model_part_name": "FIXED_X",
+            "variable_name": "DISPLACEMENT_X",
+            "constrained": true,
+            "value": 0.0,
+	    "interval": [0.0, "End"]
+            }
+        },{
+        "python_module": "assign_scalar_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "AssignScalarVariableProcess",
+        "Parameters": {
+            "model_part_name": "FIXED_Y",
+            "variable_name": "DISPLACEMENT_Y",
+            "constrained": true,
+            "value": 0.0,
+	    "interval": [0.0, "End"]
+            }
+        },{
+        "python_module": "assign_scalar_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "AssignScalarVariableProcess",
+        "Parameters": {
+            "model_part_name": "FIXED_Z",
+            "variable_name": "DISPLACEMENT_Z",
+            "constrained": true,
+            "value": 0.0,
+	    "interval": [0.0, "End"]
+            }
+        }],
+        "list_custom_processes": []
+    },
+    "output_processes": {
+        "all_output_processes": [
+        ]
+    },
+    "output_configuration": {},
+    "restart_options": {},
+    "constraints_data": {
+        "incremental_load": false,
+        "incremental_displacement": false
+    }
+}

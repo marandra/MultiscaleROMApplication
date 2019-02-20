@@ -1,0 +1,8 @@
+1. Copy strain bases from training stage
+2. Copy materials.json
+3. Copy model.mdpa
+4. Modify model.mdpa:
+    - Remove constraints (list, references in RVE submodelpart)
+    - Combine element type
+    - Rename element to SmallDisplacementCustomElement3D8N
+5. Make model.mdpa and ProjectParameters.json consistent with restrictions for RVE used in training
