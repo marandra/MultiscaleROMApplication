@@ -168,7 +168,8 @@ def generic_constitutive_law_test(model_part, deformation_test):
         # Chauchy
         cl.CalculateMaterialResponseCauchy(cl_params)
         cl.FinalizeMaterialResponseCauchy(cl_params)
-        cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
+        interpolation_parameters = cl.GetValue(MultiscaleROMApplication.REDUCED_MODES_WEIGHTS)
+        print(interpolation_parameters)
 
         #output.print(i, cl_params)
         output.write(i, cl_params)
@@ -267,7 +268,7 @@ if __name__ == "__main__":
         }
     }""")
 
-    model_part = KratosMultiphysics.ModelPart("test")
+    model_part = KratosMultiphysics.Model().CreateModelPart("test")
 
     # Test RVE
     deformation_test = DeformationRVELaw(parameters, materials_rve)

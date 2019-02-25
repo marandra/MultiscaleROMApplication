@@ -242,7 +242,7 @@ def generic_constitutive_law_test(model_part, deformation_test):
         cl.FinalizeMaterialResponseCauchy(cl_params)
 
         #output.printout(i, cl_params)
-        #output.write(i, cl_params)
+        output.write(i, cl_params)
 
         reference_stress = deformation_test.get_reference_stress(i)
         stress = cl_params.GetStressVector()
