@@ -51,8 +51,8 @@ if __name__ == '__main__':
     logger.info("Reconstruct RVE fluctuant displacement field")
 
     logger.info("Loading modes_displacement files")
-    mode_node_matrix = numpy.loadtxt(args.mode_node_file)
-    #mode_node_matrix = numpy.load(args.mode_node_file)
+    #mode_node_matrix = numpy.loadtxt(args.mode_node_file)
+    mode_node_matrix = numpy.load(args.mode_node_file)
 
     logger.info("Loading modes_weights files")
     #macro_strain = numpy.loadtxt(args.weights_file)[:, 0]
@@ -73,8 +73,6 @@ if __name__ == '__main__':
     for t in range(nr_timesteps):
         logger.info("Timestep {}".format(t))
         displacement = numpy.dot(mode_node_matrix, weights[t, :])
-        #print(displacement)
-        print(mode_node_matrix)
         displacement_form = numpy.reshape(displacement, (-1, 3))
         nnode = displacement_form.shape[0]
         #print(nnode)

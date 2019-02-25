@@ -186,9 +186,9 @@ public:
         const int number_of_modes = static_cast<int>(r_matrix_modes.size2());
         int& r_mode_number = p_process->GetValue(MODE_INDEX);
         Matrix& r_RHS_matrix= p_process->GetValue(RHS_MATRIX);
-
         for (int i_mode = 0; i_mode < number_of_modes; ++i_mode) {
             r_mode_number = i_mode;
+            rb = ZeroVector(rb.size()); //resetting RHS!!!!
             BaseType::BuildRHS(pScheme, rModelPart, rb);
             BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
             BaseType::SystemSolve(rA, rDx, rb);
