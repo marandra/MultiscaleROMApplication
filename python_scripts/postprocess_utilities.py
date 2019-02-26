@@ -56,15 +56,3 @@ def write_gid_vector_field(fo, field, time):
         fo.write('{} {} {} {}\n'.format(i + 1, e[0], e[1], e[2]))
     fo.write('End Values\n')
 
-def read_gid_msh_nodes(filename):
-    fo = open(filename, 'r')
-    # parse coordinates
-    nodes = []
-    fo.readline()  # Header
-    fo.readline()  # "Coordinates"
-    for line in fo.readlines():
-        if "End Coordinates" in line:
-            break
-        coordinates = line.strip().split()[1:]
-        nodes.append(coordinates)
-    return numpy.array(nodes).astype(numpy.double)
