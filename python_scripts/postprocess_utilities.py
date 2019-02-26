@@ -49,41 +49,10 @@ End GaussPoints
     return fo
 
 
-def write_gid_vector_field(fo, field_name, field, time):
-    fo.write('Result "{}" "{}" {} Vector OnNodes\n'.format(
-        field_name, "Kratos", float(time)))
+def write_gid_vector_field(fo, field, time):
+    fo.write('Result "{}" "{}" {} Vector OnNodes\n'.format("DISPLACEMENT", "Kratos", float(time), 'Vector OnNodes'))
     fo.write('Values\n')
     for i, e in enumerate(field):
         fo.write('{} {} {} {}\n'.format(i + 1, e[0], e[1], e[2]))
     fo.write('End Values\n')
 
-
-def write_gid_matrix_field(fo, field_name, field, time):
-    fo.write('Result "{}" "{}" {} Matrix OnGaussPoints "hex8_element_gp" \n'.format(
-        field_name, "Kratos", float(time)))
-    fo.write('Values\n')
-    nr_ip = 8
-    nr_elems = numpy.shape(field)[0] / nr_ip
-    row = 0
-    for e in range(nr_elems):
-        fo.write('{}'.format(e + 1))
-        for ip in range(8):
-            for c in field[row, :]:
-                fo.write(' {}'.format(c))
-                row = row + 1
-        fo.write('\n')
-    fo.write('End Values\n')
-
-
-def read_gid_msh_nodes(filename):
-    fo = open(filename, 'r')
-    # parse coordinates
-    nodes = []
-    fo.readline()  # Header
-    fo.readline()  # "Coordinates"
-    for line in fo.readlines():
-        if "End Coordinates" in line:
-            break
-        coordinates = line.strip().split()[1:]
-        nodes.append(coordinates)
-    return numpy.array(nodes).astype(numpy.double)
