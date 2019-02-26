@@ -28,13 +28,11 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
 
-    numpy.set_printoptions(threshold=6)
-
     logger.info("Loading RVE node info")
     rve_nodes = util.read_gid_msh_nodes(args.gid_msh_file)
 
     logger.info("Loading strain-displacement correlation data")
-    strain_displacement_correlation = numpy.load(args.correlation)
+    strain_displ_correl = numpy.load(args.correlation)
 
     logger.info("Loading RVE data")
     data = util.read_json(args.rve_data)
@@ -56,14 +54,13 @@ if __name__ == '__main__':
     filename = args.gid_msh_file.rsplit(".", 1)[0] + ".res"
     f = util.write_gid_header(filename)
     for t in range(nr_timesteps):
-    #for t in range(1):
         logger.info("Timestep {}".format(t))
+
         logger.info("Solving fluctuant displacement")
-        displacement = numpy.dot(strain_displacement_correlation, rve_interpolation_params[t, :])
-        displacement_form = numpy.reshape(displacement, (-1, 3))
-        nnode = displacement_form.shape[0]
-        print(nnode)
-        util.write_gid_vector_field(f, displacement_form, t)
+        displacement = numpy.dot(strain_displ_correl, rve_interpolation_params[t, :])
+        displacement = numpy.reshape(displacement, (-1, 3))
+        util.write_gid_vector_field(f, "FLUCTUANT_DISPLACEMENT",
+                                    numpy.reshape(displacement, (-1, 3)), t)
 
         logger.info("Solving total displacement")
         strain = rve_macro_strain[t, :]
@@ -77,6 +74,8 @@ if __name__ == '__main__':
                                    [s_xy, s_yy, s_yz],
                                    [s_yz, s_yz, s_zz]])
         comp = numpy.dot(strain_tensor, rve_nodes.T)
-        print(numpy.shape(rve_nodes.T))
-        print(numpy.shape(comp))
-        print(numpy.shape(displacement_form.T))
+        total_displacement = comp.T + displacement
+        util.write_gid_vector_field(f, "TOTAL_DISPLACEMENT", total_displacement, t)
+
+        logger.info("Solving stress field")
+
