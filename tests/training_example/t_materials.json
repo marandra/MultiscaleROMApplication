@@ -39,15 +39,14 @@
         "Material": {
             "name": "inclusion",
             "constitutive_law": {
-                "name": "LinearJ2Plasticity3DLaw"
+                "name": "SmallStrainJ2Plasticity3DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 21000.0,
                 "POISSON_RATIO": 0.3,
                 "YIELD_STRESS": 2.5,
-                "REFERENCE_HARDENING_MODULUS": 1.0,
                 "ISOTROPIC_HARDENING_MODULUS": 0.12924,
-                "INFINITY_HARDENING_MODULUS": 0.0,
+                "EXPONENTIAL_SATURATION_YIELD_STRESS": 2.5,
                 "HARDENING_EXPONENT": 1.0
                 },
             "Tables":  {}

@@ -1,7 +1,6 @@
 #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-#import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.MultiscaleROMApplication
 from structural_mechanics_analysis import StructuralMechanicsAnalysis
