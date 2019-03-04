@@ -1,80 +1,23 @@
 import time
-import configparser
-import argparse
 import glob
 import numpy as np
 import scipy.sparse.linalg as sp
 import logging
-import pprint as pp
 
 
-def write_bases(filename, U):
-    bases_file_format = conf['Parameters']['bases_file_format']
-    if bases_file_format == 'ascii':
-        np.savetxt(filename, U)
-    else:
-        np.save(filename, U)
-    return
-
-
-def _make_list_of_files(conf):
+def list_of_snapshots(trajectory_filename, nr_e_snap_filename, filename):
     logger.debug("Scanning trajectories")
-    trajectory_filename = conf['Parameters']['trajectory_filename']
-    nr_e_snap_filename = conf['Parameters']['nr_elastic_snapshots_filename']
-    energy_filename = conf['Parameters']['energy_filename']
-    strain_filename = conf['Parameters']['strain_filename']
     trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
-    ene_files = []
-    str_files = []
-    for path in trajectory_paths:
-        ene_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename))))
-        str_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename))))
-    return ene_files, str_files
-
-
-def split_files_elastic_inelastic(conf, ene_files, str_files):
-    logger.debug("Scanning trajectories")
-    trajectory_filename = conf['Parameters']['trajectory_filename']
-    nr_e_snap_filename = conf['Parameters']['nr_elastic_snapshots_filename']
-    trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
-    ene_e_files = []
-    ene_i_files = []
-    str_e_files = []
-    str_i_files = []
-    nr_elastic_snap = []
+    e_files = []
+    i_files = []
     for path in trajectory_paths:
         with open("{}/{}".format(path, nr_e_snap_filename), "r") as f:
             nr_e_snap = int(f.readline().strip())
         logger.debug("  {} - elastic snapshots: {}".format(path, nr_e_snap))
-        ene_e_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[:nr_e_snap])
-        ene_i_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[nr_e_snap:])
-        str_e_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[:nr_e_snap])
-        str_i_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[nr_e_snap:])
+        e_files.extend(sorted(glob.glob("{}/{}*".format(path, filename)))[:nr_e_snap])
+        i_files.extend(sorted(glob.glob("{}/{}*".format(path, filename)))[nr_e_snap:])
     logger.debug("")
-    return ene_e_files, ene_i_files, str_e_files, str_i_files
-
-
-def make_list_of_files(conf):
-    logger.debug("Scanning trajectories")
-    trajectory_filename = conf['Parameters']['trajectory_filename']
-    nr_e_snap_filename = conf['Parameters']['nr_elastic_snapshots_filename']
-    energy_filename = conf['Parameters']['energy_filename']
-    strain_filename = conf['Parameters']['strain_filename']
-    trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
-    ene_e_files = []
-    ene_i_files = []
-    str_e_files = []
-    str_i_files = []
-    for path in trajectory_paths:
-        with open("{}/{}".format(path, nr_e_snap_filename), "r") as f:
-            nr_e_snap = int(f.readline().strip())
-        logger.debug("  {} - elastic snapshots: {}".format(path, nr_e_snap))
-        ene_e_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[:nr_e_snap])
-        ene_i_files.extend(sorted(glob.glob("{}/{}*".format(path, energy_filename)))[nr_e_snap:])
-        str_e_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[:nr_e_snap])
-        str_i_files.extend(sorted(glob.glob("{}/{}*".format(path, strain_filename)))[nr_e_snap:])
-    logger.debug("")
-    return ene_e_files, ene_i_files, str_e_files, str_i_files
+    return e_files, i_files
 
 
 def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_components, Ue=None):
@@ -97,7 +40,8 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
     logger.info("")
 
     #SVD stage
-    if args.iterative:
+    svd_iterative = True
+    if svd_iterative:
         logger.info("Computing SVD using ITERATIVE algorithm")
         #[U, S] = sp.svds(X, k=nr_modes + 4)[:2]
         [U, S] = sp.svds(X, k=nr_modes)[:2]
@@ -125,105 +69,55 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 
     return U
 
-def generate_bases_energy(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes):
+def generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname):
         t0 = time.time()
-        #nr_ip = 8
-        #nr_elements = int(conf['Parameters']['nr_elements'])
         logger.info("Generating bases ENERGY")
-        #nr_elastic_modes = int(conf['Parameters']['nr_elastic_modes_energy'])
-        #nr_inelastic_modes = int(conf['Parameters']['nr_inelastic_modes_energy'])
         if nr_elastic_modes > 0:
             logger.info("Processing elastic snapshots")
-            Ue = compute_modes(nr_ip, nr_elements, ene_e_files, nr_elastic_modes, nr_components=1)
+            Ue = compute_modes(nr_ip, nr_elements, e_files, nr_elastic_modes, nr_components=nr_strain_components)
             logger.info("Processing inelastic snapshots")
-            Ui = compute_modes(nr_ip, nr_elements, ene_i_files, nr_inelastic_modes, nr_components=1, Ue=Ue)
+            Ui = compute_modes(nr_ip, nr_elements, i_files, nr_inelastic_modes, nr_components=nr_strain_components, Ue=Ue)
             U = np.hstack([Ue, Ui])
         else:
             logger.info("Nr of elastic modes set to zero -> Not discriminating elastic/inelastic snapshots")
-            U = compute_modes(nr_ip, nr_elements, ene_e_files + ene_i_files, nr_inelastic_modes, nr_components=1)
+            U = compute_modes(nr_ip, nr_elements, e_files + i_files, nr_inelastic_modes, nr_components=nr_strain_components)
         t1 = time.time()
-        write_bases(ene_bases_fname, U)
+        np.save(bases_fname, U)
         logger.info("  SVD time: {:.1f}s".format(time.time() - t0))
         logger.info("  Writing time: {:.1f}s".format(time.time() - t1))
         logger.info("")
 
-def generate_bases_strain(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes):
-        t0 = time.time()
-        #nr_ip = 8
-        #nr_elements = int(conf['Parameters']['nr_elements'])
-        logger.info("Generation bases STRAIN")
-        #nr_strain_components = int(conf['Parameters']['nr_strain_components'])
-        #nr_inelastic_modes = int(conf['Parameters']['nr_inelastic_modes_strain'])
-        #nr_elastic_modes = int(conf['Parameters']['nr_elastic_modes_strain'])
-        # discriminate elastic snapshots if nr_elastic modes is True
-        if nr_elastic_modes > 0:
-            logger.info("Processing elastic snapshots")
-            Ue = compute_modes(nr_ip, nr_elements, str_e_files, nr_elastic_modes, nr_components=nr_strain_components)
-            logger.info("Processing inelastic snapshots")
-            Ui = compute_modes(nr_ip, nr_elements, str_i_files, nr_inelastic_modes, nr_components=nr_strain_components, Ue=Ue)
-            U = np.hstack([Ue, Ui])
-        else:
-            logger.info("Nr of elastic modes set to zero -> Not discriminating elastic/inelastic snapshots")
-            U = compute_modes(nr_ip, nr_elements, str_e_files + str_i_files, nr_inelastic_modes, nr_components=nr_strain_components)
-        t1 = time.time()
-        write_bases(str_bases_fname, U)
-        logger.info("  SVD time: {:.1f}s".format(time.time() - t0))
-        logger.info("  Writing time: {:.1f}s".format(time.time() - t1))
-        logger.info("")
 #######################################
 # Main
 #######################################
 
-# parse command line arguments
-parser = argparse.ArgumentParser(description="Computes energy and strain reduced bases.")
-parser.add_argument('config_file', help="configuration file")
-parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
-parser.add_argument('-i', '--iterative', action="store_true", help="performs iterative svd (svds algorithm)")
-group = parser.add_mutually_exclusive_group()
-group.add_argument('-e', '--only-energy', action="store_true", help="compute only energy reduced bases")
-group.add_argument('-s', '--only-strain', action="store_true", help="compute only strain reduced bases")
-args = parser.parse_args()
-
-# parse configuration file
-conf = configparser.ConfigParser()
-conf.read(args.config_file)
-flag_comp_energy = True
-flag_comp_strain =  True
-if args.only_energy:
-    flag_comp_strain =  False
-elif args.only_strain:
-    flag_comp_energy = False
-
-# configure logger
-verbosity_level = logging.INFO
-if args.verbose:
-    verbosity_level = logging.DEBUG
 logging.basicConfig(format='[%(asctime)s] %(message)s',
-                    datefmt='%H:%M:%S', level=verbosity_level)
+                    datefmt='%H:%M:%S', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0], mode='w')
-handler.setLevel(logging.DEBUG)
-handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
-logger.addHandler(handler)
 
 if __name__ == '__main__':
-    ene_bases_fname = "bases_energy.npy"
-    str_bases_fname = "bases_strain.npy"
-    nr_elements = 320
-    nr_ip = 8
 
-    ene_e_files, ene_i_files, str_e_files, str_i_files = make_list_of_files(conf)
-
-
+    trajectory_filename = conf['Parameters']['trajectory_filename']
+    nr_e_snap_filename = conf['Parameters']['nr_elastic_snapshots_filename']
 
     if flag_comp_energy:
+        nr_elements = 320
+        nr_ip = 8
         nr_strain_components = 1
         nr_elastic_modes = 21
         nr_inelastic_modes = 100
-        generate_bases_energy(nr_elements, nr_ip, 1, nr_elastic_modes, nr_inelastic_modes)
+        bases_fname = "bases_energy.npy"
+        snapshot_filename = conf['Parameters']['energy_filename']
+        e_files, i_files = list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
+        generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)
 
     if flag_comp_strain:
+        nr_elements = 320
+        nr_ip = 8
         nr_strain_components = 6
         nr_elastic_modes = 6
         nr_inelastic_modes = 100
-        generate_bases_strain(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes)
+        bases_fname = "bases_strain.npy"
+        snapshot_filename = conf['Parameters']['strain_filename']
+        e_files, i_files = list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
+        generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)

@@ -24,17 +24,37 @@ if __name__ == "__main__":
     elem = rve_modelpart.GetElement(1)
     ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
 
-    # gather model part info
+    # gather global model part info
     nr_nodes = rve_modelpart.NumberOfNodes()
     nr_elems = rve_modelpart.NumberOfElements()
     nr_ips = len(elem.GetIntegrationPoints())
-    nr_strain_components = len(ip_data[0])
     with open("integration_weight", 'w') as ofile:
         for elem in rve_modelpart.Elements:
             ip_weights = elem.GetValuesOnIntegrationPoints(Kratos.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo)
             for ip_weight in ip_weights:
                 ofile.write("{}\n".format(ip_weight[0]))
 
-    # compute bases
-    bases.generate_bases_energy()
-    bases.generate_bases_strain()
+    trajectory_filename = "trajectory"
+    nr_e_snap_filename = "elastic_timesteps"
+
+    # compute energy bases
+    ip_data = elem.GetValuesOnIntegrationPoints(Kratos.STRAIN_ENERGY, rve_modelpart.ProcessInfo)
+    nr_strain_components = len(ip_data[0])
+    nr_elastic_modes = 21
+    nr_inelastic_modes = 100
+    bases_fname = "bases_energy.npy"
+    snapshot_filename = "snapshot_energy"
+    e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
+    print(nr_elems, nr_ips, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)
+    bases.generate_bases(nr_elems, nr_ips, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)
+
+    # compute strain bases
+    ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
+    nr_strain_components = len(ip_data[0])
+    nr_elastic_modes = 6
+    nr_inelastic_modes = 100
+    bases_fname = "bases_strain.npy"
+    snapshot_filename = "snapshot_strain"
+    e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
+    print(nr_elems, nr_ips, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)
+    bases.generate_bases(nr_elems, nr_ips, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)
