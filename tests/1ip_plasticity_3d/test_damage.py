@@ -375,7 +375,7 @@ if __name__ == "__main__":
 
     parameters = {"nr_timesteps": 10,
                  #[XX, YY, ZZ, XY, YZ, XZ]
-                  "strain": [0.001, 0.001, 0.0, 0.001, 0.0, 0.001]
+                  "strain": [-0.001, -0.001, -0.001, -0.001, -0.001, -0.001]
                   }
 
     model_part = km.Model().CreateModelPart("test")
