@@ -2,7 +2,6 @@ import configparser
 import argparse
 import numpy as np
 import logging
-import json
 
 
 def remove_exact_integral_energy(modes, weights):
@@ -109,39 +108,27 @@ def compute_roq(Modes, weights, nGP, tol):
     return w, z
 
 
-def compute_hprom_weights(conf):
-    nr_roq_points = int(conf['Parameters']['nr_roq_points'])
-    #nr_elements = int(conf['Parameters']['nr_elements'])
-    nr_integration_points = int(conf['Parameters']['nr_integration_points'])
-    energy_bases_filename = conf['Parameters']['energy_bases_filename']
-    integration_weights_filename = conf['Parameters']['integration_weights_filename']
-    integration_weights = np.loadtxt(integration_weights_filename)
+def compute_hprom_weights(nr_elemental_ip, integration_weights, nr_roq_points, energy_bases_filename):
+    logger.info("Computing reduced set of integration points (HPROM)")
+    energy_modes = np.load(energy_bases_filename)[:,:nr_roq_points]
 
-    bases_file_format = conf['Parameters']['bases_file_format']
-    if bases_file_format == 'ascii':
-        energy_modes = np.loadtxt(energy_bases_filename)[:,:nr_roq_points]
-    else:
-        energy_modes = np.load(energy_bases_filename)[:,:nr_roq_points]
-
-    [w, z] = compute_roq(energy_modes, integration_weights,
+    [w, z] = compute_roq(energy_modes, np.array(integration_weights),
                          nr_roq_points, tol=1.e-14)
     roq_list = []
     for x, igg in enumerate(z):
-        e = int(igg / nr_integration_points)
-        ig = igg % nr_integration_points
-        roq_list.append([e, ig, w[x]])
+        e = int(igg / nr_elemental_ip)
+        ig = igg % nr_elemental_ip
+        roq_list.append([e, ig, w[x][0], igg])
     return roq_list
 
 
-def compute_rom_weights(conf):
-    integration_weights_filename = conf['Parameters']['integration_weights_filename']
-    integration_weights = np.loadtxt(integration_weights_filename)
-    #nr_elements = int(conf['Parameters']['nr_elements'])
-    nr_integration_points = int(conf['Parameters']['nr_integration_points'])
+def compute_rom_weights(nr_elemental_ip, integration_weights):
+    logger.info("Computing complete set of integration points (ROM)")
+
     roq_list = []
     for x, ipw in enumerate(integration_weights):
-        e = int(x / nr_integration_points)
-        ip = x % nr_integration_points
+        e = int(x / nr_elemental_ip )
+        ip = x % nr_elemental_ip
         roq_list.append([e, ip, ipw])
     return roq_list
 
@@ -152,14 +139,14 @@ def compute_rom_weights(conf):
 
 # parse command line arguments
 parser = argparse.ArgumentParser(description="Computes Reduced Order Quadrature (ROQ) integration weights")
-parser.add_argument('config_file', help="configuration file")
+#parser.add_argument('config_file', help="configuration file")
 parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
 parser.add_argument('-r', '--rom', action="store_true", help="compute ROM instead of HPROM")
 args = parser.parse_args()
 
 # parse configuration file
-conf = configparser.ConfigParser()
-conf.read(args.config_file)
+#conf = configparser.ConfigParser()
+#conf.read(args.config_file)
 
 # configure logger
 verbosity_level = logging.INFO
@@ -168,19 +155,20 @@ if args.verbose:
 logging.basicConfig(format='[%(asctime)s] %(message)s',
                     datefmt='%H:%M:%S',level=verbosity_level)
 logger = logging.getLogger(__name__)
-handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
-handler.setLevel(logging.DEBUG)
-logger.addHandler(handler)
+#handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
+#handler.setLevel(logging.DEBUG)
+#logger.addHandler(handler)
 
 if __name__ == '__main__':
     logger.info("Reduced Order Quadrature")
+    nr_ip_per_element = 8
+    integration_weights = np.loadtxt("integration_weight")
+    nr_roq_points = 50
+    energy_bases_filename = 'bases_energy.npy'
     if args.rom:
-        logger.info("Computing ROM")
-        roq_list = compute_rom_weights(conf)
+        roq_list = compute_rom_weights(nr_ip_per_element, integration_weights)
     else:
-        logger.info("Computing HPROM")
-        roq_list = compute_hprom_weights(conf)
-    logger.info("Generating RVE parameters for CL")
+        roq_list = compute_hprom_weights(nr_ip_per_element, integration_weights, nr_roq_points, energy_bases_filename)
+
     logging.debug("ROQ list size {}".format(np.shape(roq_list)))
-    #filename = conf['Parameters']['roq_weights_filename']
     np.savetxt("roq_list.dat", roq_list)

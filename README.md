@@ -1,12 +1,12 @@
 KRATOS Multiphysics Multiscale Reduce Order Application
 
 
+Training
+python3 ~/python-scripts/MainKratos.py
 
+Post-processing
+mkdir offline_data
+python3 ~/python-scripts/PostKratos.py ..
 
-in the proper locations of kratos/applications/CMakeLists.txt:
-message("MULTISCALE_ROM_APPLICATION ......... ${MULTISCALE_ROM_APPLICATION}")
-
-if(${MULTISCALE_ROM_APPLICATION} MATCHES ON)
-  add_subdirectory(MultiScaleROMApplication)
-endif(${MULTISCALE_ROM_APPLICATION} MATCHES ON)
-
+After training
+RVE Stress field reconstruction
