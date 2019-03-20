@@ -78,4 +78,7 @@ if __name__ == '__main__':
         util.write_gid_vector_field(f, "TOTAL_DISPLACEMENT", total_displacement, t)
 
         logger.info("Solving stress field")
+        r_stress = rve_stress[t, :]
+
+        util.write_gid_vector_field(f, "STRESS_TENSOR", total_displacement, t)
 
