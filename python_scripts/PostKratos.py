@@ -8,6 +8,7 @@ from structural_mechanics_analysis import StructuralMechanicsAnalysis
 import compute_bases as bases
 import compute_ip_weights as hprom
 import pack_reduced_rve_dataset as pack
+import compute_stress_reconstruction_system as stress_reconstruction
 import numpy
 """
 For user-scripting it is intended that a new class is derived
@@ -37,9 +38,10 @@ if __name__ == "__main__":
         for ip_weight in ip_weights:
             integration_weights.append(ip_weight[0])
     # optional output
-    #with open("integration_weight", 'w') as ofile:
-    #    for ip_weight in integration_weights:
-    #        ofile.write("{}\n".format(ip_weight))
+    integration_weights_filename = "integration_weight"
+    with open(integration_weights_filename, 'w') as ofile:
+        for ip_weight in integration_weights:
+            ofile.write("{}\n".format(ip_weight))
 
 
     # compute energy bases
@@ -78,5 +80,9 @@ if __name__ == "__main__":
     reduced_ip_set = numpy.loadtxt(roq_filename)
     nr_modes = 15
     rve_params = pack.create_rve_params_structure(strain_bases_fname, rve_mdpa_filename, nr_modes, reduced_ip_set)
-    filename = "rve_{}m_{}ip.json".format(nr_modes, nr_roq_points)
-    pack.util.write_json(filename, rve_params)
+    rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, nr_roq_points)
+    pack.util.write_json(rve_data_filename, rve_params)
+
+    # generate stress reconstruction system
+    A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)
+    stress_reconstruction.util.write_numpy_file('reconstruct_stress_binary.npy', 'binary', A)
