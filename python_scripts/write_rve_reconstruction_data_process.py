@@ -1,7 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.MultiscaleROMApplication as MultiscaleROM
 import os
-import struct
 import postprocess_utilities as util
 
 
@@ -68,9 +67,9 @@ class WriteRveReconstructionData(Kratos.Process):
                 ip_data = elem.GetValuesOnIntegrationPoints(
                     Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo)
                 self.data["macro_strain"] = ip_data[self.ip]
-                # Get homogenized stress
+                # Get stress vector list
                 ip_data = elem.GetValuesOnIntegrationPoints(
-                    Kratos.CAUCHY_STRESS_VECTOR, self.model_part.ProcessInfo)
+                    MultiscaleROM.CAUCHY_STRESS_VECTOR_LIST, self.model_part.ProcessInfo)
                 self.data["stress"] = ip_data[self.ip]
         append_to_json(self.filename, self.data)
 
