@@ -63,15 +63,15 @@ def write_gid_matrix_field(fo, field_name, field, time):
         field_name, "Kratos", float(time)))
     fo.write('Values\n')
     nr_ip = 8
-    nr_elems = numpy.shape(field)[0] / nr_ip
+    nr_elems = int(numpy.shape(field)[0] / nr_ip)
     row = 0
     for e in range(nr_elems):
         fo.write('{}'.format(e + 1))
         for ip in range(8):
             for c in field[row, :]:
                 fo.write(' {}'.format(c))
-                row = row + 1
-        fo.write('\n')
+            fo.write('\n')
+            row = row + 1
     fo.write('End Values\n')
 
 
