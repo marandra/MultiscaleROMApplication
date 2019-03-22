@@ -13,7 +13,8 @@ import postprocess_utilities as util
 parser = argparse.ArgumentParser(description="reconstructs following RVE fields:"
    "fluctuant displacement, total displacement and stress")
 parser.add_argument('gid_msh_file', help="gid output .msh file")
-parser.add_argument('correlation', help="strain-displacemente correlation matric (.npy)")
+parser.add_argument('correlation_strain', help="strain correlation matrix (.npy)")
+parser.add_argument('correlation_stress', help="stress correlation matrix (.npy)")
 parser.add_argument('rve_data', help="RVE reconstruction data file (.json)")
 parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
 args = parser.parse_args()
@@ -32,7 +33,10 @@ if __name__ == '__main__':
     rve_nodes = util.read_gid_msh_nodes(args.gid_msh_file)
 
     logger.info("Loading strain-displacement correlation data")
-    strain_displ_correl = numpy.load(args.correlation)
+    strain_correl = numpy.load(args.correlation_strain)
+
+    logger.info("Loading stress correlation data")
+    stress_correl = numpy.load(args.correlation_stress)
 
     logger.info("Loading RVE data")
     data = util.read_json(args.rve_data)
@@ -78,7 +82,8 @@ if __name__ == '__main__':
         util.write_gid_vector_field(f, "TOTAL_DISPLACEMENT", total_displacement, t)
 
         logger.info("Solving stress field")
-        r_stress = rve_stress[t, :]
-
-        util.write_gid_vector_field(f, "STRESS_TENSOR", total_displacement, t)
+        reduced_stress = rve_stress[t, :]
+        reduced_stress = reduced_stress.reshape((-1, 6))  # temporary? kratos process linearizes stress matrix
+        stress = numpy.dot(stress_correl, reduced_stress)
+        util.write_gid_matrix_field(f, "STRESS_VECTOR", stress, t)
 
