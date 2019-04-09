@@ -61,7 +61,7 @@ if __name__ == '__main__':
         logger.info("Timestep {}".format(t))
 
         logger.info("Solving fluctuant displacement")
-        displacement = numpy.dot(strain_displ_correl, rve_interpolation_params[t, :])
+        displacement = numpy.dot(strain_correl, rve_interpolation_params[t, :])
         displacement = numpy.reshape(displacement, (-1, 3))
         util.write_gid_vector_field(f, "FLUCTUANT_DISPLACEMENT",
                                     numpy.reshape(displacement, (-1, 3)), t)

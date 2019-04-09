@@ -58,7 +58,7 @@ def compute_stress_reconstruction_system(reduced_ip_set, reduced_ip_weights, ene
     logger.debug("rank A: {}".format(numpy.linalg.matrix_rank(A)))
     nr_ips = numpy.shape(reduced_ip_set)[0]
     if rankA != nr_ips:
-        logger.info("Matrix rank not complete. Aborting.")
+        logger.info("Matrix rank not complete (Too many ROQ points?). Aborting.")
         exit()
     logger.debug("-- inverse A")
     Ainv = numpy.linalg.inv(A)
