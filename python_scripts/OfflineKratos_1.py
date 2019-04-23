@@ -4,8 +4,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.MultiscaleROMApplication
-from structural_mechanics_analysis import StructuralMechanicsAnalysis
-#from multiscale_rom_analysis import StructuralMechanicsAnalysis
+from  structural_mechanics_analysis import StructuralMechanicsAnalysis
 import compute_bases as bases
 import compute_ip_weights as hprom
 import pack_reduced_rve_dataset as pack
@@ -18,17 +17,26 @@ from StructuralMechanicsAnalysis to do modifications
 
 if __name__ == "__main__":
 
-    with open("PostProjectParameters.json",'r') as parameter_file:
+    with open("1_ProjectParameters.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
     simulation = StructuralMechanicsAnalysis(model,parameters)
     simulation.Initialize()
-
-    # generate strain-displacement correlation matrix
-    #simulation.Run()
-
     rve_modelpart = simulation._GetSolver().GetComputingModelPart()
+
+    # Read the original model part used in training,
+    # and replaces elements and conditions needed by offline process
+    # Remove conditions from model part
+    #for condition in rve_modelpart.Conditions:
+    #    condition.Set(KratosMultiphysics.TO_ERASE)
+    #rve_modelpart.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+    #print("DEBUG ********")
+    #print(rve_modelpart)
+
+
+
+
     elem = rve_modelpart.GetElement(1)
     ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
 
@@ -55,11 +63,11 @@ if __name__ == "__main__":
     ip_data = elem.GetValuesOnIntegrationPoints(Kratos.STRAIN_ENERGY, rve_modelpart.ProcessInfo)
     nr_strain_components = len(ip_data[0])
     nr_elastic_modes = 21
-    nr_inelastic_modes = 200
+    nr_inelastic_modes = 500
     energy_bases_fname = "bases_energy_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = "snapshot_energy"
     e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-#    bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, energy_bases_fname)
+    #bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, energy_bases_fname)
 
     # compute strain bases
     ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
@@ -69,10 +77,10 @@ if __name__ == "__main__":
     strain_bases_fname = "bases_strain_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = "snapshot_strain"
     e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-#    bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, strain_bases_fname)
+    #bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, strain_bases_fname)
 
     # computed reduces ip set
-    nr_roq_points = 100  # TODO: too many makes rank A != size A
+    nr_roq_points = 500  # TODO: too many makes rank A != size A
     roq_list = hprom.compute_hprom_weights(nr_ips_per_elem, integration_weights, nr_roq_points, energy_bases_fname)
     # optional output
     roq_filename = "roq_{}ip".format(nr_roq_points)
@@ -90,6 +98,18 @@ if __name__ == "__main__":
 
     # generate stress reconstruction system
     A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)
-    stress_reconstruction.util.write_numpy_file('correlation_stress.npy', 'binary', A)
+    stress_reconstruction.util.write_numpy_file('correlation_stress_{}m_{}ip.npy'.format(nr_modes, nr_roq_points), 'binary', A)
 
+    #from multiscale_rom_analysis import StructuralMechanicsAnalysis
+    #settings = Kratos.Parameters("""
+    #    {
+    #        "element_name": "SmallDisplacementCustomElement3D8N",
+    #        "condition_name": ""
+    #    }
+    #    """)
+    #KratosMultiphysics.ReplaceElementsAndConditionsProcess(rve_modelpart, settings).Execute()
+    #print("DEBUG ********")
+    #print(rve_modelpart)
 
+    # generate strain-displacement correlation matrix
+    #simulation.Run()
