@@ -20,6 +20,28 @@ if __name__ == "__main__":
     with open("1_ProjectParameters.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+    config = parameters["config_data"]
+    config_defaults = KratosMultiphysics.Parameters('''{
+    "trajectory_filename": "../training/trajectory",
+    "elastic_snapshots_filename": "elastic_timesteps",
+    "snapshot_energy_filename": "snapshot_energy",
+    "snapshot_strain_filename": "snapshot_strain",
+    "bases_energy_filename": "bases_energy",
+    "bases_strain_filename": "bases_strain",
+    "nr_elastic_modes_energy": 21,
+    "nr_inelastic_modes_energy": 200,
+    "nr_elastic_modes_strain": 6,
+    "nr_inelastic_modes_strain": 100,
+    "compute_bases_energy": true,
+    "compute_bases_strain": true,
+    "nr_roq_points": 200
+    }
+    ''')
+    config.ValidateAndAssignDefaults(config_defaults)
+    print("DEBUG")
+    print(config)
+    print("END DEBUG")
+
     model = KratosMultiphysics.Model()
     simulation = StructuralMechanicsAnalysis(model,parameters)
     simulation.Initialize()
@@ -51,36 +73,38 @@ if __name__ == "__main__":
         for ip_weight in ip_weights:
             integration_weights.append(ip_weight[0])
     # optional output
-    integration_weights_filename = "integration_weight"
-    with open(integration_weights_filename, 'w') as ofile:
-        for ip_weight in integration_weights:
-            ofile.write("{}\n".format(ip_weight))
+    #integration_weights_filename = "integration_weight"
+    #with open(integration_weights_filename, 'w') as ofile:
+    #    for ip_weight in integration_weights:
+    #        ofile.write("{}\n".format(ip_weight))
 
 
-    trajectory_filename = "../training/trajectory"
-    nr_e_snap_filename = "elastic_timesteps"
+    trajectory_filename = config["trajectory_filename"].GetString()
+    nr_e_snap_filename = config["elastic_snapshots_filename"].GetString()
     # compute energy bases
     ip_data = elem.GetValuesOnIntegrationPoints(Kratos.STRAIN_ENERGY, rve_modelpart.ProcessInfo)
     nr_strain_components = len(ip_data[0])
-    nr_elastic_modes = 21
-    nr_inelastic_modes = 500
-    energy_bases_fname = "bases_energy_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
-    snapshot_filename = "snapshot_energy"
+    nr_elastic_modes = config["nr_elastic_modes_energy"].GetInt()
+    nr_inelastic_modes = config["nr_inelastic_modes_energy"].GetInt()
+    energy_bases_fname = config["bases_energy_filename"].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
+    snapshot_filename = config["snapshot_energy_filename"].GetString()
     e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-    #bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, energy_bases_fname)
+    if config["compute_bases_energy"].GetBool():
+        bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, energy_bases_fname)
 
     # compute strain bases
     ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
     nr_strain_components = len(ip_data[0])
-    nr_elastic_modes = 6
-    nr_inelastic_modes = 100
-    strain_bases_fname = "bases_strain_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
-    snapshot_filename = "snapshot_strain"
+    nr_elastic_modes = config["nr_elastic_modes_strain"].GetInt()
+    nr_inelastic_modes = config["nr_inelastic_modes_strain"].GetInt()
+    strain_bases_fname = config["bases_strain_filename"].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
+    snapshot_filename = config["snapshot_strain_filename"].GetString()
     e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-    #bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, strain_bases_fname)
+    if config["compute_bases_strain"].GetBool():
+        bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, strain_bases_fname)
 
     # computed reduces ip set
-    nr_roq_points = 500  # TODO: too many makes rank A != size A
+    nr_roq_points = config["nr_roq_points"].GetInt()
     roq_list = hprom.compute_hprom_weights(nr_ips_per_elem, integration_weights, nr_roq_points, energy_bases_fname)
     # optional output
     roq_filename = "roq_{}ip".format(nr_roq_points)
@@ -97,8 +121,8 @@ if __name__ == "__main__":
     pack.util.write_json(rve_data_filename, rve_params)
 
     # generate stress reconstruction system
-    A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)
-    stress_reconstruction.util.write_numpy_file('correlation_stress_{}m_{}ip.npy'.format(nr_modes, nr_roq_points), 'binary', A)
+    #A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)
+    #stress_reconstruction.util.write_numpy_file('correlation_stress_{}m_{}ip.npy'.format(nr_modes, nr_roq_points), 'binary', A)
 
     #from multiscale_rom_analysis import StructuralMechanicsAnalysis
     #settings = Kratos.Parameters("""
