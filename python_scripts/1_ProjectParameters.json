@@ -1,0 +1,33 @@
+{
+    "config_data": {
+         "reuse_existing_files": true,
+         "nr_inelastic_modes_energy": 900,
+         "nr_inelastic_modes_strain": 100,
+         "rve_data_points": [100, 50, 200],
+         "rve_data_modes": [10, 20]
+    },
+    "problem_data": {
+        "problem_name": "High_Fidelity",
+        "parallel_type": "OpenMP",
+        "start_time": 0.0,
+        "end_time": 0.99,
+        "echo_level": 0
+    },
+    "solver_settings": {
+        "model_part_name": "Microstructure",
+        "domain_size": 3,
+        "echo_level": 0,
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "Static",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "../training/model"
+        },
+        "material_import_settings": {
+            "materials_filename" : "../training/materials.json"
+        },
+        "problem_domain_sub_model_part_list": ["RVE"]
+        }
+}

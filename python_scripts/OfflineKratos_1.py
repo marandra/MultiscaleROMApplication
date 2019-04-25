@@ -10,10 +10,27 @@ import compute_ip_weights as hprom
 import pack_reduced_rve_dataset as pack
 import compute_stress_reconstruction_system as stress_reconstruction
 import numpy
+
 """
+Here description.
 For user-scripting it is intended that a new class is derived
 from StructuralMechanicsAnalysis to do modifications
 """
+
+def check_consistent_config_values(config):
+    # Ideas:
+    # number of base modes < number of snapshots
+    # number of base mode > number of requested modes
+    check = True
+    return check
+
+def skip_calculation(filename, flag_reuse):
+    try:
+        with open(filename):
+            flag_exists = True
+    except IOError:
+        flag_exists = False
+    return flag_exists and flag_reuse
 
 if __name__ == "__main__":
 
@@ -22,6 +39,8 @@ if __name__ == "__main__":
 
     config = parameters["config_data"]
     config_defaults = KratosMultiphysics.Parameters('''{
+    "reuse_existing_files": true,
+    "rve_mdpa_filename": "../training/model.mdpa",
     "trajectory_filename": "../training/trajectory",
     "elastic_snapshots_filename": "elastic_timesteps",
     "snapshot_energy_filename": "snapshot_energy",
@@ -32,15 +51,16 @@ if __name__ == "__main__":
     "nr_inelastic_modes_energy": 200,
     "nr_elastic_modes_strain": 6,
     "nr_inelastic_modes_strain": 100,
-    "compute_bases_energy": true,
-    "compute_bases_strain": true,
-    "nr_roq_points": 200
+    "rve_data_points": [200],
+    "rve_data_modes": [20]
     }
     ''')
     config.ValidateAndAssignDefaults(config_defaults)
-    print("DEBUG")
+    print("DEBUG: ")
     print(config)
-    print("END DEBUG")
+
+    if not check_consistent_config_values(config):
+        exit()
 
     model = KratosMultiphysics.Model()
     simulation = StructuralMechanicsAnalysis(model,parameters)
@@ -88,8 +108,10 @@ if __name__ == "__main__":
     nr_inelastic_modes = config["nr_inelastic_modes_energy"].GetInt()
     energy_bases_fname = config["bases_energy_filename"].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = config["snapshot_energy_filename"].GetString()
-    e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-    if config["compute_bases_energy"].GetBool():
+    if skip_calculation(energy_bases_fname, config["reuse_existing_files"].GetBool()):
+        print("File {} exists. Skipping calculation".format(energy_bases_fname))
+    else:
+        e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
         bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, energy_bases_fname)
 
     # compute strain bases
@@ -99,26 +121,37 @@ if __name__ == "__main__":
     nr_inelastic_modes = config["nr_inelastic_modes_strain"].GetInt()
     strain_bases_fname = config["bases_strain_filename"].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = config["snapshot_strain_filename"].GetString()
-    e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-    if config["compute_bases_strain"].GetBool():
+    if skip_calculation(strain_bases_fname, config["reuse_existing_files"].GetBool()):
+        print("File {} exists. Skipping calculation".format(strain_bases_fname))
+    else:
+        e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
         bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, strain_bases_fname)
 
-    # computed reduces ip set
-    nr_roq_points = config["nr_roq_points"].GetInt()
-    roq_list = hprom.compute_hprom_weights(nr_ips_per_elem, integration_weights, nr_roq_points, energy_bases_fname)
-    # optional output
-    roq_filename = "roq_{}ip".format(nr_roq_points)
-    with open(roq_filename, 'w') as ofile:
-        for list in roq_list:
-            ofile.write("{} {} {} {}\n".format(list[0], list[1], list[2], list[3]))
+    #
+    # computed reduced ip set and pack dataset
+    #
+    rve_mdpa_filename = config["rve_mdpa_filename"].GetString()
+    for p in config["rve_data_points"]:
+        nr_roq_points = p.GetInt()
+        roq_filename = "roq_{}ip".format(nr_roq_points)
+        if skip_calculation(roq_filename, config["reuse_existing_files"].GetBool()):
+            print("File {} exists. Skipping calculation".format(roq_filename))
+            continue
+        # compute ROQ list
+        roq_list = hprom.compute_hprom_weights(nr_ips_per_elem, integration_weights, nr_roq_points, energy_bases_fname)
+        with open(roq_filename, 'w') as ofile:
+            for list in roq_list:
+                ofile.write("{} {} {} {}\n".format(list[0], list[1], list[2], list[3]))
 
-    # pack RVE dataset
-    rve_mdpa_filename = "../training/model.mdpa"
-    reduced_ip_set = numpy.loadtxt(roq_filename)
-    nr_modes = 20
-    rve_params = pack.create_rve_params_structure(strain_bases_fname, rve_mdpa_filename, nr_modes, reduced_ip_set)
-    rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, nr_roq_points)
-    pack.util.write_json(rve_data_filename, rve_params)
+    for p in config["rve_data_points"]:
+        nr_roq_points = p.GetInt()
+        roq_filename = "roq_{}ip".format(nr_roq_points)
+        for m in config["rve_data_modes"]:
+            nr_modes = m.GetInt()
+            reduced_ip_set = numpy.loadtxt(roq_filename)  # TODO: use variable instead or reading file
+            rve_params = pack.create_rve_params_structure(strain_bases_fname, rve_mdpa_filename, nr_modes, reduced_ip_set)
+            rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, nr_roq_points)
+            pack.util.write_json(rve_data_filename, rve_params)
 
     # generate stress reconstruction system
     #A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)
