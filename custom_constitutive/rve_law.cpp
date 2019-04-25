@@ -351,23 +351,40 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     Vector Dx(nr_modes);
 
     Accumulate(A, res, strain_macro, process_info);
-    double residual = norm_2(res);
-    double current_residual = residual;
-    double ratio = 1.0;
-    std::size_t it = 1;
 
-    while (residual > mAbsoluteTolerance and ratio > mRelativeTolerance and it < mMaxIteration)
+    // Current criteria: relative displacement
+    double ratio = 1.0;
+    std::size_t it = 0;
+
+    while (ratio > mRelativeTolerance and it < mMaxIteration)
     {
         Solve(A, res, Dx);
         mModesWeights -= Dx;
         Accumulate(A, res, strain_macro, process_info);
-        KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it << " Residual: " << residual
-                               << " Relative:" << ratio <<std::endl;
-        current_residual = norm_2(res);
-        ratio = current_residual / residual;
-        residual = current_residual;
+        KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it
+                                            << " Relative:" << ratio <<std::endl;
+        const double norm_modes_weights = norm_2(mModesWeights);
+        ratio = norm_2(Dx) / norm_modes_weights;
         it++;
     }
+    // Previous criteria using residual.
+    //double residual = norm_2(res);
+    //double current_residual = residual;
+    //double ratio = 1.0;
+    //std::size_t it = 1;
+
+    //while (residual > mAbsoluteTolerance and ratio > mRelativeTolerance and it < mMaxIteration)
+    //{
+    //    Solve(A, res, Dx);
+    //    mModesWeights -= Dx;
+    //    Accumulate(A, res, strain_macro, process_info);
+    //    KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it << " Residual: " << residual
+    //                           << " Relative:" << ratio <<std::endl;
+    //    current_residual = norm_2(res);
+    //    ratio = current_residual / residual;
+    //    residual = current_residual;
+    //    it++;
+    //}
     KRATOS_INFO_IF("RVE Law", mVerbose) << std::endl;
 
     // Homogenize stress and constitutive tensor
