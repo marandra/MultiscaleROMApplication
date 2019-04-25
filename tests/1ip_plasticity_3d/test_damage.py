@@ -25,12 +25,10 @@ class Output:
     def write(self, cl_params):
         strain = cl_params.GetStrainVector()
         stress = cl_params.GetStressVector()
-        #line = "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  "\
-        #       "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
-        #    strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
-        #    stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
-        line = "sr(00,0)={:<1.4e}; sr(00,1)={:<1.4e}; sr(00,2)={:<1.4e}; sr(00,3)={:<1.4e}; sr(00,4)={:<1.4e}; sr(00,5)={:<1.4e};\n".format(
-            strain[0], strain[1], strain[2], strain[3], strain[4], strain[5])
+        line = "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  "\
+               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
+            strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
+            stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
         self.fo.write(line)
 
 
@@ -52,7 +50,7 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
     properties.SetValue(km.POISSON_RATIO, 0.3)
     properties.SetValue(km.YIELD_STRESS, 0.5)
     properties.SetValue(km.StructuralMechanicsApplication.INFINITY_YIELD_STRESS, 0.7)
-    properties.SetValue(km.ISOTROPIC_HARDENING_MODULUS, 0.3)
+    properties.SetValue(km.StructuralMechanicsApplication.HARDENING_MODULI_VECTOR, [0.3, 0.15])
 
     # Construct a constitutive law
     cl = km.StructuralMechanicsApplication.SmallStrainIsotropicDamage3DLaw()

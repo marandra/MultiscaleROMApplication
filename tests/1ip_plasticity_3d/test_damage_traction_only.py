@@ -50,7 +50,7 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
     properties.SetValue(km.POISSON_RATIO, 0.3)
     properties.SetValue(km.YIELD_STRESS, 0.5)
     properties.SetValue(km.StructuralMechanicsApplication.INFINITY_YIELD_STRESS, 0.7)
-    properties.SetValue(km.ISOTROPIC_HARDENING_MODULUS, 0.3)
+    properties.SetValue(km.StructuralMechanicsApplication.HARDENING_MODULI_VECTOR, [0.3, 0.15])
 
     # Construct a constitutive law
     cl = km.StructuralMechanicsApplication.SmallStrainIsotropicDamageTractionOnly3DLaw()

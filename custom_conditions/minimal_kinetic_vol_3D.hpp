@@ -150,6 +150,10 @@ public:
 
     /// Create a new MinimalKineticCondition2D instance
     Condition::Pointer Create(IndexType NewId,
+                              GeometryType::Pointer pGeom,
+                              PropertiesType::Pointer pProperties) const override;
+
+     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 

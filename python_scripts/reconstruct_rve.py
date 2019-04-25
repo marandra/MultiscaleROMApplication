@@ -55,6 +55,8 @@ if __name__ == '__main__':
     logger.debug("Number of timesteps detected: {}".format(nr_timesteps))
     logger.debug("Number of modes detected: {}".format(nr_modes))
 
+    energy_modes = util.read_numpy_file("../offline_data/bases_energy_521m.npy", "binary")[:, :500]
+
     filename = args.gid_msh_file.rsplit(".", 1)[0] + ".res"
     f = util.write_gid_header(filename)
     for t in range(nr_timesteps):
@@ -82,8 +84,15 @@ if __name__ == '__main__':
         util.write_gid_vector_field(f, "TOTAL_DISPLACEMENT", total_displacement, t)
 
         logger.info("Solving stress field")
+        # original
+        # reduced_stress = rve_stress[t, :]
+        # reduced_stress = reduced_stress.reshape((-1, 6))  # temporary? kratos process linearizes stress matrix
+        # stress = numpy.dot(stress_correl, reduced_stress)
+        # util.write_gid_matrix_field(f, "STRESS_VECTOR", stress, t)
+
         reduced_stress = rve_stress[t, :]
         reduced_stress = reduced_stress.reshape((-1, 6))  # temporary? kratos process linearizes stress matrix
-        stress = numpy.dot(stress_correl, reduced_stress)
+        stress_coef = numpy.dot(stress_correl, reduced_stress)
+        stress = numpy.dot(energy_modes, stress_coef)
         util.write_gid_matrix_field(f, "STRESS_VECTOR", stress, t)
 

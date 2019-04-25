@@ -49,6 +49,11 @@ MinimalKineticVolCondition3D& MinimalKineticVolCondition3D::operator=(MinimalKin
 
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
+Condition::Pointer MinimalKineticVolCondition3D::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<MinimalKineticVolCondition3D>(NewId, pGeom, pProperties);
+}
+
 Condition::Pointer MinimalKineticVolCondition3D::Create(IndexType NewId,
                                                      NodesArrayType const& ThisNodes,
                                                      PropertiesType::Pointer pProperties) const
