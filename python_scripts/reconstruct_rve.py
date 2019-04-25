@@ -13,7 +13,8 @@ import postprocess_utilities as util
 parser = argparse.ArgumentParser(description="reconstructs following RVE fields:"
    "fluctuant displacement, total displacement and stress")
 parser.add_argument('gid_msh_file', help="gid output .msh file")
-parser.add_argument('correlation', help="strain-displacemente correlation matric (.npy)")
+parser.add_argument('correlation_strain', help="strain correlation matrix (.npy)")
+parser.add_argument('correlation_stress', help="stress correlation matrix (.npy)")
 parser.add_argument('rve_data', help="RVE reconstruction data file (.json)")
 parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
 args = parser.parse_args()
@@ -32,7 +33,10 @@ if __name__ == '__main__':
     rve_nodes = util.read_gid_msh_nodes(args.gid_msh_file)
 
     logger.info("Loading strain-displacement correlation data")
-    strain_displ_correl = numpy.load(args.correlation)
+    strain_correl = numpy.load(args.correlation_strain)
+
+    logger.info("Loading stress correlation data")
+    stress_correl = numpy.load(args.correlation_stress)
 
     logger.info("Loading RVE data")
     data = util.read_json(args.rve_data)
@@ -51,13 +55,15 @@ if __name__ == '__main__':
     logger.debug("Number of timesteps detected: {}".format(nr_timesteps))
     logger.debug("Number of modes detected: {}".format(nr_modes))
 
+    energy_modes = util.read_numpy_file("../offline_data/bases_energy_521m.npy", "binary")[:, :500]
+
     filename = args.gid_msh_file.rsplit(".", 1)[0] + ".res"
     f = util.write_gid_header(filename)
     for t in range(nr_timesteps):
         logger.info("Timestep {}".format(t))
 
         logger.info("Solving fluctuant displacement")
-        displacement = numpy.dot(strain_displ_correl, rve_interpolation_params[t, :])
+        displacement = numpy.dot(strain_correl, rve_interpolation_params[t, :])
         displacement = numpy.reshape(displacement, (-1, 3))
         util.write_gid_vector_field(f, "FLUCTUANT_DISPLACEMENT",
                                     numpy.reshape(displacement, (-1, 3)), t)
@@ -78,4 +84,15 @@ if __name__ == '__main__':
         util.write_gid_vector_field(f, "TOTAL_DISPLACEMENT", total_displacement, t)
 
         logger.info("Solving stress field")
+        # original
+        # reduced_stress = rve_stress[t, :]
+        # reduced_stress = reduced_stress.reshape((-1, 6))  # temporary? kratos process linearizes stress matrix
+        # stress = numpy.dot(stress_correl, reduced_stress)
+        # util.write_gid_matrix_field(f, "STRESS_VECTOR", stress, t)
+
+        reduced_stress = rve_stress[t, :]
+        reduced_stress = reduced_stress.reshape((-1, 6))  # temporary? kratos process linearizes stress matrix
+        stress_coef = numpy.dot(stress_correl, reduced_stress)
+        stress = numpy.dot(energy_modes, stress_coef)
+        util.write_gid_matrix_field(f, "STRESS_VECTOR", stress, t)
 

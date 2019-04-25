@@ -113,6 +113,17 @@ public:
             const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief calculates the value of a specified variable
+     * @param rValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Matrix& CalculateValue(Parameters& rValues,
+                           const Variable<Matrix>& rThisVariable,
+                           Matrix& rValue) override;
+
+    /**
     * This is to be called at the very beginning of the calculation
     * (e.g. from InitializeElement) in order to initialize all relevant
     * attributes of the constitutive law

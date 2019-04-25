@@ -48,9 +48,9 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     GetPropertyBlock(materials_params);
 
     // Parse data parameters
-    Kratos::Parameters B_list = data_params["B"];
-    Kratos::Parameters w_list = data_params["w"];
-    Kratos::Parameters prop_id_list = data_params["props_id"];
+    Kratos::Parameters B_list = data_params["ip_strain_modes"];
+    Kratos::Parameters w_list = data_params["ip_weight"];
+    Kratos::Parameters prop_id_list = data_params["ip_property_id"];
     const std::size_t nr_points = B_list.size();
     const std::size_t nr_modes = B_list[0][0].size();
     const std::size_t nr_comps = GetStrainSize();
@@ -536,6 +536,7 @@ Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
         rValue = mModesWeights;
+
     if (rThisVariable == INTERNAL_VARIABLES)
     {
         int count = 0;
@@ -572,6 +573,37 @@ void RVELaw::SetValue(
             mCL_vec[i]->SetValue(rThisVariable, rValue_i, rCurrentProcessInfo);
         }
     }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Matrix& RVELaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue
+    )
+{
+    if (rThisVariable == CAUCHY_STRESS_VECTOR_LIST) {
+        const std::size_t nr_points = mB_vec.size();
+        const std::size_t nr_comps = GetStrainSize();
+        const Vector& strain_macro = rValues.GetStrainVector();
+        const ProcessInfo& process_info = rValues.GetProcessInfo();
+
+        if (rValue.size1() != nr_points || rValue.size2() != nr_comps)
+            rValue.resize(nr_points, nr_comps, false);
+        rValue.clear();
+
+        for (std::size_t i = 0; i < nr_points; i++) {
+            Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+            Vector stress(nr_comps);
+            Matrix constit(nr_comps, nr_comps);  // unused
+            CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
+            for (std::size_t j = 0; j < nr_comps; j++)
+                rValue(i, j) = stress[j];
+        }
+    }
+    return rValue;
 }
 
 /***********************************************************************************/
