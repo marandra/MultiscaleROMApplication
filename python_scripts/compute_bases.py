@@ -3,6 +3,10 @@ import glob
 import numpy as np
 import scipy.sparse.linalg as sp
 import logging
+try:
+    import sklearn.decomposition
+except ImportError:
+    pass
 
 
 def list_of_snapshots(trajectory_filename, nr_e_snap_filename, filename):
@@ -40,32 +44,56 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
     logger.info("")
 
     #SVD stage
-    svd_iterative = True
-    if svd_iterative:
-        logger.info("Computing SVD using ITERATIVE algorithm")
-        #[U, S] = sp.svds(X, k=nr_modes + 4)[:2]
-        [U, S] = sp.svds(X, k=nr_modes)[:2]
-        # to order values in decreasing order (svds returns them in increasing order)
-        S= S[::-1]
-        U = U[:,::-1]
-        U = U[:, :nr_modes]
-    else:
-        logger.info("Computing SVD using standard algorithm")
+    svd_method = "standard"  # full, iterative, arpack, randomized, auto?
+    t0 = time.time()
+    if svd_method is "randomized":
+        t0 = time.time()
+        logger.info("Computing SVD using RANDOMIZED algorithm")
+        svd = sklearn.decomposition.TruncatedSVD(n_components=nr_modes, algorithm="randomized")
+        svd.fit(X.T)
+        U = svd.components_.T
+        S = svd.singular_values_.T
+        logger.info("SVD time: {:.1f}s".format(time.time() - t0))
+#    #elif svd_method is "arpack":
+#        t0 = time.time()
+#        logger.info("Computing SVD using ARPACK algorithm")
+#        svd = sklearn.decomposition.TruncatedSVD(n_components=nr_modes, algorithm="arpack")
+#        svd.fit(X.T)
+#        U = svd.components_.T
+#        S = svd.singular_values_.T
+#        print("DEBUG:")
+#        print("SVD time: {:.1f}s".format(time.time() - t0))
+#        print(svd)
+#        #print(U)
+#        #print(S)
+#    if True:
+#    #elif svd_method is "iterative":
+#        t0 = time.time()
+#        logger.info("Computing SVD using ITERATIVE algorithm")
+#        #[U, S] = sp.svds(X, k=nr_modes + 4)[:2]
+#        [U, S] = sp.svds(X, k=nr_modes)[:2]
+#        # to order values in decreasing order (svds returns them in increasing order)
+#        S= S[::-1]
+#        U = U[:,::-1]
+#        U = U[:, :nr_modes]
+#        print("DEBUG:")
+#        print("SVD time: {:.1f}s".format(time.time() - t0))
+#        #print(U)
+#        #print(S)
+    elif svd_method is "standard":
+        t0 = time.time()
+        logger.info("Computing SVD using STANDARD algorithm")
         [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
         U = U[:,:nr_modes]
+        logger.info("SVD time: {:.1f}s".format(time.time() - t0))
 
-    logger.info("    - singular value of selected modes:")
-    logger.info("      {}".format(S[:nr_modes]))
-    logger.info("      validation: following singular values (excluded):")
-    logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
+    logger.info("    - SVD time: {:.1f}s".format(time.time() - t0))
+    #logger.info("    - singular value of selected modes:")
+    #logger.info("      {}".format(S[:nr_modes]))
+    #logger.info("      validation: following singular values (excluded):")
+    #logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
     logger.info("    - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
     logger.info("")
-    # temp change default print option, as we want to have all the values printed out
-    #np.set_printoptions(threshold=np.inf)
-    #logger.debug("    - all singular values:")
-    #logger.debug("      {}".format(S))
-    #logger.debug("")
-    #np.set_printoptions(threshold=1000)
 
     return U
 
@@ -83,8 +111,8 @@ def generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, n
             U = compute_modes(nr_ip, nr_elements, e_files + i_files, nr_inelastic_modes, nr_components=nr_strain_components)
         t1 = time.time()
         np.save(bases_fname, U)
-        logger.info("  SVD time: {:.1f}s".format(time.time() - t0))
         logger.info("  Writing time: {:.1f}s".format(time.time() - t1))
+        logger.info("  Total time: {:.1f}s".format(time.time() - t0))
         logger.info("")
 
 #######################################
