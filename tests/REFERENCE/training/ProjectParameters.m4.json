@@ -70,9 +70,7 @@
             "process_name": "WriteElementOutputScalar",
             "Parameters": {
                 "model_part_name": "Microstructure.RVE",
-                "filename": "elastic_timesteps",
-                "flag_name": "INELASTIC_FLAG",
-                "flag_location": "StructuralMechanicsApplication"
+                "filename": "elastic_timesteps"
                 }
             },{
             "python_module": "write_elements_homogenized_output_process",
