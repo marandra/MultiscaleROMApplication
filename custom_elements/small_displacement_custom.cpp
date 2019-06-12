@@ -30,7 +30,7 @@ Element::Pointer SmallDisplacementCustom::Create(IndexType NewId,
                                                  NodesArrayType const& ThisNodes,
                                                  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SmallDisplacementCustom>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<SmallDisplacementCustom>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -38,7 +38,7 @@ Element::Pointer SmallDisplacementCustom::Create(IndexType NewId,
 
 Element::Pointer SmallDisplacementCustom::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<SmallDisplacementCustom>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<SmallDisplacementCustom>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
