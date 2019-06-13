@@ -1,6 +1,7 @@
 {
     "config_data": {
          "reuse_existing_files": true,
+         "svd_algorithm": "standard",
          "nr_inelastic_modes_energy": 400,
          "nr_inelastic_modes_strain": 100,
          "rve_data_points": [100, 200],

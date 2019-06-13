@@ -24,7 +24,7 @@ def list_of_snapshots(trajectory_filename, nr_e_snap_filename, filename):
     return e_files, i_files
 
 
-def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_components, Ue=None):
+def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_components, Ue=None, svd_algorithm="standard"):
     logger.info("Loading snapshots")
     if Ue is not None:
         logger.info("and removing elastic component")
@@ -43,10 +43,9 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
         counter = counter + 1
     logger.info("")
 
-    #SVD stage
-    svd_method = "standard"  # full, iterative, arpack, randomized, auto?
+    #SVD stage  # svd_algorithm = standard, iterative, arpack, randomized, auto?
     t0 = time.time()
-    if svd_method is "randomized":
+    if svd_algorithm is "randomized":
         t0 = time.time()
         logger.info("Computing SVD using RANDOMIZED algorithm")
         svd = sklearn.decomposition.TruncatedSVD(n_components=nr_modes, algorithm="randomized")
@@ -54,7 +53,7 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
         U = svd.components_.T
         S = svd.singular_values_.T
         logger.info("SVD time: {:.1f}s".format(time.time() - t0))
-#    #elif svd_method is "arpack":
+#    #elif svd_algorithm is "arpack":
 #        t0 = time.time()
 #        logger.info("Computing SVD using ARPACK algorithm")
 #        svd = sklearn.decomposition.TruncatedSVD(n_components=nr_modes, algorithm="arpack")
@@ -67,7 +66,7 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 #        #print(U)
 #        #print(S)
 #    if True:
-#    #elif svd_method is "iterative":
+#    #elif svd_algorithm is "iterative":
 #        t0 = time.time()
 #        logger.info("Computing SVD using ITERATIVE algorithm")
 #        #[U, S] = sp.svds(X, k=nr_modes + 4)[:2]
@@ -80,7 +79,7 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 #        print("SVD time: {:.1f}s".format(time.time() - t0))
 #        #print(U)
 #        #print(S)
-    elif svd_method is "standard":
+    elif svd_algorithm is "standard":
         t0 = time.time()
         logger.info("Computing SVD using STANDARD algorithm")
         [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
@@ -97,17 +96,17 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 
     return U
 
-def generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname):
+def generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname, svd_algorithm="standard"):
         t0 = time.time()
         if nr_elastic_modes > 0:
             logger.info("Processing elastic snapshots")
-            Ue = compute_modes(nr_ip, nr_elements, e_files, nr_elastic_modes, nr_components=nr_strain_components)
+            Ue = compute_modes(nr_ip, nr_elements, e_files, nr_elastic_modes, nr_components=nr_strain_components, svd_algorithm=svd_algorithm)
             logger.info("Processing inelastic snapshots")
-            Ui = compute_modes(nr_ip, nr_elements, i_files, nr_inelastic_modes, nr_components=nr_strain_components, Ue=Ue)
+            Ui = compute_modes(nr_ip, nr_elements, i_files, nr_inelastic_modes, nr_components=nr_strain_components, Ue=Ue, svd_algorithm=svd_algorithm)
             U = np.hstack([Ue, Ui])
         else:
             logger.info("Nr of elastic modes set to zero -> Not discriminating elastic/inelastic snapshots")
-            U = compute_modes(nr_ip, nr_elements, e_files + i_files, nr_inelastic_modes, nr_components=nr_strain_components)
+            U = compute_modes(nr_ip, nr_elements, e_files + i_files, nr_inelastic_modes, nr_components=nr_strain_components, svd_algorithm=svd_algorithm)
         t1 = time.time()
         np.save(bases_fname, U)
         logger.info("  Writing time: {:.1f}s".format(time.time() - t1))

@@ -40,6 +40,7 @@ if __name__ == "__main__":
     config = parameters["config_data"]
     config_defaults = KratosMultiphysics.Parameters('''{
     "reuse_existing_files": true,
+    "svd_algorithm": "standard",
     "rve_mdpa_filename": "../training/model.mdpa",
     "trajectory_filename": "../training/trajectory",
     "elastic_snapshots_filename": "elastic_timesteps",
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     #    for ip_weight in integration_weights:
     #        ofile.write("{}\n".format(ip_weight))
 
-
+    svd_algorithm = config["svd_algorithm"].GetString()
     trajectory_filename = config["trajectory_filename"].GetString()
     nr_e_snap_filename = config["elastic_snapshots_filename"].GetString()
     # compute energy bases
@@ -113,7 +114,15 @@ if __name__ == "__main__":
         print("File {} exists. Skipping calculation".format(energy_bases_fname))
     else:
         e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, energy_bases_fname)
+        bases.generate_bases(nr_elems,
+                             nr_ips_per_elem,
+                             nr_strain_components,
+                             nr_elastic_modes,
+                             nr_inelastic_modes,
+                             e_files,
+                             i_files,
+                             energy_bases_fname,
+                             svd_algorithm=svd_algorithm)
 
     # compute strain bases
     ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
@@ -127,7 +136,15 @@ if __name__ == "__main__":
         print("File {} exists. Skipping calculation".format(strain_bases_fname))
     else:
         e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        bases.generate_bases(nr_elems, nr_ips_per_elem, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, strain_bases_fname)
+        bases.generate_bases(nr_elems,
+                             nr_ips_per_elem,
+                             nr_strain_components,
+                             nr_elastic_modes,
+                             nr_inelastic_modes,
+                             e_files,
+                             i_files,
+                             strain_bases_fname,
+                             svd_algorithm=svd_algorithm)
 
     #
     # computed reduced ip set and pack dataset
