@@ -45,7 +45,7 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 
     #SVD stage  # svd_algorithm = standard, iterative, arpack, randomized, auto?
     t0 = time.time()
-    if svd_algorithm is "randomized":
+    if "randomized" in svd_algorithm:
         t0 = time.time()
         logger.info("Computing SVD using RANDOMIZED algorithm")
         svd = sklearn.decomposition.TruncatedSVD(n_components=nr_modes, algorithm="randomized")
@@ -79,7 +79,7 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 #        print("SVD time: {:.1f}s".format(time.time() - t0))
 #        #print(U)
 #        #print(S)
-    elif svd_algorithm is "standard":
+    elif "standard" in svd_algorithm:
         t0 = time.time()
         logger.info("Computing SVD using STANDARD algorithm")
         [U, S] = np.linalg.svd(X, full_matrices=False)[:2]
