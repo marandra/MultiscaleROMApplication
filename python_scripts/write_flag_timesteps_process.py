@@ -63,9 +63,7 @@ class WriteElementsOutputScalar(km.Process):
                     self.write_results()
                     break
                 flag = elem.GetValuesOnIntegrationPoints(structural.ACCUMULATED_PLASTIC_STRAIN, self.model_part.ProcessInfo)
-                if True in [x for y in flag for x in y]:
-                    print("DEBUG break in case a function enters here. We need to test it with plasticity CL")
-                    error()
+                if True in [x > 0.0 for y in flag for x in y]:
                     self.inelastic_flag = True
                     self.write_results()
                     break
