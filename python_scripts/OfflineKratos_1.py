@@ -108,6 +108,7 @@ if __name__ == "__main__":
     nr_inelastic_modes = config["nr_inelastic_modes_energy"].GetInt()
     energy_bases_fname = config["bases_energy_filename"].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = config["snapshot_energy_filename"].GetString()
+    print("Generating ENERGY bases")
     if skip_calculation(energy_bases_fname, config["reuse_existing_files"].GetBool()):
         print("File {} exists. Skipping calculation".format(energy_bases_fname))
     else:
@@ -121,6 +122,7 @@ if __name__ == "__main__":
     nr_inelastic_modes = config["nr_inelastic_modes_strain"].GetInt()
     strain_bases_fname = config["bases_strain_filename"].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = config["snapshot_strain_filename"].GetString()
+    print("Generating STRAIN bases")
     if skip_calculation(strain_bases_fname, config["reuse_existing_files"].GetBool()):
         print("File {} exists. Skipping calculation".format(strain_bases_fname))
     else:

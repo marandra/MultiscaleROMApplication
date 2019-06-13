@@ -99,7 +99,6 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 
 def generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname):
         t0 = time.time()
-        logger.info("Generating bases ENERGY")
         if nr_elastic_modes > 0:
             logger.info("Processing elastic snapshots")
             Ue = compute_modes(nr_ip, nr_elements, e_files, nr_elastic_modes, nr_components=nr_strain_components)
