@@ -1,4 +1,5 @@
 import KratosMultiphysics as km
+import KratosMultiphysics.StructuralMechanicsApplication as structural
 import os
 import operator
 
@@ -21,26 +22,13 @@ class WriteElementsOutputScalar(km.Process):
 
         default_settings = km.Parameters("""
         {
-            "mesh_id": 0,
             "model_part_name": "unset_model_part_name",
-            "filename": "unset_filename",
-            "flag_location": "core",
-            "flag_name": "unset_flag_name"
+            "filename": "unset_filename"
         }
         """)
         settings.ValidateAndAssignDefaults(default_settings)
         self.model_part = Model[settings['model_part_name'].GetString()]
         self.filename = settings['filename'].GetString()
-        self.var_location = settings['flag_location'].GetString()
-        self.var_name = settings['flag_name'].GetString()
-        f = operator.attrgetter(self.var_name)
-        if self.var_location == "core":
-            self.var = f(km)
-        else:
-            f = operator.attrgetter(self.var_location)
-            app = f(km)
-            f = operator.attrgetter(self.var_name)
-            self.var = f(app)
 
     def write_results(self):
         with open(self.filename, 'w') as ofile:
@@ -69,10 +57,18 @@ class WriteElementsOutputScalar(km.Process):
     def ExecuteFinalizeSolutionStep(self):
         if not self.inelastic_flag:
             for elem in self.model_part.Elements:
-                flag = elem.GetValuesOnIntegrationPoints(self.var, self.model_part.ProcessInfo)
-                if True in [x for y in flag for x in y]:
+                flag = elem.CalculateOnIntegrationPoints(km.DAMAGE_VARIABLE, self.model_part.ProcessInfo)
+                if True in [x > 0.0 for x in flag]:
                     self.inelastic_flag = True
                     self.write_results()
+                    break
+                flag = elem.GetValuesOnIntegrationPoints(structural.ACCUMULATED_PLASTIC_STRAIN, self.model_part.ProcessInfo)
+                if True in [x for y in flag for x in y]:
+                    print("DEBUG break in case a function enters here. We need to test it with plasticity CL")
+                    error()
+                    self.inelastic_flag = True
+                    self.write_results()
+                    break
         self.timestep_counter = self.timestep_counter + 1
 
     def ExecuteFinalize(self):
