@@ -34,7 +34,7 @@ class Output:
         self.fo.write(line)
 
 
-def constitutive_law_test(model_part, deformation):
+def constitutive_law_test(model_part, deformation, idx):
 
     # Define geometry
     dim = 3
@@ -54,8 +54,30 @@ def constitutive_law_test(model_part, deformation):
     properties.SetValue(km.StructuralMechanicsApplication.INFINITY_YIELD_STRESS, 0.7)
     properties.SetValue(km.StructuralMechanicsApplication.HARDENING_MODULI_VECTOR, [0.3, 0.15])
 
+    case_params = deformation.cases[idx]
+
     # Construct a constitutive law
-    cl = km.MultiscaleROMApplication.RVELaw().Create(deformation.rve_parameters)
+    rve_params = deformation.rve_parameters
+
+    #tmp_param = KratosMultiphysics.Parameters('''{
+    #"rve_materials_filename": "ACA 11111",
+    #"rve_data_filename": "ACA 22222"
+    #}
+    #''')
+
+    rve_materials_filename = "{}/{}v{}.json".format(deformation.parameters["rve_materials_path"].GetString(),
+                                            deformation.parameters["rve_materials_base_filename"].GetString(),
+                                            case_params[3])
+    rve_data_filename = "{}/{}{}m_{}ip.json".format(deformation.parameters["rve_data_path"].GetString(),
+                                                deformation.parameters["rve_data_base_filename"].GetString(),
+                                                case_params[1], case_params[2])
+    tmp_param = KratosMultiphysics.Parameters('''{
+    "rve_materials_filename": "''' + rve_materials_filename + '''",
+    "rve_data_filename": "''' + rve_data_filename + '''"
+    }''')
+
+    rve_params["Parameters"].AddMissingParameters(tmp_param)
+    cl = km.MultiscaleROMApplication.RVELaw().Create(rve_params)
 
     cl.Check(properties, geom, model_part.ProcessInfo)
     if(cl.WorkingSpaceDimension() != 3):
@@ -87,9 +109,11 @@ def constitutive_law_test(model_part, deformation):
     cl.InitializeMaterial(properties, geom, N)
 
     # expected results
-    deformation.set_initial_strain(cl.GetStrainSize())
-    output = Output(deformation.output_filename)
-    print(deformation.output_filename)
+    initial_strain_kratos = km.Vector(6)
+    for i in range(6):
+        initial_strain_kratos[i] = case_params[4][i]
+    #deformation.set_initial_strain(cl.GetStrainSize())
+    output = Output(case_params[5])
 
     print()
     #print("Has DAMAGE_VARIABLE: ", cl.Has(km.DAMAGE_VARIABLE))
@@ -106,15 +130,14 @@ def constitutive_law_test(model_part, deformation):
     model_part.ProcessInfo[km.INITIAL_STRAIN] = zero_vector
     print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
     print()
-    nr_ts = 21
     nr_ts = deformation.nr_timesteps + 1
-    load = deformation.load
-    ts_array = [numpy.linspace(load[x+0], load[x+1], nr_ts) for x in range(len(load)-1)]
+    load_cycle = deformation.load_cycle
+    ts_array = [numpy.linspace(load_cycle[x+0], load_cycle[x+1], nr_ts) for x in range(len(load_cycle)-1)]
     ts_list = []
     for x in ts_array:
         ts_list.extend(x.tolist())
     for strain_mult in ts_list:
-        deformation.set_deformation(cl_params, strain_mult)
+        deformation.set_deformation(cl_params, strain_mult, initial_strain_kratos)
 
         # Chauchy
         model_part.ProcessInfo[km.INITIAL_STRAIN] = cl_params.GetStrainVector()
@@ -151,20 +174,46 @@ def constitutive_law_test(model_part, deformation):
 
 
 class Deformation():
-    def __init__(self, parameters, rve_parameters):
-        self.nr_timesteps = parameters["nr_timesteps"]
-        self.load = parameters["load"]
-        self.initial_strain_list = parameters["strain"]
-        self.output_filename = parameters["output_filename"]
-        self.rve_parameters = rve_parameters
+    def __init__(self, parameters):
+        # Constant values
+        self.nr_timesteps = parameters["nr_timesteps"].GetInt()
+        self.load_cycle = parameters["load_cycle"].GetVector()
+        self.rve_parameters = parameters["rve_parameters"]
+        self.parameters = parameters
 
-    def set_initial_strain(self, strain_size):
-        self.initial_strain_kratos = km.Vector(strain_size)
-        for i in range(strain_size):
-            self.initial_strain_kratos[i] = self.initial_strain_list[i]
+        self.cases = []
+        list_modes = [int(x) for x in parameters["rve_data_modes"].GetVector()]
+        list_ip = [int(x) for x in parameters["rve_data_points"].GetVector()]
+        list_materials = [int(x) for x in parameters["rve_materials"].GetVector()]
+        list_traj = [int(x) for x in parameters["trajectories"].GetVector()]
+        for t in list_traj:
+            for mat in list_materials:
+                for i in list_ip:
+                    for m in list_modes:
+                        if t != -1:
+                            filename = "{}/trajectory_{:02}/ProjectParameters.json".format(parameters["trajectories_path"].GetString(), t)
+                            with open(filename, 'r') as fp:
+                                for line in fp.readlines():
+                                    if '''"initial_strain"''' in line:
+                                        strain = [float(x) for x in line.split('[')[1].split(']')[0].split(',')]
+                                        break
+                        else:
+                            strain = [x for x in parameters["strain"].GetVector()]
+                        filename = "{}_T{:02}_{}m_{}ip_mat{}.dat".format(parameters["output_base_filename"].GetString(), t, m, i, mat)
+                        case = [t, m, i, mat, strain, filename]
+                        self.cases.append(case)
+                        print (case)
+        # To be defined inside case loop
+        #self.initial_strain_list = strain
+        self.nr_cases = len(self.cases)
 
-    def set_deformation(self, cl_params, mult):
-        self.strain = mult * self.initial_strain_kratos
+    #def set_initial_strain(self, strain_size=6):
+    #    self.initial_strain_kratos = km.Vector(strain_size)
+    #    for i in range(strain_size):
+    #        self.initial_strain_kratos[i] = self.initial_strain_list[i]
+
+    def set_deformation(self, cl_params, mult, initial_strain_kratos):
+        self.strain = mult * initial_strain_kratos
         detF = 1
         F = km.Matrix(3,3)
         for i in range(3):
@@ -177,44 +226,45 @@ class Deformation():
         cl_params.SetStrainVector(self.strain)
 
 
-
 #####################################################################
 if __name__ == "__main__":
 
     model_part = km.Model().CreateModelPart("test")
 
-    rve_data_filename="rve_10m_100ip.json"
-    rve_materials_filename="rve_material_ref.json"
-    rve_parameters  = KratosMultiphysics.Parameters("""
-    {
+    with open("ProjectParameters.json",'r') as parameter_file:
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+    parameters_defaults = KratosMultiphysics.Parameters('''{
+    "reuse_existing_files": true,
+    "nr_timesteps": 20,
+    "load_cycle": [0, 1, 0, -1.2, 0, 1.4, 0, -1.6],
+    "trajectories_path": "../training",
+    "trajectories": [-1],
+    "strain": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "output_base_filename": "strain-stress-rve_traction.dat",
+    "rve_materials_path": "rve_materials",
+    "rve_materials_base_filename": "rve_material_",
+    "rve_materials": [0],
+    "rve_data_path": "../offline_data",
+    "rve_data_base_filename": "rve_",
+    "rve_data_modes": [10],
+    "rve_data_points": [100],
+    "rve_parameters": {
         "name": "RVE Law",
         "Parameters": {
-                "rve_materials_filename": """'"'+rve_materials_filename+'"'""",
-                "rve_data_filename": """'"'+rve_data_filename+'"'""",
-                "convergence_criterion": "displacement_criterion",
-                "residual_relative_tolerance": 1e-6,
-                "residual_absolute_tolerance": 0,
-                "max_iteration": 10,
-                "verbose": 1
+             "rve_materials_filename": "to be filled by script",
+             "rve_data_filename": "to be filled by script",
+             "convergence_criterion": "displacement_criterion",
+             "residual_relative_tolerance": 1e-6,
+             "residual_absolute_tolerance": 0,
+             "max_iteration": 10,
+             "verbose": 0
         }
-    }""")
+    }
+}
+''')
+    parameters.ValidateAndAssignDefaults(parameters_defaults)
 
-    # First test: TRACTION (load - unload - load - unload)
-    parameters = {"nr_timesteps": 20,
-                  "load": [0, 1, 0, -1.2, 0, 1.4, 0, -1.6],
-                  "strain": [10.0, 0.000, 0.000, 0.000, 0.000, 0.000],
-                  "output_filename": "strain-stress-rve_traction.dat"
-                  }
-    load = [0, 1, 0, -1.2, 0, 1.4, 0, -1.6]
-    deformation = Deformation(parameters, rve_parameters)
-    constitutive_law_test(model_part, deformation)
-
-    # Second test: COMPRESSION (load - unload - load - unload)
-    parameters = {"nr_timesteps": 20,
-                  "load": [0, -1, 0, 1.2, 0, -1.4, 0, 1.6],
-                  "strain": [10.0, 0.000, 0.000, 0.000, 0.000, 0.000],
-                  "output_filename": "strain-stress-rve_compression.dat"
-                  }
-    load = [0, -1, 0, 1.2, 0, -1.4, 0, 1.6]
-    deformation = Deformation(parameters, rve_parameters)
-    constitutive_law_test(model_part, deformation)
+    deformation = Deformation(parameters)
+    for i in range(deformation.nr_cases):
+        constitutive_law_test(model_part, deformation, i)
