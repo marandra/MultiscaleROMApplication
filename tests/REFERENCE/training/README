@@ -1,0 +1,14 @@
+1.
+Create trajectory directories
+$ bash 0_xxxx.bash
+
+
+2.
+If running in local desktop:
+$ bash 1a_xxxx.bash
+you need to set the for loor accordingly to the number of cores
+
+If running on acuario:
+$ sbatch 1b_xxxxx.bash
+you need to set the slurm options, accordingly to the case (default set to fiber2)
+
