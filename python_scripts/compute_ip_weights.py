@@ -5,7 +5,7 @@ import logging
 
 
 def remove_exact_integral_energy(modes, weights):
-    eps = np.finfo(float).eps # 2.22044604925e-16
+    eps = np.finfo(float).eps  # 2.22044604925e-16
     # Total microscale volume
     total_weight = np.sum(weights)
     sqrt_total_weight = np.sqrt(total_weight)
@@ -13,7 +13,7 @@ def remove_exact_integral_energy(modes, weights):
     # Normalized exact integral
     norm_exact_integral = modes.T @ weights / total_weight
     # Matrix of modified modes (with zero integral)
-    modified_modes = (modes - norm_exact_integral) * sqrt_weights.reshape(-1,1)
+    modified_modes = (modes - norm_exact_integral) * sqrt_weights.reshape(-1, 1)
     [modified_modes, bases_weights] = np.linalg.svd(modified_modes, full_matrices=False)[:2]
     # filter the reduced modified set of modes
     tolerance = np.max(modes.shape) * eps * np.max(bases_weights)
@@ -30,8 +30,8 @@ def update_weights_inverse(H, alpha, bases_current, base_new, r):
     c = np.dot(bases_current.T, base_new)
     d = np.dot(H, c).reshape(-1, 1)
     s = np.dot(base_new.T, base_new) - np.dot(c.T, d)
-    aux1 = np.hstack([H + np.outer(d, d)/s, -d/s])
-    aux2 = np.hstack([np.squeeze(-d.T/s), 1/s])
+    aux1 = np.hstack([H + np.outer(d, d) / s, -d / s])
+    aux2 = np.hstack([np.squeeze(-d.T / s), 1 / s])
     H_new = np.vstack([aux1, aux2])
     v = np.dot(base_new.T, r) / s
     alpha = np.vstack([(alpha - d * v), v])
@@ -45,7 +45,7 @@ def update_inverse_hermitian(invH, neg_index):
     else:
         aux1 = np.hstack([invH[:, 0:neg_index], invH[:, neg_index + 1:], invH[:, neg_index].reshape(-1, 1)])
         aux2 = np.vstack([aux1[0:neg_index, :], aux1[neg_index + 1:, :], aux1[neg_index, :]])
-        invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1,0:-1])/aux2[-1, -1]
+        invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1, 0:-1]) / aux2[-1, -1]
     return invH_new
 
 
@@ -70,14 +70,14 @@ def compute_roq(Modes, weights, nGP, tol):
     while (np.linalg.norm(r) / np.linalg.norm(b) > tol) and (mPOS <= nGP):
         # 1. Compute new point
         ObjFun = np.dot((J[:, y]).T, r)
-        div = np.multiply(Jnorm[y], np.linalg.norm(r)).reshape(-1,1)
+        div = np.multiply(Jnorm[y], np.linalg.norm(r)).reshape(-1, 1)
         ObjFun = np.divide(ObjFun, div)
         s = ObjFun.argmax()
         i = y[s]
         # 2. Update alpha and H (unrestricted least squares)
         if it == 0:
             # complies with newer versions of numpy
-            #alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0]
+            # alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0]
             alpha = np.linalg.lstsq(J[:, [i]], b)[0]
             H = 1 / np.dot((J[:, i]).T, J[:, i])
         else:
@@ -99,7 +99,7 @@ def compute_roq(Modes, weights, nGP, tol):
         # 7. Update mPOS and k
         mPOS = np.size(z)
         it = it + 1
-        logger.debug("k = {}, mPOS = {}, error = {:.2f}%".format(it, mPOS, np.linalg.norm(r)/np.linalg.norm(b) * 100))
+        logger.debug("k = {}, mPOS = {}, error = {:.2f}%".format(it, mPOS, np.linalg.norm(r) / np.linalg.norm(b) * 100))
     # 6. Postprocess of points - neglecting null weights
     w = np.multiply(alpha, np.sqrt(weights[z]).reshape(-1, 1))
     logger.debug("Reduced Weights: {}".format(w.T))
@@ -108,28 +108,28 @@ def compute_roq(Modes, weights, nGP, tol):
     return w, z
 
 
-def compute_hprom_weights(nr_elemental_ip, integration_weights, nr_roq_points, energy_bases_filename):
+def compute_hprom_weights(nr_ip_per_elem, integration_weights, nr_roq_points, energy_bases_filename):
     logger.info("Computing reduced set of integration points (HPROM)")
-    energy_modes = np.load(energy_bases_filename)[:,:nr_roq_points]
+    energy_modes = np.load(energy_bases_filename)[:, :nr_roq_points]
 
     [w, z] = compute_roq(energy_modes, np.array(integration_weights),
                          nr_roq_points, tol=1.e-14)
     roq_list = []
-    for x, igg in enumerate(z):
-        e = int(igg / nr_elemental_ip)
-        ig = igg % nr_elemental_ip
-        roq_list.append([e, ig, w[x][0], igg])
-    return roq_list
+    for x, ig_global in enumerate(z):
+        e = int(ig_global / nr_ip_per_elem)
+        ip = ip_global % nr_ip_per_elem
+        roq_list.append([e, ip, w[x][0], ip_global])
+    return roq_list  # returns list of: element id, local IP id, IP weight, global IP id
 
 
-def compute_rom_weights(nr_elemental_ip, integration_weights):
+def compute_rom_weights(nr_ip_per_elem, integration_weights):
     logger.info("Computing complete set of integration points (ROM)")
 
     roq_list = []
-    for x, ipw in enumerate(integration_weights):
-        e = int(x / nr_elemental_ip )
-        ip = x % nr_elemental_ip
-        roq_list.append([e, ip, ipw])
+    for ip_global, w in enumerate(integration_weights):
+        e = int(ip_global / nr_ip_per_elem)
+        ip = ip_global % nr_ip_per_elem
+        roq_list.append([e, ip, w, ip_global])
     return roq_list
 
 
@@ -139,25 +139,25 @@ def compute_rom_weights(nr_elemental_ip, integration_weights):
 
 # parse command line arguments
 parser = argparse.ArgumentParser(description="Computes Reduced Order Quadrature (ROQ) integration weights")
-#parser.add_argument('config_file', help="configuration file")
+# parser.add_argument('config_file', help="configuration file")
 parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
 parser.add_argument('-r', '--rom', action="store_true", help="compute ROM instead of HPROM")
 args = parser.parse_args()
 
 # parse configuration file
-#conf = configparser.ConfigParser()
-#conf.read(args.config_file)
+# conf = configparser.ConfigParser()
+# conf.read(args.config_file)
 
 # configure logger
 verbosity_level = logging.INFO
 if args.verbose:
     verbosity_level = logging.DEBUG
 logging.basicConfig(format='[%(asctime)s] %(message)s',
-                    datefmt='%H:%M:%S',level=verbosity_level)
+                    datefmt='%H:%M:%S', level=verbosity_level)
 logger = logging.getLogger(__name__)
-#handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
-#handler.setLevel(logging.DEBUG)
-#logger.addHandler(handler)
+# handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
+# handler.setLevel(logging.DEBUG)
+# logger.addHandler(handler)
 
 if __name__ == '__main__':
     logger.info("Reduced Order Quadrature")
