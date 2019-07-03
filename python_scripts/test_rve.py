@@ -202,6 +202,7 @@ class Deformation():
         for t in list_traj:
             for mat in list_materials:
                 for i in list_ip:
+                 i_label = i if i != -1 else "ROM"
                     for m in list_modes:
                         if t != -1:
                             filename = "{}/trajectory_{:02}/ProjectParameters.json".format(
@@ -214,7 +215,7 @@ class Deformation():
                         else:
                             strain = [x for x in parameters["strain"].GetVector()]
                         filename = "{}_T{:02}_{}m_{}ip_mat{}.dat".format(parameters["output_base_filename"].GetString(),
-                                                                         t, m, i, mat)
+                                                                         t, m, i_label, mat)
                         case = [t, m, i, mat, strain, filename]
                         self.cases.append(case)
                         print(case)
