@@ -115,8 +115,8 @@ def compute_hprom_weights(nr_ip_per_elem, integration_weights, nr_roq_points, en
     [w, z] = compute_roq(energy_modes, np.array(integration_weights),
                          nr_roq_points, tol=1.e-14)
     roq_list = []
-    for x, ig_global in enumerate(z):
-        e = int(ig_global / nr_ip_per_elem)
+    for x, ip_global in enumerate(z):
+        e = int(ip_global / nr_ip_per_elem)
         ip = ip_global % nr_ip_per_elem
         roq_list.append([e, ip, w[x][0], ip_global])
     return roq_list  # returns list of: element id, local IP id, IP weight, global IP id
