@@ -1,0 +1,21 @@
+{
+    "reuse_existing_files": true,
+    "nr_timesteps": 40,
+    "load_cycle": [0, 1],
+    "trajectories": [3, -1],
+    "strain": [0, 0, 0, 0.2, 0, 0],
+    "output_base_filename": "strain-stress",
+    "rve_materials": [0, 1],
+    "rve_data_modes": [10, 20],
+    "rve_data_points": [100, 200],
+    "rve_parameters":{
+        "name": "RVE Law",
+        "Parameters": {
+             "convergence_criterion": "displacement_criterion",
+             "residual_relative_tolerance": 1e-6,
+             "residual_absolute_tolerance": 0,
+             "max_iteration": 10,
+             "verbose": 1
+        }
+    }
+}
