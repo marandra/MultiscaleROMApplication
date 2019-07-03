@@ -60,8 +60,6 @@ if __name__ == "__main__":
     }
     ''')
     config.ValidateAndAssignDefaults(config_defaults)
-    print("DEBUG: ")
-    print(config)
 
     if not check_consistent_config_values(config):
         exit()
@@ -147,16 +145,17 @@ if __name__ == "__main__":
                              strain_bases_fname,
                              svd_algorithm=svd_algorithm)
 
+
     #
-    # computed reduced ip set and pack dataset
+    # compute ip set
     #
-    rve_mdpa_filename = config["rve_mdpa_filename"].GetString()
     for p in config["rve_data_points"]:
         nr_roq_points = p.GetInt()
         if nr_roq_points != -1:  # HPROM case
-            roq_filename = "roq_{}ip".format(nr_roq_points)
+            set_name = "{}".format(nr_roq_points)
         else:  # ROM case
-            roq_filename = "roq_{}ip".format("ROM")
+            set_name = "{}".format("ROM")
+        roq_filename = "roq_{}ip".format(set_name)
         if skip_calculation(roq_filename, config["reuse_existing_files"].GetBool()):
             print("File {} exists. Skipping calculation".format(roq_filename))
             continue
@@ -170,6 +169,10 @@ if __name__ == "__main__":
                 ofile.write("{} {} {} {}\n".format(list[0], list[1], list[2], list[3]))
 
 
+    #
+    # pack dataset
+    #
+    rve_mdpa_filename = config["rve_mdpa_filename"].GetString()
     for p in config["rve_data_points"]:
         nr_roq_points = p.GetInt()
         if nr_roq_points != -1:  # HPROM case
@@ -182,6 +185,7 @@ if __name__ == "__main__":
             rve_params = pack.create_rve_params_structure(strain_bases_fname, rve_mdpa_filename, nr_modes, ip_set)
             rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, set_name)
             pack.util.write_json(rve_data_filename, rve_params)
+
 
     # generate stress reconstruction system
     # A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)

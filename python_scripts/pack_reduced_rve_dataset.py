@@ -1,8 +1,4 @@
-import configparser
-import argparse
 import numpy
-import logging
-import postprocess_utilities as util
 
 
 def get_properties(rve_mdpa_filename, iw_list):
@@ -44,7 +40,7 @@ def get_elements_info(iw_list):
 
 def parse_strain_bases(strain_bases_filename, iw_list, nr_modes):
     strain_bases = numpy.load(strain_bases_filename, mmap_mode='r')
-    strain_bases = strain_bases[:,:nr_modes]
+    strain_bases = strain_bases[:, :nr_modes]
     nr_ip = 8
     nr_comps = 6
     out_B = []
@@ -75,33 +71,3 @@ def create_rve_params_structure(strain_bases_filename, rve_mdpa_filename, nr_mod
     rve_params['nr_modes'] = nr_modes
     rve_params['nr_reduced_ip'] = len(reduced_ip_set)
     return rve_params
-
-
-#######################################
-# Main
-#######################################
-
-# parse command line arguments
-#parser = argparse.ArgumentParser(description="Create reduced RVE data set")
-#parser.add_argument('config_file', help="configuration file")
-#args = parser.parse_args()
-# parse configuration file
-#conf = configparser.ConfigParser()
-#conf.read(args.config_file)
-# configure logger
-#verbosity_level = logging.INFO
-#logging.basicConfig(format='[%(asctime)s] %(message)s',
-#                    datefmt='%H:%M:%S',level=verbosity_level)
-#logger = logging.getLogger(__name__)
-
-if __name__ == '__main__':
-    strain_bases_filename = "bases_strain.npy"
-    rve_mdpa_filename = "../model.mdpa"
-    reduced_ip_set = numpy.loadtxt("../roq_list.dat")
-    nr_reduced_ip = 50
-    nr_modes = 15
-
-    rve_params = create_rve_params_structure(
-        strain_bases_filename, rve_mdpa_filename, nr_modes, reduced_ip_set)
-    filename = "rve_{}m_{}ip.json".format(nr_modes, nr_reduced_ip)
-    util.write_json(filename, rve_params)
