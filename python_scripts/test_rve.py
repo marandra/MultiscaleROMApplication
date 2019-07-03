@@ -202,7 +202,7 @@ class Deformation():
         for t in list_traj:
             for mat in list_materials:
                 for i in list_ip:
-                 i_label = i if i != -1 else "ROM"
+                    i_label = i if i != -1 else "ROM"
                     for m in list_modes:
                         if t != -1:
                             filename = "{}/trajectory_{:02}/ProjectParameters.json".format(
