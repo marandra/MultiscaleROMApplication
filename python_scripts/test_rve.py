@@ -1,9 +1,12 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics as km
-import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.MultiscaleROMApplication
+
 import os
+
 import numpy
+
+import KratosMultiphysics as km
+import KratosMultiphysics.MultiscaleROMApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 
 
 class Output:
@@ -37,13 +40,16 @@ def constitutive_law_test(model_part, deformation, idx):
     case_params = deformation.cases[idx]
 
     # Construct a constitutive law
+    case_m = case_params[1]
+    case_ip_label = case_params[2] if case_params[2] != -1 else "ROM"
+    case_mat = case_params[3]
     rve_params = deformation.rve_parameters
     rve_materials_filename = "{}/{}v{}.json".format(deformation.parameters["rve_materials_path"].GetString(),
                                                     deformation.parameters["rve_materials_base_filename"].GetString(),
-                                                    case_params[3])
+                                                    case_mat)
     rve_data_filename = "{}/{}{}m_{}ip.json".format(deformation.parameters["rve_data_path"].GetString(),
                                                     deformation.parameters["rve_data_base_filename"].GetString(),
-                                                    case_params[1], case_params[2])
+                                                    case_m, case_ip_label)
     overwrite_param = KratosMultiphysics.Parameters('''{
     "rve_materials_filename": "''' + rve_materials_filename + '''",
     "rve_data_filename": "''' + rve_data_filename + '''"
