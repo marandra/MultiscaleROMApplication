@@ -8,6 +8,7 @@ from structural_mechanics_analysis import StructuralMechanicsAnalysis
 import compute_bases as bases
 import compute_ip_weights as roq
 import pack_reduced_rve_dataset as pack
+import postprocess_utilities as util
 import compute_stress_reconstruction_system as stress_reconstruction
 import numpy
 
@@ -184,7 +185,7 @@ if __name__ == "__main__":
             ip_set = numpy.loadtxt("roq_{}ip".format(set_name))
             rve_params = pack.create_rve_params_structure(strain_bases_fname, rve_mdpa_filename, nr_modes, ip_set)
             rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, set_name)
-            pack.util.write_json(rve_data_filename, rve_params)
+            util.write_json(rve_data_filename, rve_params)
 
 
     # generate stress reconstruction system
