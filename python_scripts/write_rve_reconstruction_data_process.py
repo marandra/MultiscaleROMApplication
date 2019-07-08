@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.MultiscaleROMApplication as MultiscaleROM
 import os
-import postprocess_utilities as util
+import io_utilities
 
 
 def Factory(settings, model):
@@ -9,11 +9,11 @@ def Factory(settings, model):
 
 
 def append_to_json(filename, new_data):
-   data = util.read_json(filename)
+   data = io_utilities.read_json(filename)
    data["interpolation_parameters"].append(new_data["interpolation_parameters"])
    data["macro_strain"].append(new_data["macro_strain"])
    data["stress"].append(new_data["stress"])
-   util.write_json(filename, data)
+   io_utilities.write_json(filename, data)
 
 class WriteRveReconstructionData(Kratos.Process):
     def __init__(self, settings, model):
@@ -42,7 +42,7 @@ class WriteRveReconstructionData(Kratos.Process):
         self.data["interpolation_parameters"] = []
         self.data["macro_strain"] = []
         self.data["stress"] = []
-        util.write_json(self.filename, self.data)
+        io_utilities.write_json(self.filename, self.data)
 
     def ExecuteInitializeSolutionStep(self):
         pass

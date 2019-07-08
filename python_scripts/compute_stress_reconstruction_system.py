@@ -1,7 +1,9 @@
+# system imports
 import argparse
 import numpy
 import logging
-import postprocess_utilities as util
+# script imports
+import io_utilities
 
 def load_rve_data(rve_data):
     logger.info("Reading reduced set integration points")
@@ -24,7 +26,7 @@ def load_energy_modes(energy_modes_filename, reduced_ip_set):
     logger.info("Reading energy modes")
     energy_modes_file_format = "binary"
     nr_ips = numpy.shape(reduced_ip_set)[0]
-    energy_modes = util.read_numpy_file(energy_modes_filename, energy_modes_file_format)[:, :nr_ips - 1]
+    energy_modes = io_utilities.read_numpy_file(energy_modes_filename, energy_modes_file_format)[:, :nr_ips - 1]
     reduced_energy_modes = energy_modes[reduced_ip_set, :]
     logger.info("{} IP detected, reduced to {}".format(numpy.shape(energy_modes)[0], numpy.shape(reduced_energy_modes)[0]))
     logger.info("Nr of modes loaded: {}".format(numpy.shape(reduced_energy_modes)[1]))
@@ -35,7 +37,7 @@ def load_energy_modes(energy_modes_filename, reduced_ip_set):
 def compute_stress_reconstruction_system(reduced_ip_set, reduced_ip_weights, energy_modes, reduced_energy_modes, integration_weights_filename ):
     logger.info("Computing COMPLETE system")
     logger.debug("-- A = reduced modes.T * weights * reduced modes")
-    ip_weights = util.read_numpy_file(integration_weights_filename, 'ascii')
+    ip_weights = io_utilities.read_numpy_file(integration_weights_filename, 'ascii')
     ip_weights_diag = numpy.diag(ip_weights)
     reduced_ip_weights_diag = numpy.diag(reduced_ip_weights)
     weighted_energy_modes_transposed = numpy.dot(energy_modes.T, ip_weights_diag)
@@ -56,7 +58,7 @@ def compute_stress_reconstruction_system(reduced_ip_set, reduced_ip_weights, ene
 
 
 def compute_system(rve_data_filename, energy_modes_filename, integration_weights_filename):
-    rve_data = util.read_json(rve_data_filename)
+    rve_data = io_utilities.read_json(rve_data_filename)
     reduced_ip_set, reduced_ip_weights = load_rve_data(rve_data)
     energy_modes, reduced_energy_modes = load_energy_modes(energy_modes_filename, reduced_ip_set)
     A = compute_stress_reconstruction_system(reduced_ip_set, reduced_ip_weights, energy_modes, reduced_energy_modes, integration_weights_filename)
@@ -85,4 +87,4 @@ if __name__ == '__main__':
 
     A = compute_system(args.rve_data, args.energy_modes, args.integration_weights)
     logger.info("Saving system")
-    util.write_numpy_file('reconstruct_stress_binary.npy', 'binary', A)
+    io_utilities.write_numpy_file('reconstruct_stress_binary.npy', 'binary', A)
