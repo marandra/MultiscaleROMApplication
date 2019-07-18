@@ -23,11 +23,13 @@ def constitutive_law_test(model_part, deformation, idx):
     rve_data_filename = "{}/{}{}m_{}ip.json".format(deformation.parameters["rve_data_path"].GetString(),
                                                     deformation.parameters["rve_data_base_filename"].GetString(),
                                                     case_m, case_ip_label)
-    overwrite_param = KratosMultiphysics.Parameters('''{
+    overwrite_params = KratosMultiphysics.Parameters('''{
     "rve_materials_filename": "''' + rve_materials_filename + '''",
     "rve_data_filename": "''' + rve_data_filename + '''"
     }''')
-    rve_params["Parameters"].AddMissingParameters(overwrite_param)
+    rve_params["Parameters"].RemoveValue("rve_materials_filename")
+    rve_params["Parameters"].RemoveValue("rve_data_filename")
+    rve_params["Parameters"].AddMissingParameters(overwrite_params)
 
     cl = km.MultiscaleROMApplication.RVELaw().Create(rve_params)
 
@@ -77,6 +79,7 @@ def constitutive_law_test(model_part, deformation, idx):
     print()
     print("Has STRAIN: ", cl.Has(km.STRAIN))
     print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
+
     zero_vector = km.Vector(6)
     for i in range(6):
         zero_vector[i] = 0.
@@ -164,7 +167,7 @@ class Deformation():
             }
         }
         ''')
-        parameters.ValidateAndAssignDefaults(parameters_defaults)
+        parameters.RecursivelyValidateAndAssignDefaults(parameters_defaults)
 
         # Constant values
         self.nr_timesteps = parameters["nr_timesteps"].GetInt()
