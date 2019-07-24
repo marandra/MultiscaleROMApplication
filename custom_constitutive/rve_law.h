@@ -104,9 +104,12 @@ public:
         return 3;
     };
 
+    bool Has(const Variable<int>& rThisVariable) override;
     bool Has(const Variable<Vector>& rThisVariable) override;
 
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
     void SetValue(
             const Variable<Vector>& rThisVariable,
             const Vector& rValue,

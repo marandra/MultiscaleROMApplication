@@ -1,3 +1,4 @@
+#include "structural_mechanics_application_variables.h"
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
 #include "multiscale_rom_application_variables.h"
@@ -125,10 +126,9 @@ ConstitutiveLaw::Pointer RVELaw::Create(Kratos::Parameters Params) const
 /***********************************************************************************/
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
-    //RVELaw::Pointer p_clone(new RVELaw(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec));
-    RVELaw::Pointer p_clone(new RVELaw(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec,
-            mAbsoluteTolerance, mRelativeTolerance, mMaxIteration, mVerbose));
-    return p_clone;
+    //RVELaw::Pointer p_clone(new RVELaw(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec, mAbsoluteTolerance, mRelativeTolerance, mMaxIteration, mVerbose));
+    return Kratos::make_shared<RVELaw>(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec,
+            mAbsoluteTolerance, mRelativeTolerance, mMaxIteration, mVerbose);
 }
 
 /***********************************************************************************/
@@ -537,6 +537,16 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool RVELaw::Has(const Variable<int>& rThisVariable)
+{
+    if(rThisVariable == NUMBER_OF_INTERNAL_VARIABLES)
+        return true;
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
@@ -544,6 +554,24 @@ bool RVELaw::Has(const Variable<Vector>& rThisVariable)
     if (rThisVariable == INTERNAL_VARIABLES)
         return true;
     return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int& RVELaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
+{
+    if (rThisVariable == NUMBER_OF_INTERNAL_VARIABLES)
+    {
+        rValue = 0;
+        for (std::size_t i = 0; i < mCL_vec.size(); i++)
+        {
+            int rValue_i;
+            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, rValue_i);
+            rValue += rValue_i;
+        }
+    }
+    return rValue;
 }
 
 /***********************************************************************************/
