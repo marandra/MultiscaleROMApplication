@@ -214,11 +214,11 @@ void RVELaw::SetValue(
         int count = 0;
         for (auto i = 0; i < mCL_vec.size(); i++)
         {
-            int rsize = mCL_vec[i]->GetValue((const Variable<int>&)INTERNAL_VARIABLES, rsize);
+            int rsize = mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, rsize);
             Vector rValue_i(rsize);
             for (auto j = 0; j < rsize; j++)
                 rValue_i(j) = rValue(count++);
-            mCL_vec[i]->SetValue(rThisVariable, rValue_i, rCurrentProcessInfo);
+            mCL_vec[i]->SetValue(INTERNAL_VARIABLES, rValue_i, rCurrentProcessInfo);
         }
     }
 }
