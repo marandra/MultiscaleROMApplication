@@ -214,7 +214,7 @@ void RVELaw::SetValue(
         std::size_t count = 0;
         for (std::size_t i = 0; i < mCL_vec.size(); i++)
         {
-            int rsize = mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, rsize);
+            std::size_t rsize = mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, rsize);
             Vector rValue_i(rsize);
             for (std::size_t j = 0; j < rsize; j++)
                 rValue_i(j) = rValue(count++);
@@ -484,7 +484,7 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     double dummy_det;
 
     MathUtils<double>::InvertMatrix(A, invA, dummy_det);
-    for (auto i = 0; i < nr_points; i++)
+    for (std::size_t i = 0; i < nr_points; i++)
     {
         Vector stress(nr_comps);
         Matrix constit(nr_comps, nr_comps);
@@ -497,7 +497,7 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     }
     homog_stress /= vol_rve;
     homog_Op = - prod(invA, homog_Q);
-    for (auto i = 0; i < nr_points; i++)
+    for (std::size_t i = 0; i < nr_points; i++)
     {
         Vector stress(nr_comps);
         Matrix constit(nr_comps, nr_comps);
