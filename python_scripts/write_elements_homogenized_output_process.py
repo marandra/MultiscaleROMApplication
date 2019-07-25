@@ -49,6 +49,11 @@ class WriteElementsHomogenizedOutput(km.Process):
 
     def ExecuteInitialize(self):
         io_utilities.write_strain_stress_header(self.filename)
+        # WORKAROUND: added 0,0 row for consistency
+        nr_comp = 6
+        stress = [0.0] * nr_comp
+        strain = [0.0] * nr_comp
+        io_utilities.write_strain_stress(self.filename, strain, stress)
 
     def ExecuteInitializeSolutionStep(self):
         pass

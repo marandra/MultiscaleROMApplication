@@ -1,39 +1,12 @@
 from __future__ import print_function, absolute_import, division
 
 import os
-
 import numpy
 
+import io_utilities
 import KratosMultiphysics as km
 import KratosMultiphysics.MultiscaleROMApplication
 import KratosMultiphysics.StructuralMechanicsApplication
-
-
-class Output:
-    def __init__(self, filename):
-        try:
-            os.remove(filename)
-        except OSError:
-            pass
-        self.fo = open(filename, "w")
-        self.fo.write("#    {:<78}{:<30}\n".format("Strain (Voigt)", "Stress"))
-        self.fo.write("#    {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n#\n"
-                      "#    Column\n"
-                      "#    {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n#\n"
-                      "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  "
-                      "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
-            "XX", "YY", "ZZ", "XY", "YZ", "XZ", "XX", "YY", "ZZ", "XY", "YZ", "XZ",
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.))
-
-    def write(self, cl_params, model_part):
-        strain = model_part.ProcessInfo[km.INITIAL_STRAIN]
-        stress = cl_params.GetStressVector()
-        line = "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
-               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
-            strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
-            stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
-        self.fo.write(line)
 
 
 def constitutive_law_test(model_part, deformation, idx):
@@ -50,11 +23,13 @@ def constitutive_law_test(model_part, deformation, idx):
     rve_data_filename = "{}/{}{}m_{}ip.json".format(deformation.parameters["rve_data_path"].GetString(),
                                                     deformation.parameters["rve_data_base_filename"].GetString(),
                                                     case_m, case_ip_label)
-    overwrite_param = KratosMultiphysics.Parameters('''{
+    overwrite_params = KratosMultiphysics.Parameters('''{
     "rve_materials_filename": "''' + rve_materials_filename + '''",
     "rve_data_filename": "''' + rve_data_filename + '''"
     }''')
-    rve_params["Parameters"].AddMissingParameters(overwrite_param)
+    rve_params["Parameters"].RemoveValue("rve_materials_filename")
+    rve_params["Parameters"].RemoveValue("rve_data_filename")
+    rve_params["Parameters"].AddMissingParameters(overwrite_params)
 
     cl = km.MultiscaleROMApplication.RVELaw().Create(rve_params)
 
@@ -97,11 +72,14 @@ def constitutive_law_test(model_part, deformation, idx):
     for i in range(6):
         initial_strain_kratos[i] = case_params[4][i]
     # deformation.set_initial_strain(cl.GetStrainSize())
-    output = Output(case_params[5])
+    case_filename = case_params[5]
+    io_utilities.write_strain_stress_header(case_filename)
+    #output = Output(case_params[5])
 
     print()
     print("Has STRAIN: ", cl.Has(km.STRAIN))
     print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
+
     zero_vector = km.Vector(6)
     for i in range(6):
         zero_vector[i] = 0.
@@ -114,7 +92,8 @@ def constitutive_law_test(model_part, deformation, idx):
     ts_list = []
     for x in ts_array:
         ts_list.extend(x.tolist())
-    for strain_mult in ts_list:
+    for j, strain_mult in enumerate(ts_list):
+        print("** Iteration {}".format(j))
         deformation.set_deformation(cl_params, strain_mult, initial_strain_kratos)
 
         # Chauchy
@@ -140,13 +119,15 @@ def constitutive_law_test(model_part, deformation, idx):
         cl.FinalizeMaterialResponseCauchy(cl_params)
 
         # output.printout(i, cl_params)
-        output.write(cl_params, model_part)
+        strain = model_part.ProcessInfo[km.INITIAL_STRAIN]
+        stress = cl_params.GetStressVector()
+        io_utilities.write_strain_stress(case_filename, strain, stress)
 
         # debug = model_part.ProcessInfo[km.INITIAL_STRAIN]
         # print(debug)
 
         # reference_stress = deformation.get_reference_stress(i)
-        stress = cl_params.GetStressVector()
+        #stress = cl_params.GetStressVector()
         # print("Step ", i)
         # print("Reference: ", reference_stress)
 
@@ -186,7 +167,7 @@ class Deformation():
             }
         }
         ''')
-        parameters.ValidateAndAssignDefaults(parameters_defaults)
+        parameters.RecursivelyValidateAndAssignDefaults(parameters_defaults)
 
         # Constant values
         self.nr_timesteps = parameters["nr_timesteps"].GetInt()
