@@ -214,7 +214,8 @@ void RVELaw::SetValue(
         std::size_t count = 0;
         for (std::size_t i = 0; i < mCL_vec.size(); i++)
         {
-            std::size_t rsize = mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, rsize);
+            std::size_t rsize;
+            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, (int&)rsize);
             Vector rValue_i(rsize);
             for (std::size_t j = 0; j < rsize; j++)
                 rValue_i(j) = rValue(count++);
