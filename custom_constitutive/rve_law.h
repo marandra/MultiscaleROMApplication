@@ -145,6 +145,7 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+    void CalculateStressResponse(Parameters& rValues, Vector& rInternalVariables) override;
 
     /**
      * @brief This function provides the place to perform checks on the
@@ -200,6 +201,10 @@ private:
 
     void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain,
                                              const ProcessInfo &process_info,
+                                             std::size_t ip_index);
+
+    void CalculateIndividualStressResponse(Vector& stress, Matrix& constit, Vector& strain,
+                                           Vector& rInternalValues, const ProcessInfo& process_info,
                                              std::size_t ip_index);
 
     void GetPropertyBlock(Kratos::Parameters Materials);

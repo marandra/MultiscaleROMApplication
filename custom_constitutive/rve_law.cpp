@@ -214,10 +214,10 @@ void RVELaw::SetValue(
         std::size_t count = 0;
         for (std::size_t i = 0; i < mCL_vec.size(); i++)
         {
-            std::size_t rsize;
-            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, (int&)rsize);
-            Vector rValue_i(rsize);
-            for (std::size_t j = 0; j < rsize; j++)
+            std::size_t size_i;
+            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, (int&)size_i);
+            Vector rValue_i(size_i);
+            for (std::size_t j = 0; j < size_i; j++)
                 rValue_i(j) = rValue(count++);
             mCL_vec[i]->SetValue(INTERNAL_VARIABLES, rValue_i, rCurrentProcessInfo);
         }
@@ -417,9 +417,114 @@ void RVELaw::InitializeMaterial(const Properties& rUnusedProperties,
                                        dummy_shape_functions_value);
     }
 }
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValues,
+                                     Kratos::Vector &rInternalVariables)
+{
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_modes = mB_vec[0].size2();
+    const std::size_t nr_comps = GetStrainSize();
+    const Vector& strain_macro = rValues.GetStrainVector(); // input
+    const ProcessInfo& process_info = rValues.GetProcessInfo();
+
+    Vector& homog_stress = rValues.GetStressVector(); // output
+    homog_stress.clear();
+    Matrix& homog_C = rValues.GetConstitutiveMatrix(); // output
+    homog_C.clear();
+
+    Matrix A(nr_modes, nr_modes);
+    Vector res(nr_modes);
+    Vector Dx(nr_modes);
+
+    Accumulate(A, res, strain_macro, process_info);
+
+    // Current criteria: relative displacement
+    double ratio = 1.0;
+    std::size_t it = 0;
+
+    while (ratio > mRelativeTolerance and it < mMaxIteration)
+    {
+        Solve(A, res, Dx);
+        mModesWeights -= Dx;
+        Accumulate(A, res, strain_macro, process_info);
+        KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it
+                                            << " Relative:" << ratio <<std::endl;
+        const double norm_modes_weights = norm_2(mModesWeights);
+        ratio = norm_2(Dx) / norm_modes_weights;
+        it++;
+    }
+    // Previous criteria using residual.
+    //double residual = norm_2(res);
+    //double current_residual = residual;
+    //double ratio = 1.0;
+    //std::size_t it = 1;
+
+    //while (residual > mAbsoluteTolerance and ratio > mRelativeTolerance and it < mMaxIteration)
+    //{
+    //    Solve(A, res, Dx);
+    //    mModesWeights -= Dx;
+    //    Accumulate(A, res, strain_macro, process_info);
+    //    KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it << " Residual: " << residual
+    //                           << " Relative:" << ratio <<std::endl;
+    //    current_residual = norm_2(res);
+    //    ratio = current_residual / residual;
+    //    residual = current_residual;
+    //    it++;
+    //}
+    KRATOS_INFO_IF("RVE Law", mVerbose) << std::endl;
+
+    // Homogenize stress and constitutive tensor
+    Matrix homog_C_taylor = ZeroMatrix(nr_comps, nr_comps);
+    Matrix homog_C_fluct = ZeroMatrix(nr_comps, nr_comps);
+    Matrix homog_C_fluct_aux = ZeroMatrix(nr_comps, nr_modes);
+    Matrix homog_Q = ZeroMatrix(nr_modes, nr_comps);
+    Matrix homog_Op = ZeroMatrix(nr_modes, nr_comps);
+    Matrix invA = ZeroMatrix(nr_modes, nr_modes);
+    double vol_rve = 0.;
+    double dummy_det;
+
+    MathUtils<double>::InvertMatrix(A, invA, dummy_det);
+    for (std::size_t i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
+        homog_stress += mIW_vec[i] * stress;
+        homog_C_taylor += mIW_vec[i] * constit;
+        homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+        vol_rve += mIW_vec[i];
+    }
+    homog_stress /= vol_rve;
+    homog_Op = - prod(invA, homog_Q);
+    for (std::size_t i = 0; i < nr_points; i++)
+    {
+        Vector stress(nr_comps);
+        Matrix constit(nr_comps, nr_comps);
+        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        std::size_t nr_internal_variables;
+        mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, (int&)nr_internal_variables);
+        Vector internal_variables(nr_internal_variables);
+        // TODO(marcelo): strain argument should be const
+        CalculateIndividualStressResponse(stress, constit, strain, internal_variables, process_info, i);
+        std::size_t count = 0;
+        for (std::size_t j = 0; j < nr_internal_variables; ++j)
+        {
+            rInternalVariables[count++] = internal_variables[j];
+        }
+
+        homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
+    }
+    noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
+    homog_C = homog_C_taylor + homog_C_fluct;
+    homog_C /= vol_rve;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const std::size_t nr_points = mB_vec.size();
@@ -512,6 +617,9 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     homog_C /= vol_rve;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx)
 {
     const std::size_t nr_modes = mB_vec[0].size2();
@@ -574,6 +682,54 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
         noalias(res) += mIW_vec[i] * prod(trans(mB_vec[i]), stress);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+    void RVELaw::CalculateIndividualStressResponse(Vector &stress,
+                                                     Matrix &constit,
+                                                     Vector &strain,
+                                                     Vector &rInternalVariables,
+                                                     const ProcessInfo &process_info,
+                                                     std::size_t ip_index)
+{
+    // create and pass individual parameters
+    const auto dim = WorkingSpaceDimension();
+    Flags cl_flags;
+    cl_flags.Set(COMPUTE_STRESS, true);
+    cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    Vector N(dim);
+    Matrix DN_DX(dim, 2);
+    Matrix F(dim, dim);
+    F(0, 0) = 1.0 + strain(0);
+    F(0, 1) = 0.5 * strain(3);
+    F(0, 2) = 0.5 * strain(5);
+    F(1, 0) = 0.5 * strain(3);
+    F(1, 1) = 1.0 + strain(1);
+    F(1, 2) = 0.5 * strain(4);
+    F(2, 0) = 0.5 * strain(5);
+    F(2, 1) = 0.5 * strain(4);
+    F(2, 2) = 1.0 + strain(2);
+    double detF = MathUtils<double>::Det(F);
+
+    ConstitutiveLaw::Parameters cl_params;
+    cl_params.SetOptions(cl_flags);
+    cl_params.SetDeformationGradientF(F);
+    cl_params.SetDeterminantF(detF);
+    cl_params.SetStrainVector(strain);
+    cl_params.SetStressVector(stress);
+    cl_params.SetConstitutiveMatrix(constit);
+    cl_params.SetShapeFunctionsValues(N);
+    cl_params.SetShapeFunctionsDerivatives(DN_DX);
+    const Properties material_props = mProperties_map[mPropId_vec[ip_index]];
+    cl_params.SetMaterialProperties(material_props);
+    cl_params.SetProcessInfo(process_info);
+    // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
+    // cl_params.SetElementGeometry();
+
+    mCL_vec[ip_index]->CalculateStressResponse(cl_params, rInternalVariables);
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
