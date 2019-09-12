@@ -29,7 +29,7 @@ RVELaw::RVELaw(Kratos::Parameters Params)
             "residual_relative_tolerance": 1e-4,
             "residual_absolute_tolerance": 1e-9,
             "max_iteration": 10,
-            "verbose": 0
+            "verbose": 1
         }
     }  )"
     );
@@ -70,11 +70,6 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         Properties prop = mProperties_map[prop_id_list[i].GetInt()];
         ConstitutiveLaw::Pointer pcl = prop.GetValue(CONSTITUTIVE_LAW)->Clone();
         mCL_vec.push_back(pcl);
-
-        //DEBUG
-        //KRATOS_WATCH(prop.GetValue(YOUNG_MODULUS));
-        //KRATOS_WATCH(prop.GetId());
-        //KRATOS_WATCH(pcl->Info());
     }
     // preserve = false -> new elements (all of them in this case) not initialized
     mModesWeights.resize(nr_modes, false);
@@ -214,8 +209,8 @@ void RVELaw::SetValue(
         std::size_t count = 0;
         for (std::size_t i = 0; i < mCL_vec.size(); i++)
         {
-            std::size_t size_i;
-            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, (int&)size_i);
+            int size_i;
+            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, size_i);
             Vector rValue_i(size_i);
             for (std::size_t j = 0; j < size_i; j++)
                 rValue_i(j) = rValue(count++);
@@ -486,37 +481,46 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
     double dummy_det;
 
     MathUtils<double>::InvertMatrix(A, invA, dummy_det);
+    //for (std::size_t i = 0; i < nr_points; i++)
+    //{
+        //Vector stress(nr_comps);
+        //Matrix constit(nr_comps, nr_comps);
+        //Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+        //CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
+        //homog_stress += mIW_vec[i] * stress;
+        //homog_C_taylor += mIW_vec[i] * constit;
+        //homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+        //vol_rve += mIW_vec[i];
+    //}
+    //homog_stress /= vol_rve;
+    //homog_Op = - prod(invA, homog_Q);
+    std::size_t count = 0;
     for (std::size_t i = 0; i < nr_points; i++)
     {
+        //KRATOS_WATCH(i) //DEBUG
         Vector stress(nr_comps);
         Matrix constit(nr_comps, nr_comps);
         Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-        CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
-        homog_stress += mIW_vec[i] * stress;
-        homog_C_taylor += mIW_vec[i] * constit;
-        homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
-        vol_rve += mIW_vec[i];
-    }
-    homog_stress /= vol_rve;
-    homog_Op = - prod(invA, homog_Q);
-    for (std::size_t i = 0; i < nr_points; i++)
-    {
-        Vector stress(nr_comps);
-        Matrix constit(nr_comps, nr_comps);
-        Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-        std::size_t nr_internal_variables;
-        mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, (int&)nr_internal_variables);
+        int nr_internal_variables;
+        mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, nr_internal_variables);
+        //KRATOS_WATCH(nr_internal_variables) //DEBUG
         Vector internal_variables(nr_internal_variables);
+        //KRATOS_WATCH(internal_variables)
         // TODO(marcelo): strain argument should be const
         CalculateIndividualStressResponse(stress, constit, strain, internal_variables, process_info, i);
-        std::size_t count = 0;
         for (std::size_t j = 0; j < nr_internal_variables; ++j)
         {
             rInternalVariables[count++] = internal_variables[j];
         }
 
+        homog_stress += mIW_vec[i] * stress;
+        homog_C_taylor += mIW_vec[i] * constit;
+        homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+        vol_rve += mIW_vec[i];
         homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
     }
+    homog_stress /= vol_rve;
+    homog_Op = - prod(invA, homog_Q);
     noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
     homog_C = homog_C_taylor + homog_C_fluct;
     homog_C /= vol_rve;
@@ -728,6 +732,7 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
     // cl_params.SetElementGeometry();
 
     mCL_vec[ip_index]->CalculateStressResponse(cl_params, rInternalVariables);
+    //KRATOS_WATCH(rInternalVariables)
 }
 
 
