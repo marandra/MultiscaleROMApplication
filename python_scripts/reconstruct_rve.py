@@ -1,8 +1,7 @@
 import argparse
 import logging
 import numpy
-#import meshio
-import io_utilities
+import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 
 
 #######################################

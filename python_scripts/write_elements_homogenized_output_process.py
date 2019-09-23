@@ -1,5 +1,5 @@
-import io_utilities  # script import
 import KratosMultiphysics as km
+import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 
 
 def Factory(settings, Model):

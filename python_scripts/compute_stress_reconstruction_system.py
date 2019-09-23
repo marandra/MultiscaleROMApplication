@@ -1,9 +1,7 @@
-# system imports
 import argparse
 import numpy
 import logging
-# script imports
-import io_utilities
+import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 
 def load_rve_data(rve_data):
     logger.info("Reading reduced set integration points")

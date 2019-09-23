@@ -104,9 +104,12 @@ public:
         return 3;
     };
 
+    bool Has(const Variable<int>& rThisVariable) override;
     bool Has(const Variable<Vector>& rThisVariable) override;
 
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
     void SetValue(
             const Variable<Vector>& rThisVariable,
             const Vector& rValue,
@@ -142,6 +145,7 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+    void CalculateStressResponse(Parameters& rValues, Vector& rInternalVariables) override;
 
     /**
      * @brief This function provides the place to perform checks on the
@@ -197,6 +201,10 @@ private:
 
     void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain,
                                              const ProcessInfo &process_info,
+                                             std::size_t ip_index);
+
+    void CalculateIndividualStressResponse(Vector& stress, Matrix& constit, Vector& strain,
+                                           Vector& rInternalValues, const ProcessInfo& process_info,
                                              std::size_t ip_index);
 
     void GetPropertyBlock(Kratos::Parameters Materials);
