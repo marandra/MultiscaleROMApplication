@@ -19,6 +19,19 @@ RVELaw::RVELaw()
 RVELaw::RVELaw(Kratos::Parameters Params)
 {
     // Parse RVE materials filename from Parameters
+//    Kratos::Parameters default_parameters(R"(
+//    {
+//        "name": "constitutive law name",
+//        "Parameters" : {
+//            "rve_data_filename": "please specify the file to be opened",
+//            "convergence_criterion": "residual_criterion",
+//            "residual_relative_tolerance": 1e-4,
+//            "residual_absolute_tolerance": 1e-9,
+//            "max_iteration": 10,
+//            "verbose": 1
+//        }
+//    }  )"
+//    );
     Kratos::Parameters default_parameters(R"(
     {
         "name": "constitutive law name",
@@ -35,15 +48,34 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     );
     Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    // Read json string in file, create parameters
     Kratos::Parameters materials_params(
             ReadFile(Params["Parameters"]["rve_materials_filename"].GetString()));
+
+    // Read json string in file, create parameters
     Kratos::Parameters data_params(
             ReadFile(Params["Parameters"]["rve_data_filename"].GetString()));
     mRelativeTolerance = Params["Parameters"]["residual_relative_tolerance"].GetDouble();
     mAbsoluteTolerance = Params["Parameters"]["residual_absolute_tolerance"].GetDouble();
     mMaxIteration = Params["Parameters"]["max_iteration"].GetInt();
     mVerbose = Params["Parameters"]["verbose"].GetInt();
+
+    // Create material parameters:
+    // material parameters are explicitly passed by user (overriding default)
+    //std::string material_params_string;
+    //if (Params["Parameters"].Has("material_parameters"))
+    //{
+    //    material_params_string = Params["Parameters"]["material_parameters"].GetString();
+    //}
+    //// material parameteres are read from rve data file
+    //else
+    //{
+    //    KRATOS_WATCH(data_params["material_parameters"])
+    //    material_params_string = data_params["material_parameters"].GetString();
+    //    KRATOS_WATCH(material_params_string)
+    //    KRATOS_WATCH("AQUI 8")
+    //}
+    //Kratos::Parameters materials_params(material_params_string);
+    //KRATOS_WATCH(materials_params)
 
     // Parse material parameters and populate mpProperties
     GetPropertyBlock(materials_params);
