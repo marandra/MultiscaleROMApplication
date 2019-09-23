@@ -1,9 +1,9 @@
 from __future__ import print_function, absolute_import, division
 
-import os
+#import os
 import numpy
 
-import io_utilities
+import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 import KratosMultiphysics as km
 import KratosMultiphysics.MultiscaleROMApplication
 import KratosMultiphysics.StructuralMechanicsApplication

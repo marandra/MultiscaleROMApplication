@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.MultiscaleROMApplication as MultiscaleROM
 import os
-import io_utilities
+import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 
 
 def Factory(settings, model):

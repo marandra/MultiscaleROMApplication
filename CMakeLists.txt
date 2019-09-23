@@ -85,4 +85,4 @@ install(TARGETS KratosMultiscaleROMCore DESTINATION libs )
 install(TARGETS KratosMultiscaleROMApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MultiscaleROMApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MultiscaleROMApplication.py" DESTINATION "KratosMultiphysics/MultiscaleROMApplication" RENAME "__init__.py")

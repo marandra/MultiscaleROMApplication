@@ -8,7 +8,7 @@ from structural_mechanics_analysis import StructuralMechanicsAnalysis
 import compute_bases as bases
 import compute_ip_weights as roq
 import pack_reduced_rve_dataset as pack
-import io_utilities
+import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 import compute_stress_reconstruction_system as stress_reconstruction
 
 """
