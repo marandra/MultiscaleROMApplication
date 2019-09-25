@@ -19,37 +19,22 @@ RVELaw::RVELaw()
 RVELaw::RVELaw(Kratos::Parameters Params)
 {
     // Parse RVE materials filename from Parameters
-//    Kratos::Parameters default_parameters(R"(
-//    {
-//        "name": "constitutive law name",
-//        "Parameters" : {
-//            "rve_data_filename": "please specify the file to be opened",
-//            "convergence_criterion": "residual_criterion",
-//            "residual_relative_tolerance": 1e-4,
-//            "residual_absolute_tolerance": 1e-9,
-//            "max_iteration": 10,
-//            "verbose": 1
-//        }
-//    }  )"
-//    );
     Kratos::Parameters default_parameters(R"(
     {
         "name": "constitutive law name",
         "Parameters" : {
-            "rve_materials_filename": "please specify the file to be opened",
-            "rve_data_filename": "please specify the file to be opened",
+            "rve_data_filename": "undefined_rve_data_file",
+            "modified_properties": [],
             "convergence_criterion": "residual_criterion",
             "residual_relative_tolerance": 1e-4,
             "residual_absolute_tolerance": 1e-9,
             "max_iteration": 10,
             "verbose": 1
         }
-    }  )"
+    })"
     );
-    Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    Kratos::Parameters materials_params(
-            ReadFile(Params["Parameters"]["rve_materials_filename"].GetString()));
+    Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Read json string in file, create parameters
     Kratos::Parameters data_params(
@@ -60,25 +45,27 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     mVerbose = Params["Parameters"]["verbose"].GetInt();
 
     // Create material parameters:
-    // material parameters are explicitly passed by user (overriding default)
-    //std::string material_params_string;
-    //if (Params["Parameters"].Has("material_parameters"))
-    //{
-    //    material_params_string = Params["Parameters"]["material_parameters"].GetString();
-    //}
-    //// material parameteres are read from rve data file
-    //else
-    //{
-    //    KRATOS_WATCH(data_params["material_parameters"])
-    //    material_params_string = data_params["material_parameters"].GetString();
-    //    KRATOS_WATCH(material_params_string)
-    //    KRATOS_WATCH("AQUI 8")
-    //}
-    //Kratos::Parameters materials_params(material_params_string);
-    //KRATOS_WATCH(materials_params)
-
-    // Parse material parameters and populate mpProperties
-    GetPropertyBlock(materials_params);
+    // material parameters are read from rve data file
+    Kratos::Parameters material_properties = data_params["properties"];
+    // material parameters are modified if explicitly passed by user
+    if (Params["Parameters"]["modified_properties"].size() != 0)
+    {
+        Kratos::Parameters modified_properties = Params["Parameters"]["modified_properties"];
+        for (std::size_t om = 0; om < material_properties.size(); ++om) {
+            for (std::size_t mm = 0; mm < modified_properties.size(); ++mm) {
+                std::size_t op = material_properties.GetArrayItem(om)["properties_id"].GetInt();
+                std::size_t mp = modified_properties.GetArrayItem(mm)["properties_id"].GetInt();
+                if (op == mp) {
+                    material_properties.GetArrayItem(om)["Material"].SetValue(
+                        "Variables", modified_properties.GetArrayItem(mm)["Material"]["Variables"]);
+                    KRATOS_WARNING("RVE Law") << "WARNING: Material property " << op
+                                              << " modified by user" << std::endl;
+                    break;
+                }
+            }
+        }
+    }
+    GetPropertyBlock(material_properties);
 
     // Parse data parameters
     Kratos::Parameters B_list = data_params["ip_strain_modes"];
@@ -267,8 +254,8 @@ std::string RVELaw::ReadFile(const std::string &filename) const
 /***********************************************************************************/
 void RVELaw::GetPropertyBlock(Kratos::Parameters Materials)
 {
-    for (std::size_t i = 0; i < Materials["properties"].size(); ++i) {
-        Kratos::Parameters material = Materials["properties"].GetArrayItem(i);
+    for (std::size_t i = 0; i < Materials.size(); ++i) {
+        Kratos::Parameters material = Materials.GetArrayItem(i);
         AssignPropertyBlock(material);
     }
 }
