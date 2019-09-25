@@ -1,4 +1,5 @@
 import numpy
+import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 
 
 def get_properties(rve_mdpa_filename, iw_list):
@@ -53,7 +54,8 @@ def parse_strain_bases(strain_bases_filename, iw_list, nr_modes):
     return out_B
 
 
-def create_rve_params_structure(strain_bases_filename, rve_mdpa_filename, nr_modes, reduced_ip_set):
+def create_rve_params_structure(strain_bases_filename, rve_mdpa_filename,
+                                rve_materials_filename, nr_modes, reduced_ip_set):
     rve_params = {}
     # pack elements, ip and weights of reduced_ip
     out_e, out_lip, out_w, out_gip = get_elements_info(reduced_ip_set)
@@ -61,6 +63,8 @@ def create_rve_params_structure(strain_bases_filename, rve_mdpa_filename, nr_mod
     rve_params['ip_local_id'] = out_lip
     rve_params['ip_global_id'] = out_gip
     rve_params['ip_weight'] = out_w  # reduced ip weight
+    # RVE material properties
+    rve_params['properties'] = io_utilities.read_json(rve_materials_filename)
     # pack material (CL) index
     out_properties = get_properties(rve_mdpa_filename, reduced_ip_set)
     rve_params['ip_property_id'] = out_properties

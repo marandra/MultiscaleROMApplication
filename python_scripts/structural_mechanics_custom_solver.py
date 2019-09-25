@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MultiscaleROMApplication as MultiscaleROMApplication
 
-# Import base class file
 import structural_mechanics_solver
 
 

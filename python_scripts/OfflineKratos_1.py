@@ -2,14 +2,13 @@
 from __future__ import print_function, absolute_import, division
 import numpy
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.MultiscaleROMApplication
-from structural_mechanics_analysis import StructuralMechanicsAnalysis
-import compute_bases as bases
-import compute_ip_weights as roq
-import pack_reduced_rve_dataset as pack
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
+import KratosMultiphysics.MultiscaleROMApplication.compute_bases as bases
+import KratosMultiphysics.MultiscaleROMApplication.compute_ip_weights as roq
+import KratosMultiphysics.MultiscaleROMApplication.pack_reduced_rve_dataset as pack
 import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
-import compute_stress_reconstruction_system as stress_reconstruction
+import KratosMultiphysics.MultiscaleROMApplication.compute_stress_reconstruction_system as stress_reconstruction
 
 """
 Here description.
@@ -45,6 +44,7 @@ if __name__ == "__main__":
     "reuse_existing_files": true,
     "svd_algorithm": "standard",
     "rve_mdpa_filename": "../training/model.mdpa",
+    "rve_materials_filename": "../training/materials.json",
     "trajectory_filename": "../training/trajectory",
     "elastic_snapshots_filename": "elastic_timesteps",
     "snapshot_energy_filename": "snapshot_energy",
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         exit()
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model, parameters)
+    simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, parameters)
     simulation.Initialize()
     rve_modelpart = simulation._GetSolver().GetComputingModelPart()
 
@@ -174,6 +174,7 @@ if __name__ == "__main__":
     # pack dataset
     #
     rve_mdpa_filename = config["rve_mdpa_filename"].GetString()
+    rve_materials_filename = config["rve_materials_filename"].GetString()
     for p in config["rve_data_points"]:
         nr_roq_points = p.GetInt()
         if nr_roq_points != -1:  # HPROM case
@@ -188,7 +189,8 @@ if __name__ == "__main__":
                 print("File {} exists. Skipping calculation".format(rve_data_filename))
                 continue
             print("Generating {}".format(rve_data_filename))
-            rve_params = pack.create_rve_params_structure(strain_bases_fname, rve_mdpa_filename, nr_modes, ip_set)
+            rve_params = pack.create_rve_params_structure(
+                strain_bases_fname, rve_mdpa_filename, rve_materials_filename, nr_modes, ip_set)
             io_utilities.write_json(rve_data_filename, rve_params)
 
 
