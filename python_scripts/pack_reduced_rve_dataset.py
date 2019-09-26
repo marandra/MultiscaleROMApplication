@@ -64,7 +64,7 @@ def create_rve_params_structure(strain_bases_filename, rve_mdpa_filename,
     rve_params['ip_global_id'] = out_gip
     rve_params['ip_weight'] = out_w  # reduced ip weight
     # RVE material properties
-    rve_params['properties'] = io_utilities.read_json(rve_materials_filename)
+    rve_params['properties'] = io_utilities.read_json(rve_materials_filename)["properties"]
     # pack material (CL) index
     out_properties = get_properties(rve_mdpa_filename, reduced_ip_set)
     rve_params['ip_property_id'] = out_properties
