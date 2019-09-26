@@ -3,6 +3,7 @@
 #include "custom_utilities/qr_utility.h"
 #include "multiscale_rom_application_variables.h"
 #include "includes/checks.h"
+#include "utilities/read_materials_utility.h"
 
 namespace Kratos
 {
@@ -46,17 +47,18 @@ RVELaw::RVELaw(Kratos::Parameters Params)
 
     // Create material parameters:
     // material parameters are read from rve data file
-    Kratos::Parameters material_properties = data_params["properties"];
+    Kratos::Parameters material_parameters = data_params["material_parameters"];
+    Kratos::Parameters properties = material_parameters["properties"];
     // material parameters are modified if explicitly passed by user
     if (Params["Parameters"]["modified_properties"].size() != 0)
     {
         Kratos::Parameters modified_properties = Params["Parameters"]["modified_properties"];
-        for (std::size_t om = 0; om < material_properties.size(); ++om) {
+        for (std::size_t om = 0; om < properties.size(); ++om) {
             for (std::size_t mm = 0; mm < modified_properties.size(); ++mm) {
-                std::size_t op = material_properties.GetArrayItem(om)["properties_id"].GetInt();
+                std::size_t op = properties.GetArrayItem(om)["properties_id"].GetInt();
                 std::size_t mp = modified_properties.GetArrayItem(mm)["properties_id"].GetInt();
                 if (op == mp) {
-                    material_properties.GetArrayItem(om)["Material"].SetValue(
+                    properties.GetArrayItem(om)["Material"].SetValue(
                         "Variables", modified_properties.GetArrayItem(mm)["Material"]["Variables"]);
                     KRATOS_WARNING("RVE Law") << "WARNING: Material property " << op
                                               << " modified by user" << std::endl;
@@ -65,7 +67,22 @@ RVELaw::RVELaw(Kratos::Parameters Params)
             }
         }
     }
-    GetPropertyBlock(material_properties);
+    material_parameters.SetValue("properties", properties);
+    KRATOS_WATCH(material_parameters)
+    Model dummy_model;
+    for (std::size_t om = 0; om < material_parameters.size(); ++om) {
+        std::string mp_name = material_parameters.GetArrayItem(om)["model_part_name"].GetString();
+
+        dummy_model.CreateModelPart(mp_name);
+    }
+    ReadMaterialsUtility(material_parameters.WriteJsonString(), dummy_model);
+    for (std::size_t om = 0; om < material_parameters.size(); ++om) {
+        std::string mp_name = material_parameters.GetArrayItem(om)["model_part_name"].GetString();
+        std::size_t property_id = material_parameters.GetArrayItem(om)["properties_id"].GetInt();
+        ModelPart& r_dummy_modelpart = dummy_model.GetModelPart(mp_name);
+        mProperties_map[property_id] = r_dummy_modelpart.GetProperties(property_id);
+    }
+    //GetPropertyBlock(material_properties);
 
     // Parse data parameters
     Kratos::Parameters B_list = data_params["ip_strain_modes"];
