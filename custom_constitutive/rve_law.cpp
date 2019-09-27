@@ -68,17 +68,19 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         }
     }
     material_parameters.SetValue("properties", properties);
-    KRATOS_WATCH(material_parameters)
+    //KRATOS_WATCH(material_parameters)
     Model dummy_model;
-    for (std::size_t om = 0; om < material_parameters.size(); ++om) {
-        std::string mp_name = material_parameters.GetArrayItem(om)["model_part_name"].GetString();
+    for (std::size_t om = 0; om < properties.size(); ++om) {
+        std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
+        //KRATOS_WATCH(mp_name);
 
         dummy_model.CreateModelPart(mp_name);
     }
+    //KRATOS_WATCH(dummy_model);
     ReadMaterialsUtility(material_parameters.WriteJsonString(), dummy_model);
-    for (std::size_t om = 0; om < material_parameters.size(); ++om) {
-        std::string mp_name = material_parameters.GetArrayItem(om)["model_part_name"].GetString();
-        std::size_t property_id = material_parameters.GetArrayItem(om)["properties_id"].GetInt();
+    for (std::size_t om = 0; om < properties.size(); ++om) {
+        std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
+        std::size_t property_id = properties.GetArrayItem(om)["properties_id"].GetInt();
         ModelPart& r_dummy_modelpart = dummy_model.GetModelPart(mp_name);
         mProperties_map[property_id] = r_dummy_modelpart.GetProperties(property_id);
     }
