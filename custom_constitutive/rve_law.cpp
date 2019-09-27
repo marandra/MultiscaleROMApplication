@@ -177,6 +177,7 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const
 RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 {
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -274,168 +275,6 @@ std::string RVELaw::ReadFile(const std::string &filename) const
     std::stringstream buffer;
     buffer << infile.rdbuf();
     return buffer.str();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-void RVELaw::GetPropertyBlock(Kratos::Parameters Materials)
-{
-    for (std::size_t i = 0; i < Materials.size(); ++i) {
-        Kratos::Parameters material = Materials.GetArrayItem(i);
-        AssignPropertyBlock(material);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void RVELaw::TrimComponentName(std::string& rLine){
-    std::stringstream ss(rLine);
-    std::size_t counter = 0;
-    while (std::getline(ss, rLine, '.')){counter++;}
-    if (counter > 1)
-        KRATOS_WARNING("RVE Law") << "Ignoring module information for component " << rLine << std::endl;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-void RVELaw::AssignPropertyBlock(Kratos::Parameters Data)
-{
-    const std::size_t property_id = Data["properties_id"].GetInt();
-    Properties property(property_id);
-
-    //Set the CONSTITUTIVE_LAW for the current p_properties.
-    if (Data["Material"].Has("constitutive_law")) {
-        std::string constitutive_law_name = Data["Material"]["constitutive_law"]["name"].GetString();
-        TrimComponentName(constitutive_law_name);
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
-        property.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
-    } else {
-        KRATOS_WARNING("RVE Law") << "No constitutive law defined for material ID: " << property_id << std::endl;
-    }
-
-    // Add / override the values of material parameters in the p_properties
-    Kratos::Parameters variables = Data["Material"]["Variables"];
-    for(auto iter = variables.begin(); iter != variables.end(); iter++) {
-        const Kratos::Parameters value = variables.GetValue(iter.name());
-
-        std::string variable_name = iter.name();
-        TrimComponentName(variable_name);
-
-        // TODO: Reuse this block from read_material_utility
-        // We don't just copy the values, we do some transformation depending of the destination variable
-        if(KratosComponents<Variable<double> >::Has(variable_name)) {
-            const Variable<double>& variable = KratosComponents<Variable<double>>().Get(variable_name);
-            if (value.IsDouble()) {
-                property.SetValue(variable, value.GetDouble());
-            } else if (value.IsInt()) {
-                property.SetValue(variable, static_cast<double>(value.GetInt()));
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
-        } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
-            const Variable<bool>& variable = KratosComponents<Variable<bool>>().Get(variable_name);
-            if (value.IsBool()) {
-                property.SetValue(variable, value.GetBool());
-            } else if (value.IsInt()) {
-                property.SetValue(variable, static_cast<bool>(value.GetInt()));
-            } else if (value.IsDouble()) {
-                property.SetValue(variable, static_cast<bool>(value.GetDouble()));
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
-        } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
-            const Variable<int>& variable = KratosComponents<Variable<int>>().Get(variable_name);
-            if (value.IsInt()) {
-                property.SetValue(variable, value.GetInt());
-            } else if (value.IsDouble()) {
-                property.SetValue(variable, static_cast<int>(value.GetDouble()));
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
-//        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
-//            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
-//            if (value.IsVector()) {
-//                array_1d<double, 3> temp(3);
-//                const Vector& value_variable = value.GetVector();
-//                const std::size_t iter_number = (3 < value_variable.size()) ? 3 : value_variable.size();
-//                for (std::size_t index = 0; index < iter_number; index++)
-//                    temp[index] = value_variable[index];
-//                property.SetValue(variable, temp);
-//            } else {
-//                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-//            }
-//        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
-//            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
-//            if (value.IsVector()) {
-//                array_1d<double, 6> temp(6);
-//                const Vector& value_variable = value.GetVector();
-//                const std::size_t iter_number = (6 < value_variable.size()) ? 6 : value_variable.size();
-//                for (std::size_t index = 0; index < iter_number; index++)
-//                    temp[index] = value_variable[index];
-//                property.SetValue(variable, temp);
-//            } else {
-//                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-//            }
-        } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
-            const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
-            if (value.IsVector()) {
-                property.SetValue(variable, value.GetVector());
-            } else if (value.IsMatrix()) {
-                Vector temp;
-                const Matrix& value_variable = value.GetMatrix();
-                for (std::size_t index = 0; index < value_variable.size1(); index++)
-                    temp[index] = value_variable(index, 0);
-                property.SetValue(variable, temp);
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
-        } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
-            const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
-            if (value.IsMatrix()) {
-                property.SetValue(variable, value.GetMatrix());
-            } else if (value.IsVector()) {
-                Matrix temp;
-                const Vector& value_variable = value.GetVector();
-                for (std::size_t index = 0; index < value_variable.size(); index++)
-                    temp(index, 0) = value_variable[index];
-                property.SetValue(variable, temp);
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
-        } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
-            const Variable<std::string>& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
-            if (value.IsString()) {
-                property.SetValue(variable, value.GetString());
-            } else {
-                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
-            }
-        } else {
-            KRATOS_ERROR << "Value type not defined";
-        }
-    }
-
-    // Add / override tables in the p_properties
-    Kratos::Parameters tables = Data["Material"]["Tables"];
-    for(auto iter = tables.begin(); iter != tables.end(); iter++) {
-        auto table_param = tables.GetValue(iter.name());
-        // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
-        Table<double> table;
-
-        std::string input_var_name = table_param["input_variable"].GetString();
-        TrimComponentName(input_var_name);
-        std::string output_var_name = table_param["output_variable"].GetString();
-        TrimComponentName(output_var_name);
-
-        const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
-        const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
-        for (std::size_t i = 0; i < table_param["data"].size(); i++) {
-            table.insert(table_param["data"][i][0].GetDouble(),
-                         table_param["data"][i][1].GetDouble());
-        }
-        property.SetTable(input_var, output_var, table);
-    }
-    mProperties_map[property_id] = property;
 }
 
 /***********************************************************************************/
@@ -734,6 +573,7 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
 
 /***********************************************************************************/
 /***********************************************************************************/
+
     void RVELaw::CalculateIndividualStressResponse(Vector &stress,
                                                      Matrix &constit,
                                                      Vector &strain,
@@ -777,7 +617,6 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
     // cl_params.SetElementGeometry();
 
     mCL_vec[ip_index]->CalculateStressResponse(cl_params, rInternalVariables);
-    //KRATOS_WATCH(rInternalVariables)
 }
 
 
