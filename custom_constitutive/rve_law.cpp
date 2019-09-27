@@ -20,7 +20,7 @@ RVELaw::RVELaw()
 RVELaw::RVELaw(Kratos::Parameters Params)
 {
     // Parse RVE materials filename from Parameters
-    Kratos::Parameters default_parameters(R"(
+    const Kratos::Parameters default_parameters(R"(
     {
         "name": "constitutive law name",
         "Parameters" : {
@@ -37,7 +37,7 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Read json string in file, create parameters
-    Kratos::Parameters data_params(
+    const Kratos::Parameters data_params(
         ReadFile(Params["Parameters"]["rve_data_filename"].GetString()));
     mRelativeTolerance = Params["Parameters"]["residual_relative_tolerance"].GetDouble();
     mAbsoluteTolerance = Params["Parameters"]["residual_absolute_tolerance"].GetDouble();
@@ -47,7 +47,7 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     // Read material parameters:
     // material parameters are read from rve data file
     Kratos::Parameters material_parameters = data_params["material_parameters"];
-    Kratos::Parameters properties = material_parameters["properties"];
+    const Kratos::Parameters properties = material_parameters["properties"];
     // material parameters are modified if explicitly passed by user
     if (Params["Parameters"]["modified_properties"].size() != 0)
     {
@@ -78,15 +78,15 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     Model aux_model;
     for (std::size_t om = 0; om < properties.size(); ++om)
     {
-        std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
+        const std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
         aux_model.CreateModelPart(mp_name);
     }
     ReadMaterialsUtility(material_parameters.WriteJsonString(), aux_model);
     for (std::size_t om = 0; om < properties.size(); ++om)
     {
-        std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
-        std::size_t property_id = properties.GetArrayItem(om)["properties_id"].GetInt();
-        ModelPart& r_aux_modelpart = aux_model.GetModelPart(mp_name);
+        const std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
+        const std::size_t property_id = properties.GetArrayItem(om)["properties_id"].GetInt();
+        const ModelPart& r_aux_modelpart = aux_model.GetModelPart(mp_name);
         mProperties_map[property_id] = r_aux_modelpart.GetProperties(property_id);
     }
 
@@ -109,8 +109,8 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         mB_vec.push_back(BK);
         mIW_vec.push_back(w_list[i].GetDouble());
         mPropId_vec.push_back(prop_id_list[i].GetInt());
-        Properties prop = mProperties_map[prop_id_list[i].GetInt()];
-        ConstitutiveLaw::Pointer pcl = prop.GetValue(CONSTITUTIVE_LAW)->Clone();
+        const Properties prop = mProperties_map[prop_id_list[i].GetInt()];
+        const ConstitutiveLaw::Pointer pcl = prop.GetValue(CONSTITUTIVE_LAW)->Clone();
         mCL_vec.push_back(pcl);
     }
     // preserve = false -> new elements (all of them in this case) not initialized
