@@ -1,8 +1,8 @@
-#include "structural_mechanics_application_variables.h"
 #include "rve_law.h"
 #include "custom_utilities/qr_utility.h"
-#include "multiscale_rom_application_variables.h"
 #include "includes/checks.h"
+#include "multiscale_rom_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 #include "utilities/read_materials_utility.h"
 
 namespace Kratos
@@ -32,34 +32,39 @@ RVELaw::RVELaw(Kratos::Parameters Params)
             "max_iteration": 10,
             "verbose": 1
         }
-    })"
-    );
+    })");
 
     Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Read json string in file, create parameters
     Kratos::Parameters data_params(
-            ReadFile(Params["Parameters"]["rve_data_filename"].GetString()));
+        ReadFile(Params["Parameters"]["rve_data_filename"].GetString()));
     mRelativeTolerance = Params["Parameters"]["residual_relative_tolerance"].GetDouble();
     mAbsoluteTolerance = Params["Parameters"]["residual_absolute_tolerance"].GetDouble();
     mMaxIteration = Params["Parameters"]["max_iteration"].GetInt();
     mVerbose = Params["Parameters"]["verbose"].GetInt();
 
-    // Create material parameters:
+    // Read material parameters:
     // material parameters are read from rve data file
     Kratos::Parameters material_parameters = data_params["material_parameters"];
     Kratos::Parameters properties = material_parameters["properties"];
     // material parameters are modified if explicitly passed by user
     if (Params["Parameters"]["modified_properties"].size() != 0)
     {
-        Kratos::Parameters modified_properties = Params["Parameters"]["modified_properties"];
-        for (std::size_t om = 0; om < properties.size(); ++om) {
-            for (std::size_t mm = 0; mm < modified_properties.size(); ++mm) {
+        Kratos::Parameters modified_properties =
+            Params["Parameters"]["modified_properties"];
+        for (std::size_t om = 0; om < properties.size(); ++om)
+        {
+            for (std::size_t mm = 0; mm < modified_properties.size(); ++mm)
+            {
                 std::size_t op = properties.GetArrayItem(om)["properties_id"].GetInt();
-                std::size_t mp = modified_properties.GetArrayItem(mm)["properties_id"].GetInt();
-                if (op == mp) {
+                std::size_t mp =
+                    modified_properties.GetArrayItem(mm)["properties_id"].GetInt();
+                if (op == mp)
+                {
                     properties.GetArrayItem(om)["Material"].SetValue(
-                        "Variables", modified_properties.GetArrayItem(mm)["Material"]["Variables"]);
+                        "Variables", modified_properties.GetArrayItem(
+                                         mm)["Material"]["Variables"]);
                     KRATOS_WARNING("RVE Law") << "WARNING: Material property " << op
                                               << " modified by user" << std::endl;
                     break;
@@ -68,23 +73,22 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         }
     }
     material_parameters.SetValue("properties", properties);
-    //KRATOS_WATCH(material_parameters)
-    Model dummy_model;
-    for (std::size_t om = 0; om < properties.size(); ++om) {
-        std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
-        //KRATOS_WATCH(mp_name);
 
-        dummy_model.CreateModelPart(mp_name);
+    // Create material properties
+    Model aux_model;
+    for (std::size_t om = 0; om < properties.size(); ++om)
+    {
+        std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
+        aux_model.CreateModelPart(mp_name);
     }
-    //KRATOS_WATCH(dummy_model);
-    ReadMaterialsUtility(material_parameters.WriteJsonString(), dummy_model);
-    for (std::size_t om = 0; om < properties.size(); ++om) {
+    ReadMaterialsUtility(material_parameters.WriteJsonString(), aux_model);
+    for (std::size_t om = 0; om < properties.size(); ++om)
+    {
         std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
         std::size_t property_id = properties.GetArrayItem(om)["properties_id"].GetInt();
-        ModelPart& r_dummy_modelpart = dummy_model.GetModelPart(mp_name);
-        mProperties_map[property_id] = r_dummy_modelpart.GetProperties(property_id);
+        ModelPart& r_aux_modelpart = aux_model.GetModelPart(mp_name);
+        mProperties_map[property_id] = r_aux_modelpart.GetProperties(property_id);
     }
-    //GetPropertyBlock(material_properties);
 
     // Parse data parameters
     Kratos::Parameters B_list = data_params["ip_strain_modes"];
@@ -122,7 +126,10 @@ RVELaw::RVELaw(PropertiesMap pProperties,
                std::vector<double> IW_list,
                std::vector<ConstitutiveLaw::Pointer> CL_list,
                std::vector<int> prop_id_list,
-               double abs_tol, double rel_tol, int max_iter, int verbose)
+               double abs_tol,
+               double rel_tol,
+               int max_iter,
+               int verbose)
     : mProperties_map(pProperties),
       mB_vec(B_list),
       mIW_vec(IW_list),
@@ -159,9 +166,9 @@ ConstitutiveLaw::Pointer RVELaw::Create(Kratos::Parameters Params) const
 /***********************************************************************************/
 ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
-    //RVELaw::Pointer p_clone(new RVELaw(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec, mAbsoluteTolerance, mRelativeTolerance, mMaxIteration, mVerbose));
-    return Kratos::make_shared<RVELaw>(mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec,
-            mAbsoluteTolerance, mRelativeTolerance, mMaxIteration, mVerbose);
+    return Kratos::make_shared<RVELaw>(mProperties_map, mB_vec, mIW_vec,
+                                       mCL_vec, mPropId_vec, mAbsoluteTolerance,
+                                       mRelativeTolerance, mMaxIteration, mVerbose);
 }
 
 /***********************************************************************************/
