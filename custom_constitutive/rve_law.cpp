@@ -25,7 +25,7 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         "name": "constitutive law name",
         "Parameters" : {
             "rve_data_filename": "undefined_rve_data_file",
-            "modified_properties": [],
+            "modified_material": [],
             "convergence_criterion": "residual_criterion",
             "residual_relative_tolerance": 1e-4,
             "residual_absolute_tolerance": 1e-9,
@@ -49,21 +49,21 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     Kratos::Parameters material_parameters = data_params["material_parameters"];
     const Kratos::Parameters properties = material_parameters["properties"];
     // material parameters are modified if explicitly passed by user
-    if (Params["Parameters"]["modified_properties"].size() != 0)
+    if (Params["Parameters"]["modified_material"].size() != 0)
     {
-        Kratos::Parameters modified_properties =
-            Params["Parameters"]["modified_properties"];
+        Kratos::Parameters modified_material =
+            Params["Parameters"]["modified_material"];
         for (std::size_t om = 0; om < properties.size(); ++om)
         {
-            for (std::size_t mm = 0; mm < modified_properties.size(); ++mm)
+            for (std::size_t mm = 0; mm < modified_material.size(); ++mm)
             {
                 std::size_t op = properties.GetArrayItem(om)["properties_id"].GetInt();
                 std::size_t mp =
-                    modified_properties.GetArrayItem(mm)["properties_id"].GetInt();
+                    modified_material.GetArrayItem(mm)["properties_id"].GetInt();
                 if (op == mp)
                 {
                     properties.GetArrayItem(om)["Material"].SetValue(
-                        "Variables", modified_properties.GetArrayItem(
+                        "Variables", modified_material.GetArrayItem(
                                          mm)["Material"]["Variables"]);
                     KRATOS_WARNING("RVE Law") << "WARNING: Material property " << op
                                               << " modified by user" << std::endl;
