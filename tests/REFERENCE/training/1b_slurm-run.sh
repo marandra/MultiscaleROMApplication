@@ -6,9 +6,9 @@
 
 ## Settings for "fiber2" case:
 ##
-#SBATCH --partition=HM-dev
+#SBATCH --partition=HM
 #SBATCH --mem-per-cpu=1024
-#SBATCH --time=01:00:00
+#SBATCH --time=03:00:00
 
 ## Settings for "fiber3" case:
 ##
