@@ -207,12 +207,6 @@ private:
                                            Vector& rInternalValues, const ProcessInfo& process_info,
                                              std::size_t ip_index);
 
-    void GetPropertyBlock(Kratos::Parameters Materials);
-
-    void AssignPropertyBlock(Kratos::Parameters Data);
-
-    void TrimComponentName(std::string& rLine);
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;

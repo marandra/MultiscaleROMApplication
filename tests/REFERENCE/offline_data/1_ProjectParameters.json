@@ -29,6 +29,6 @@
         "material_import_settings": {
             "materials_filename" : "../training/materials.json"
         },
-        "problem_domain_sub_model_part_list": ["RVE"]
+        "problem_domain_sub_model_part_list": ["RVE", "MATRIX", "INCLUSION", "COHESIVE"]
         }
 }
