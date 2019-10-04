@@ -181,16 +181,6 @@ RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RVELaw::Has(const Variable<int>& rThisVariable)
-{
-    if(rThisVariable == NUMBER_OF_INTERNAL_VARIABLES)
-        return true;
-    return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
@@ -198,24 +188,6 @@ bool RVELaw::Has(const Variable<Vector>& rThisVariable)
     if (rThisVariable == INTERNAL_VARIABLES)
         return true;
     return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int& RVELaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
-{
-    if (rThisVariable == NUMBER_OF_INTERNAL_VARIABLES)
-    {
-        rValue = 0;
-        for (std::size_t i = 0; i < mCL_vec.size(); i++)
-        {
-            int rValue_i;
-            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, rValue_i);
-            rValue += rValue_i;
-        }
-    }
-    return rValue;
 }
 
 /***********************************************************************************/
@@ -233,7 +205,7 @@ Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
         {
             Vector rValue_i;
             mCL_vec[i]->GetValue(INTERNAL_VARIABLES, rValue_i);
-            rValue.resize(count+rValue_i.size(), true);
+            rValue.resize(count + rValue_i.size(), true);
             for (std::size_t j = 0; j < rValue_i.size(); j++) {
                 rValue[count++] = rValue_i[j];
             }
@@ -255,10 +227,9 @@ void RVELaw::SetValue(
         std::size_t count = 0;
         for (std::size_t i = 0; i < mCL_vec.size(); i++)
         {
-            int size_i;
-            mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, size_i);
-            Vector rValue_i(size_i);
-            for (std::size_t j = 0; j < size_i; j++)
+            Vector rValue_i;
+            mCL_vec[i]->GetValue(INTERNAL_VARIABLES, rValue_i);
+            for (std::size_t j = 0; j < rValue_i.size(); j++)
                 rValue_i(j) = rValue(count++);
             mCL_vec[i]->SetValue(INTERNAL_VARIABLES, rValue_i, rCurrentProcessInfo);
         }
@@ -381,18 +352,14 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
     std::size_t count = 0;
     for (std::size_t i = 0; i < nr_points; i++)
     {
-        //KRATOS_WATCH(i) //DEBUG
         Vector stress(nr_comps);
         Matrix constit(nr_comps, nr_comps);
         Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-        int nr_internal_variables;
-        mCL_vec[i]->GetValue(NUMBER_OF_INTERNAL_VARIABLES, nr_internal_variables);
-        //KRATOS_WATCH(nr_internal_variables) //DEBUG
-        Vector internal_variables(nr_internal_variables);
-        //KRATOS_WATCH(internal_variables)
+        Vector internal_variables;
+        mCL_vec[i]->GetValue(INTERNAL_VARIABLES, internal_variables);
         // TODO(marcelo): strain argument should be const
         CalculateIndividualStressResponse(stress, constit, strain, internal_variables, process_info, i);
-        for (std::size_t j = 0; j < nr_internal_variables; ++j)
+        for (std::size_t j = 0; j < internal_variables.size(); ++j)
         {
             rInternalVariables[count++] = internal_variables[j];
         }
