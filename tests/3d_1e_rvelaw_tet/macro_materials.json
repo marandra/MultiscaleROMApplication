@@ -1,0 +1,23 @@
+{  
+    "properties": [{
+        "model_part_name": "Structure.MATERIAL_MULTISCALE",
+        "properties_id": 1,
+        "Material": {
+            "name": "multiscale",
+            "constitutive_law": {
+                "name": "RVELaw",
+                "Parameters": {
+                        "rve_materials_filename": "rve_material_v0.json",
+                        "rve_data_filename": "rve_20m_200ip.json",
+                        "convergence_criterion": "residual_criterion",
+                        "residual_relative_tolerance": 1e-5,
+                        "residual_absolute_tolerance": 0.0,
+                        "max_iteration": 20,
+                        "verbose": 0
+                }
+            },
+            "Variables": {},
+            "Tables":  {}
+       }
+    }]
+}
