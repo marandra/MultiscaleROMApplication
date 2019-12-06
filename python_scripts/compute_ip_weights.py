@@ -14,7 +14,9 @@ def remove_exact_integral_energy(modes, weights):
     norm_exact_integral = modes.T @ weights / total_weight
     # Matrix of modified modes (with zero integral)
     modified_modes = (modes - norm_exact_integral) * sqrt_weights.reshape(-1, 1)
-    [modified_modes, bases_weights] = np.linalg.svd(modified_modes, full_matrices=False)[:2]
+    [modified_modes, bases_weights] = np.linalg.svd(
+        modified_modes, full_matrices=False
+    )[:2]
     # filter the reduced modified set of modes
     tolerance = np.max(modes.shape) * eps * np.max(bases_weights)
     rank_mod_modes = sum(i > tolerance for i in bases_weights)
@@ -43,9 +45,19 @@ def update_inverse_hermitian(invH, neg_index):
         aux = (invH[0:-1, -1] * invH[-1, 0:-1]) / invH(-1, -1)
         invH_new = invH[:-1, :-1] - aux
     else:
-        aux1 = np.hstack([invH[:, 0:neg_index], invH[:, neg_index + 1:], invH[:, neg_index].reshape(-1, 1)])
-        aux2 = np.vstack([aux1[0:neg_index, :], aux1[neg_index + 1:, :], aux1[neg_index, :]])
-        invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1, 0:-1]) / aux2[-1, -1]
+        aux1 = np.hstack(
+            [
+                invH[:, 0:neg_index],
+                invH[:, neg_index + 1 :],
+                invH[:, neg_index].reshape(-1, 1),
+            ]
+        )
+        aux2 = np.vstack(
+            [aux1[0:neg_index, :], aux1[neg_index + 1 :, :], aux1[neg_index, :]]
+        )
+        invH_new = (
+            aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1, 0:-1]) / aux2[-1, -1]
+        )
     return invH_new
 
 
@@ -88,7 +100,7 @@ def compute_roq(Modes, weights, nGP, tol):
         # 4. Find possible negative weights
         if any(alpha < 0):
             print("WARNING: NEGATIVE weight found")
-            indexes_neg_weight = np.where(alpha <= 0.)[0]
+            indexes_neg_weight = np.where(alpha <= 0.0)[0]
             y = np.append(y, (z[indexes_neg_weight]).T)
             z = np.delete(z, indexes_neg_weight)
             H = multiupdate_inverse_hermitian(H, indexes_neg_weight)
@@ -99,7 +111,11 @@ def compute_roq(Modes, weights, nGP, tol):
         # 7. Update mPOS and k
         mPOS = np.size(z)
         it = it + 1
-        logger.debug("k = {}, mPOS = {}, error = {:.2f}%".format(it, mPOS, np.linalg.norm(r) / np.linalg.norm(b) * 100))
+        logger.debug(
+            "k = {}, mPOS = {}, error = {:.2f}%".format(
+                it, mPOS, np.linalg.norm(r) / np.linalg.norm(b) * 100
+            )
+        )
     # 6. Postprocess of points - neglecting null weights
     w = np.multiply(alpha, np.sqrt(weights[z]).reshape(-1, 1))
     logger.debug("Reduced Weights: {}".format(w.T))
@@ -114,8 +130,7 @@ def compute_hprom_weights(ip_data, nr_roq_points, energy_bases_filename):
     ip_lids = ip_data[1]
     elem_ids = ip_data[2]
     energy_modes = np.load(energy_bases_filename)[:, :nr_roq_points]
-    [w, z] = compute_roq(energy_modes, np.array(ip_weights),
-                         nr_roq_points, tol=1.e-14)
+    [w, z] = compute_roq(energy_modes, np.array(ip_weights), nr_roq_points, tol=1.0e-14)
     roq_list = []
     for x, ip_gid in enumerate(z):
         ip_lid = ip_lids[ip_gid]
@@ -143,10 +158,16 @@ def compute_rom_weights(ip_data):
 #######################################
 
 # parse command line arguments
-parser = argparse.ArgumentParser(description="Computes Reduced Order Quadrature (ROQ) integration weights")
+parser = argparse.ArgumentParser(
+    description="Computes Reduced Order Quadrature (ROQ) integration weights"
+)
 # parser.add_argument('config_file', help="configuration file")
-parser.add_argument('-v', '--verbose', action="store_true", help="shows debug information")
-parser.add_argument('-r', '--rom', action="store_true", help="compute ROM instead of HPROM")
+parser.add_argument(
+    "-v", "--verbose", action="store_true", help="shows debug information"
+)
+parser.add_argument(
+    "-r", "--rom", action="store_true", help="compute ROM instead of HPROM"
+)
 args = parser.parse_args()
 
 # parse configuration file
@@ -157,23 +178,26 @@ args = parser.parse_args()
 verbosity_level = logging.INFO
 if args.verbose:
     verbosity_level = logging.DEBUG
-logging.basicConfig(format='[%(asctime)s] %(message)s',
-                    datefmt='%H:%M:%S', level=verbosity_level)
+logging.basicConfig(
+    format="[%(asctime)s] %(message)s", datefmt="%H:%M:%S", level=verbosity_level
+)
 logger = logging.getLogger(__name__)
 # handler = logging.FileHandler('log_' + args.config_file.rsplit('.', 1)[0])
 # handler.setLevel(logging.DEBUG)
 # logger.addHandler(handler)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger.info("Reduced Order Quadrature")
     nr_ip_per_element = 8
     integration_weights = np.loadtxt("integration_weight")
     nr_roq_points = 50
-    energy_bases_filename = 'bases_energy.npy'
+    energy_bases_filename = "bases_energy.npy"
     if args.rom:
         roq_list = compute_rom_weights(nr_ip_per_element, integration_weights)
     else:
-        roq_list = compute_hprom_weights(nr_ip_per_element, integration_weights, nr_roq_points, energy_bases_filename)
+        roq_list = compute_hprom_weights(
+            nr_ip_per_element, integration_weights, nr_roq_points, energy_bases_filename
+        )
 
     logging.debug("ROQ list size {}".format(np.shape(roq_list)))
     np.savetxt("roq_list.dat", roq_list)

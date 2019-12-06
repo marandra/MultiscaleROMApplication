@@ -3,7 +3,9 @@ from __future__ import print_function, absolute_import, division
 import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.MultiscaleROMApplication
-from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
+from KratosMultiphysics.StructuralMechanicsApplication import (
+    structural_mechanics_analysis,
+)
 import KratosMultiphysics.MultiscaleROMApplication.compute_bases as bases
 import KratosMultiphysics.MultiscaleROMApplication.compute_ip_weights as roq
 import KratosMultiphysics.MultiscaleROMApplication.pack_reduced_rve_dataset as pack
@@ -35,11 +37,12 @@ def skip_calculation(filename, flag_reuse):
 
 if __name__ == "__main__":
 
-    with open("1_ProjectParameters.json", 'r') as parameter_file:
+    with open("1_ProjectParameters.json", "r") as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     config = parameters["config_data"]
-    config_defaults = KratosMultiphysics.Parameters('''{
+    config_defaults = KratosMultiphysics.Parameters(
+        """{
     "reuse_existing_files": true,
     "svd_algorithm": "standard",
     "rve_mdpa_filename": "../training/model.mdpa",
@@ -57,14 +60,17 @@ if __name__ == "__main__":
     "rve_data_points": [200, -1],
     "rve_data_modes": [20]
     }
-    ''')
+    """
+    )
     config.ValidateAndAssignDefaults(config_defaults)
 
     if not check_consistent_config_values(config):
         exit()
 
     model = KratosMultiphysics.Model()
-    simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, parameters)
+    simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(
+        model, parameters
+    )
     simulation.Initialize()
     rve_modelpart = simulation._GetSolver().GetComputingModelPart()
 
@@ -84,7 +90,9 @@ if __name__ == "__main__":
     ip_lids = []
     elem_ids = []
     for elem in rve_modelpart.Elements:
-        iw_list = elem.GetValuesOnIntegrationPoints(Kratos.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo)
+        iw_list = elem.GetValuesOnIntegrationPoints(
+            Kratos.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo
+        )
         for ip_lid, ip_weight in enumerate(iw_list):
             ip_weights.append(ip_weight[0])
             ip_lids.append(ip_lid)
@@ -101,44 +109,54 @@ if __name__ == "__main__":
     nr_strain_components = 1
     nr_elastic_modes = config["nr_elastic_modes_energy"].GetInt()
     nr_inelastic_modes = config["nr_inelastic_modes_energy"].GetInt()
-    energy_bases_fname = config["bases_energy_filename"].GetString() + "_{}m.npy".format(
-        nr_elastic_modes + nr_inelastic_modes)
+    energy_bases_fname = config[
+        "bases_energy_filename"
+    ].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = config["snapshot_energy_filename"].GetString()
     print("Generating ENERGY bases")
     if skip_calculation(energy_bases_fname, config["reuse_existing_files"].GetBool()):
         print("File {} exists. Skipping calculation".format(energy_bases_fname))
     else:
-        e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        bases.generate_bases(nr_ips,
-                             nr_strain_components,
-                             nr_elastic_modes,
-                             nr_inelastic_modes,
-                             e_files,
-                             i_files,
-                             energy_bases_fname,
-                             svd_algorithm=svd_algorithm)
+        e_files, i_files = bases.list_of_snapshots(
+            trajectory_filename, nr_e_snap_filename, snapshot_filename
+        )
+        bases.generate_bases(
+            nr_ips,
+            nr_strain_components,
+            nr_elastic_modes,
+            nr_inelastic_modes,
+            e_files,
+            i_files,
+            energy_bases_fname,
+            svd_algorithm=svd_algorithm,
+        )
     #
     # compute strain bases
     #
     nr_strain_components = 6
     nr_elastic_modes = config["nr_elastic_modes_strain"].GetInt()
     nr_inelastic_modes = config["nr_inelastic_modes_strain"].GetInt()
-    strain_bases_fname = config["bases_strain_filename"].GetString() + "_{}m.npy".format(
-        nr_elastic_modes + nr_inelastic_modes)
+    strain_bases_fname = config[
+        "bases_strain_filename"
+    ].GetString() + "_{}m.npy".format(nr_elastic_modes + nr_inelastic_modes)
     snapshot_filename = config["snapshot_strain_filename"].GetString()
     print("Generating STRAIN bases")
     if skip_calculation(strain_bases_fname, config["reuse_existing_files"].GetBool()):
         print("File {} exists. Skipping calculation".format(strain_bases_fname))
     else:
-        e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        bases.generate_bases(nr_ips,
-                             nr_strain_components,
-                             nr_elastic_modes,
-                             nr_inelastic_modes,
-                             e_files,
-                             i_files,
-                             strain_bases_fname,
-                             svd_algorithm=svd_algorithm)
+        e_files, i_files = bases.list_of_snapshots(
+            trajectory_filename, nr_e_snap_filename, snapshot_filename
+        )
+        bases.generate_bases(
+            nr_ips,
+            nr_strain_components,
+            nr_elastic_modes,
+            nr_inelastic_modes,
+            e_files,
+            i_files,
+            strain_bases_fname,
+            svd_algorithm=svd_algorithm,
+        )
     #
     # compute ip set
     #
@@ -155,13 +173,14 @@ if __name__ == "__main__":
         print("Generating {}".format(roq_filename))
         # compute ROQ list
         if nr_roq_points != -1:  # HPROM case
-            roq_list = roq.compute_hprom_weights(ip_data, nr_roq_points, energy_bases_fname)
+            roq_list = roq.compute_hprom_weights(
+                ip_data, nr_roq_points, energy_bases_fname
+            )
         else:  # ROM case
             roq_list = roq.compute_rom_weights(ip_data)
-        with open(roq_filename, 'w') as ofile:
+        with open(roq_filename, "w") as ofile:
             for list in roq_list:
                 ofile.write("{} {} {} {}\n".format(list[0], list[1], list[2], list[3]))
-
 
     #
     # pack dataset
@@ -178,14 +197,20 @@ if __name__ == "__main__":
         for m in config["rve_data_modes"]:
             nr_modes = m.GetInt()
             rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, set_name)
-            if skip_calculation(rve_data_filename, config["reuse_existing_files"].GetBool()):
+            if skip_calculation(
+                rve_data_filename, config["reuse_existing_files"].GetBool()
+            ):
                 print("File {} exists. Skipping calculation".format(rve_data_filename))
                 continue
             print("Generating {}".format(rve_data_filename))
             rve_params = pack.create_rve_params_structure(
-                strain_bases_fname, rve_mdpa_filename, rve_materials_filename, nr_modes, ip_set)
+                strain_bases_fname,
+                rve_mdpa_filename,
+                rve_materials_filename,
+                nr_modes,
+                ip_set,
+            )
             io_utilities.write_json(rve_data_filename, rve_params)
-
 
     # generate stress reconstruction system
     # A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)
