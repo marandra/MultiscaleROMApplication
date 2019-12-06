@@ -9,6 +9,11 @@ except ImportError:
     pass
 
 
+logging.basicConfig(format='[%(asctime)s] %(message)s',
+                    datefmt='%H:%M:%S', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+
 def list_of_snapshots(trajectory_filename, nr_e_snap_filename, filename):
     logger.debug("Scanning trajectories")
     trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
@@ -24,11 +29,11 @@ def list_of_snapshots(trajectory_filename, nr_e_snap_filename, filename):
     return e_files, i_files
 
 
-def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_components, Ue=None, svd_algorithm="standard"):
+def compute_modes(nr_integration_points, files, nr_modes, nr_components, Ue=None, svd_algorithm="standard"):
     logger.info("Loading snapshots")
     if Ue is not None:
         logger.info("and removing elastic component")
-    nr_dofs = nr_elements * nr_integration_points * nr_components
+    nr_dofs = nr_integration_points * nr_components
     X = np.empty([nr_dofs, len(files)])
     total = len(files)
     batch_size = int(total / 10 + .5)
@@ -96,54 +101,19 @@ def compute_modes(nr_integration_points, nr_elements, files, nr_modes, nr_compon
 
     return U
 
-def generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname, svd_algorithm="standard"):
+def generate_bases(nr_ips, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname, svd_algorithm="standard"):
         t0 = time.time()
         if nr_elastic_modes > 0:
             logger.info("Processing elastic snapshots")
-            Ue = compute_modes(nr_ip, nr_elements, e_files, nr_elastic_modes, nr_components=nr_strain_components, svd_algorithm=svd_algorithm)
+            Ue = compute_modes(nr_ips, e_files, nr_elastic_modes, nr_components=nr_strain_components, svd_algorithm=svd_algorithm)
             logger.info("Processing inelastic snapshots")
-            Ui = compute_modes(nr_ip, nr_elements, i_files, nr_inelastic_modes, nr_components=nr_strain_components, Ue=Ue, svd_algorithm=svd_algorithm)
+            Ui = compute_modes(nr_ips, i_files, nr_inelastic_modes, nr_components=nr_strain_components, Ue=Ue, svd_algorithm=svd_algorithm)
             U = np.hstack([Ue, Ui])
         else:
             logger.info("Nr of elastic modes set to zero -> Not discriminating elastic/inelastic snapshots")
-            U = compute_modes(nr_ip, nr_elements, e_files + i_files, nr_inelastic_modes, nr_components=nr_strain_components, svd_algorithm=svd_algorithm)
+            U = compute_modes(nr_ips, e_files + i_files, nr_inelastic_modes, nr_components=nr_strain_components, svd_algorithm=svd_algorithm)
         t1 = time.time()
         np.save(bases_fname, U)
         logger.info("  Writing time: {:.1f}s".format(time.time() - t1))
         logger.info("  Total time: {:.1f}s".format(time.time() - t0))
         logger.info("")
-
-#######################################
-# Main
-#######################################
-
-logging.basicConfig(format='[%(asctime)s] %(message)s',
-                    datefmt='%H:%M:%S', level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-if __name__ == '__main__':
-
-    trajectory_filename = conf['Parameters']['trajectory_filename']
-    nr_e_snap_filename = conf['Parameters']['nr_elastic_snapshots_filename']
-
-    if flag_comp_energy:
-        nr_elements = 320
-        nr_ip = 8
-        nr_strain_components = 1
-        nr_elastic_modes = 21
-        nr_inelastic_modes = 100
-        bases_fname = "bases_energy.npy"
-        snapshot_filename = conf['Parameters']['energy_filename']
-        e_files, i_files = list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)
-
-    if flag_comp_strain:
-        nr_elements = 320
-        nr_ip = 8
-        nr_strain_components = 6
-        nr_elastic_modes = 6
-        nr_inelastic_modes = 100
-        bases_fname = "bases_strain.npy"
-        snapshot_filename = conf['Parameters']['strain_filename']
-        e_files, i_files = list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        generate_bases(nr_elements, nr_ip, nr_strain_components, nr_elastic_modes, nr_inelastic_modes, e_files, i_files, bases_fname)

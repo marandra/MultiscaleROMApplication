@@ -108,28 +108,33 @@ def compute_roq(Modes, weights, nGP, tol):
     return w, z
 
 
-def compute_hprom_weights(nr_ip_per_elem, integration_weights, nr_roq_points, energy_bases_filename):
+def compute_hprom_weights(ip_data, nr_roq_points, energy_bases_filename):
     logger.info("Computing reduced set of integration points (HPROM)")
+    ip_weights = ip_data[0]
+    ip_lids = ip_data[1]
+    elem_ids = ip_data[2]
     energy_modes = np.load(energy_bases_filename)[:, :nr_roq_points]
-
-    [w, z] = compute_roq(energy_modes, np.array(integration_weights),
+    [w, z] = compute_roq(energy_modes, np.array(ip_weights),
                          nr_roq_points, tol=1.e-14)
     roq_list = []
-    for x, ip_global in enumerate(z):
-        e = int(ip_global / nr_ip_per_elem)
-        ip = ip_global % nr_ip_per_elem
-        roq_list.append([e, ip, w[x][0], ip_global])
+    for x, ip_gid in enumerate(z):
+        ip_lid = ip_lids[ip_gid]
+        elem_id = elem_ids[ip_gid]
+        roq_list.append([elem_id, ip_lid, w[x][0], ip_gid])
     return roq_list  # returns list of: element id, local IP id, IP weight, global IP id
 
 
-def compute_rom_weights(nr_ip_per_elem, integration_weights):
+def compute_rom_weights(ip_data):
     logger.info("Computing complete set of integration points (ROM)")
-
+    ip_weights = ip_data[0]
+    ip_lids = ip_data[1]
+    elem_ids = ip_data[2]
     roq_list = []
-    for ip_global, w in enumerate(integration_weights):
-        e = int(ip_global / nr_ip_per_elem)
-        ip = ip_global % nr_ip_per_elem
-        roq_list.append([e, ip, w, ip_global])
+    for ip_gid in range(len(ip_weights)):
+        ip_weight = ip_weights[ip_gid]
+        ip_lid = ip_lids[ip_gid]
+        elem_id = elem_ids[ip_gid]
+        roq_list.append([elem_id, ip_lid, ip_weight, ip_gid])
     return roq_list
 
 

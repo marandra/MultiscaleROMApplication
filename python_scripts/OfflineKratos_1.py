@@ -11,13 +11,12 @@ import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 import KratosMultiphysics.MultiscaleROMApplication.compute_stress_reconstruction_system as stress_reconstruction
 
 """
-Here description.
-For user-scripting it is intended that a new class is derived
-from StructuralMechanicsAnalysis to do modifications
+TODO: pending description here.
 """
 
 
 def check_consistent_config_values(config):
+    # TODO: Use this function
     # Ideas:
     # number of base modes < number of snapshots
     # number of base mode > number of requested modes
@@ -78,30 +77,28 @@ if __name__ == "__main__":
     #   print("DEBUG ********")
     #   print(rve_modelpart)
 
-    elem = rve_modelpart.GetElement(1)
-    ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
-
+    #
     # gather global model part info
-    nr_nodes = rve_modelpart.NumberOfNodes()
-    nr_elems = rve_modelpart.NumberOfElements()
-    nr_ips_per_elem = len(elem.GetIntegrationPoints())
-    integration_weights = []
+    #
+    ip_weights = []
+    ip_lids = []
+    elem_ids = []
     for elem in rve_modelpart.Elements:
-        ip_weights = elem.GetValuesOnIntegrationPoints(Kratos.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo)
-        for ip_weight in ip_weights:
-            integration_weights.append(ip_weight[0])
-    # optional output
-    # integration_weights_filename = "integration_weight"
-    # with open(integration_weights_filename, 'w') as ofile:
-    #    for ip_weight in integration_weights:
-    #        ofile.write("{}\n".format(ip_weight))
+        iw_list = elem.GetValuesOnIntegrationPoints(Kratos.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo)
+        for ip_lid, ip_weight in enumerate(iw_list):
+            ip_weights.append(ip_weight[0])
+            ip_lids.append(ip_lid)
+            elem_ids.append(elem.Id - 1)
+    ip_data = [ip_weights, ip_lids, elem_ids]
+    nr_ips = len(ip_data[0])
 
     svd_algorithm = config["svd_algorithm"].GetString()
     trajectory_filename = config["trajectory_filename"].GetString()
     nr_e_snap_filename = config["elastic_snapshots_filename"].GetString()
+    #
     # compute energy bases
-    ip_data = elem.GetValuesOnIntegrationPoints(Kratos.STRAIN_ENERGY, rve_modelpart.ProcessInfo)
-    nr_strain_components = len(ip_data[0])
+    #
+    nr_strain_components = 1
     nr_elastic_modes = config["nr_elastic_modes_energy"].GetInt()
     nr_inelastic_modes = config["nr_inelastic_modes_energy"].GetInt()
     energy_bases_fname = config["bases_energy_filename"].GetString() + "_{}m.npy".format(
@@ -112,8 +109,7 @@ if __name__ == "__main__":
         print("File {} exists. Skipping calculation".format(energy_bases_fname))
     else:
         e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        bases.generate_bases(nr_elems,
-                             nr_ips_per_elem,
+        bases.generate_bases(nr_ips,
                              nr_strain_components,
                              nr_elastic_modes,
                              nr_inelastic_modes,
@@ -121,10 +117,10 @@ if __name__ == "__main__":
                              i_files,
                              energy_bases_fname,
                              svd_algorithm=svd_algorithm)
-
+    #
     # compute strain bases
-    ip_data = elem.GetValuesOnIntegrationPoints(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, rve_modelpart.ProcessInfo)
-    nr_strain_components = len(ip_data[0])
+    #
+    nr_strain_components = 6
     nr_elastic_modes = config["nr_elastic_modes_strain"].GetInt()
     nr_inelastic_modes = config["nr_inelastic_modes_strain"].GetInt()
     strain_bases_fname = config["bases_strain_filename"].GetString() + "_{}m.npy".format(
@@ -135,8 +131,7 @@ if __name__ == "__main__":
         print("File {} exists. Skipping calculation".format(strain_bases_fname))
     else:
         e_files, i_files = bases.list_of_snapshots(trajectory_filename, nr_e_snap_filename, snapshot_filename)
-        bases.generate_bases(nr_elems,
-                             nr_ips_per_elem,
+        bases.generate_bases(nr_ips,
                              nr_strain_components,
                              nr_elastic_modes,
                              nr_inelastic_modes,
@@ -144,8 +139,6 @@ if __name__ == "__main__":
                              i_files,
                              strain_bases_fname,
                              svd_algorithm=svd_algorithm)
-
-
     #
     # compute ip set
     #
@@ -162,9 +155,9 @@ if __name__ == "__main__":
         print("Generating {}".format(roq_filename))
         # compute ROQ list
         if nr_roq_points != -1:  # HPROM case
-            roq_list = roq.compute_hprom_weights(nr_ips_per_elem, integration_weights, nr_roq_points, energy_bases_fname)
+            roq_list = roq.compute_hprom_weights(ip_data, nr_roq_points, energy_bases_fname)
         else:  # ROM case
-            roq_list = roq.compute_rom_weights(nr_ips_per_elem, integration_weights)
+            roq_list = roq.compute_rom_weights(ip_data)
         with open(roq_filename, 'w') as ofile:
             for list in roq_list:
                 ofile.write("{} {} {} {}\n".format(list[0], list[1], list[2], list[3]))
