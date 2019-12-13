@@ -195,6 +195,9 @@ private:
 
     void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro, const ProcessInfo &process_info);
 
+    void LSplit(std::string& rLine);
+    void RSplit(std::string& rLine);
+
     std::string ReadFile(const std::string &filename) const;
 
     void CalculateIndividualMaterialResponse(Vector &stress, Matrix &constit, Vector &strain,

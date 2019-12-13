@@ -75,11 +75,17 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     material_parameters.SetValue("properties", properties);
 
     // Create material properties
+    std::string mp_name = properties.GetArrayItem(0)["model_part_name"].GetString();
+    LSplit(mp_name);
+    KRATOS_INFO("RVELaw") << "Modelpart name: " << mp_name << std::endl;
     Model aux_model;
+    ModelPart& aux_modelpart = aux_model.CreateModelPart(mp_name);
     for (std::size_t om = 0; om < properties.size(); ++om)
     {
-        const std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
-        aux_model.CreateModelPart(mp_name);
+        std::string mp_name = properties.GetArrayItem(om)["model_part_name"].GetString();
+        RSplit(mp_name);
+        KRATOS_INFO("RVELaw") << "Submodelpart name: " << mp_name << std::endl;
+        aux_modelpart.CreateSubModelPart(mp_name);
     }
     ReadMaterialsUtility(material_parameters.WriteJsonString(), aux_model);
     for (std::size_t om = 0; om < properties.size(); ++om)
@@ -234,6 +240,24 @@ void RVELaw::SetValue(
             mCL_vec[i]->SetValue(INTERNAL_VARIABLES, rValue_i, rCurrentProcessInfo);
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+void RVELaw::LSplit(std::string& rLine)
+{
+    std::stringstream ss(rLine);
+    std::getline(ss, rLine, '.');
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RVELaw::RSplit(std::string& rLine)
+{
+    std::stringstream ss(rLine);
+    std::size_t counter = 0;
+    while (std::getline(ss, rLine, '.')){++counter;}
 }
 
 /***********************************************************************************/
