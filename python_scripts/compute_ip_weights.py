@@ -89,8 +89,8 @@ def compute_roq(Modes, weights, nGP, tol):
         # 2. Update alpha and H (unrestricted least squares)
         if it == 0:
             # complies with newer versions of numpy
-            # alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0]
-            alpha = np.linalg.lstsq(J[:, [i]], b)[0]
+            alpha = np.linalg.lstsq(J[:, [i]], b, rcond=None)[0]
+            # alpha = np.linalg.lstsq(J[:, [i]], b)[0]
             H = 1 / np.dot((J[:, i]).T, J[:, i])
         else:
             H, alpha = update_weights_inverse(H, alpha, J[:, z], J[:, i], r)
@@ -120,7 +120,7 @@ def compute_roq(Modes, weights, nGP, tol):
     w = np.multiply(alpha, np.sqrt(weights[z]).reshape(-1, 1))
     logger.debug("Reduced Weights: {}".format(w.T))
     logger.debug("sum of reduced weights: {}".format(np.sum(w)))
-    logger.debug("GP's index (elems and ip starting from zero): {}".format(z))
+    logger.debug("IP's index (ids starts from zero): {}".format(z))
     return w, z
 
 
@@ -159,7 +159,7 @@ def compute_rom_weights(ip_data):
 
 # parse command line arguments
 parser = argparse.ArgumentParser(
-    description="Computes Reduced Order Quadrature (ROQ) integration weights"
+    description="Computes Reduced Order Cuadrature (ROC) integration weights"
 )
 # parser.add_argument('config_file', help="configuration file")
 parser.add_argument(
@@ -187,7 +187,7 @@ logger = logging.getLogger(__name__)
 # logger.addHandler(handler)
 
 if __name__ == "__main__":
-    logger.info("Reduced Order Quadrature")
+    logger.info("Reduced Order Cuadrature")
     nr_ip_per_element = 8
     integration_weights = np.loadtxt("integration_weight")
     nr_roq_points = 50
@@ -199,5 +199,5 @@ if __name__ == "__main__":
             nr_ip_per_element, integration_weights, nr_roq_points, energy_bases_filename
         )
 
-    logging.debug("ROQ list size {}".format(np.shape(roq_list)))
+    logging.debug("ROC list size {}".format(np.shape(roq_list)))
     np.savetxt("roq_list.dat", roq_list)

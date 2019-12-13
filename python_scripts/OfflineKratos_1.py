@@ -7,7 +7,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import (
     structural_mechanics_analysis,
 )
 import KratosMultiphysics.MultiscaleROMApplication.compute_bases as bases
-import KratosMultiphysics.MultiscaleROMApplication.compute_ip_weights as roq
+import KratosMultiphysics.MultiscaleROMApplication.compute_ip_weights as roc
 import KratosMultiphysics.MultiscaleROMApplication.pack_reduced_rve_dataset as pack
 import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 import KratosMultiphysics.MultiscaleROMApplication.compute_stress_reconstruction_system as stress_reconstruction
@@ -45,7 +45,6 @@ if __name__ == "__main__":
         """{
     "reuse_existing_files": true,
     "svd_algorithm": "standard",
-    "rve_mdpa_filename": "../training/model.mdpa",
     "rve_materials_filename": "../training/materials.json",
     "trajectory_filename": "../training/trajectory",
     "elastic_snapshots_filename": "elastic_timesteps",
@@ -96,7 +95,7 @@ if __name__ == "__main__":
         for ip_lid, ip_weight in enumerate(iw_list):
             ip_weights.append(ip_weight[0])
             ip_lids.append(ip_lid)
-            elem_ids.append(elem.Id - 1)
+            elem_ids.append(elem.Id)
     ip_data = [ip_weights, ip_lids, elem_ids]
     nr_ips = len(ip_data[0])
 
@@ -161,39 +160,38 @@ if __name__ == "__main__":
     # compute ip set
     #
     for p in config["rve_data_points"]:
-        nr_roq_points = p.GetInt()
-        if nr_roq_points != -1:  # HPROM case
-            set_name = "{}".format(nr_roq_points)
+        nr_roc_points = p.GetInt()
+        if nr_roc_points != -1:  # HPROM case
+            set_name = "{}".format(nr_roc_points)
         else:  # ROM case
             set_name = "{}".format("ROM")
-        roq_filename = "roq_{}ip".format(set_name)
-        if skip_calculation(roq_filename, config["reuse_existing_files"].GetBool()):
-            print("File {} exists. Skipping calculation".format(roq_filename))
+        roc_filename = "roc_{}ip".format(set_name)
+        if skip_calculation(roc_filename, config["reuse_existing_files"].GetBool()):
+            print("File {} exists. Skipping calculation".format(roc_filename))
             continue
-        print("Generating {}".format(roq_filename))
-        # compute ROQ list
-        if nr_roq_points != -1:  # HPROM case
-            roq_list = roq.compute_hprom_weights(
-                ip_data, nr_roq_points, energy_bases_fname
+        print("Generating {}".format(roc_filename))
+        # compute ROC list
+        if nr_roc_points != -1:  # HPROM case
+            roc_list = roc.compute_hprom_weights(
+                ip_data, nr_roc_points, energy_bases_fname
             )
         else:  # ROM case
-            roq_list = roq.compute_rom_weights(ip_data)
-        with open(roq_filename, "w") as ofile:
-            for list in roq_list:
+            roc_list = roc.compute_rom_weights(ip_data)
+        with open(roc_filename, "w") as ofile:
+            for list in roc_list:
                 ofile.write("{} {} {} {}\n".format(list[0], list[1], list[2], list[3]))
 
     #
     # pack dataset
     #
-    rve_mdpa_filename = config["rve_mdpa_filename"].GetString()
     rve_materials_filename = config["rve_materials_filename"].GetString()
     for p in config["rve_data_points"]:
-        nr_roq_points = p.GetInt()
-        if nr_roq_points != -1:  # HPROM case
-            set_name = "{}".format(nr_roq_points)
+        nr_roc_points = p.GetInt()
+        if nr_roc_points != -1:  # HPROM case
+            set_name = "{}".format(nr_roc_points)
         else:  # ROM case
             set_name = "{}".format("ROM")
-        ip_set = numpy.loadtxt("roq_{}ip".format(set_name))
+        ip_set = numpy.loadtxt("roc_{}ip".format(set_name))
         for m in config["rve_data_modes"]:
             nr_modes = m.GetInt()
             rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, set_name)
@@ -205,16 +203,16 @@ if __name__ == "__main__":
             print("Generating {}".format(rve_data_filename))
             rve_params = pack.create_rve_params_structure(
                 strain_bases_fname,
-                rve_mdpa_filename,
                 rve_materials_filename,
                 nr_modes,
                 ip_set,
+                rve_modelpart,
             )
             io_utilities.write_json(rve_data_filename, rve_params)
 
     # generate stress reconstruction system
     # A = stress_reconstruction.compute_system(rve_data_filename, energy_bases_fname, integration_weights_filename)
-    # stress_reconstruction.util.write_numpy_file('correlation_stress_{}m_{}ip.npy'.format(nr_modes, nr_roq_points), 'binary', A)
+    # stress_reconstruction.util.write_numpy_file('correlation_stress_{}m_{}ip.npy'.format(nr_modes, nr_roc_points), 'binary', A)
 
     # from multiscale_rom_analysis import StructuralMechanicsAnalysis
     # settings = Kratos.Parameters("""
