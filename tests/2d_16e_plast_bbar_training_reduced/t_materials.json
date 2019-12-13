@@ -1,38 +1,36 @@
 {  
     "properties": [{
-        "model_part_name": "MATRIX",
+        "model_part_name": "Microstructure.MATRIX",
         "properties_id": 1,
         "Material": {
             "name": "matrix",
             "constitutive_law": {
-                "name": "LinearJ2PlasticityPlaneStrain2DLaw"
+                "name": "SmallStrainJ2PlasticityPlaneStrain2DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 21000.0,
                 "POISSON_RATIO": 0.3,
                 "YIELD_STRESS": 5.5,
-                "REFERENCE_HARDENING_MODULUS": 1.0,
                 "ISOTROPIC_HARDENING_MODULUS": 0.12924,
-                "INFINITY_HARDENING_MODULUS": 0.0,
+                "EXPONENTIAL_SATURATION_YIELD_STRESS": 0.0,
                 "HARDENING_EXPONENT": 1.0
                 },
             "Tables":  {}
             }
     },{
-        "model_part_name": "INCLUSION",
+        "model_part_name": "Microstructure.INCLUSION",
         "properties_id": 2,
         "Material": {
             "name": "inclusion",
             "constitutive_law": {
-                "name": "LinearJ2PlasticityPlaneStrain2DLaw"
+                "name": "SmallStrainJ2PlasticityPlaneStrain2DLaw"
             },
             "Variables": {
                 "YOUNG_MODULUS": 210.0,
                 "POISSON_RATIO": 0.2,
                 "YIELD_STRESS": 2.5,
-                "REFERENCE_HARDENING_MODULUS": 1.0,
                 "ISOTROPIC_HARDENING_MODULUS": 0.12924,
-                "INFINITY_HARDENING_MODULUS": 0.0,
+                "EXPONENTIAL_SATURATION_YIELD_STRESS": 0.0,
                 "HARDENING_EXPONENT": 1.0
                 },
             "Tables":  {}

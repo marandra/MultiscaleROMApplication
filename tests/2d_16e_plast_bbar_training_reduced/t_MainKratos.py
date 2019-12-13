@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.MultiscaleROMApplication
 import KratosMultiphysics.StructuralMechanicsApplication
-from structural_mechanics_analysis import StructuralMechanicsAnalysis
+import KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis as analysis
 
 if __name__ == "__main__":
 
@@ -12,5 +12,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model,parameters)
+    simulation = analysis.StructuralMechanicsAnalysis(model,parameters)
     simulation.Run()
