@@ -26,14 +26,13 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
         self._ConstructFaceModelParts(self.min_corner, self.max_corner, boundary_mp)
 
 
-    def InitializeSolutionStep(self):
-
+    def Initialize(self):
         # construct MPCs according to the provided strain
+        super(PBCAnalysis, self).Initialize()
         boundary_mp = self.model[self.boundary_mp_name]
         averaging_mp = self.model[self.averaging_mp_name]
         strain = KratosMultiphysics.Matrix(3, 3, 0.0)
         self._ApplyPeriodicity(strain, averaging_mp, boundary_mp)
-        super(PBCAnalysis, self).InitializeSolutionStep()
 
 
     def _DetectBoundingBox(self, mp):
