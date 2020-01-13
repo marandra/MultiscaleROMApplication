@@ -3,7 +3,7 @@
         "problem_name": "High_Fidelity",
         "parallel_type": "OpenMP",
         "start_time": 0.0,
-        "end_time": 0.099,
+        "end_time": 0.99,
         "echo_level": 0
     },
     "rve_settings"      : {

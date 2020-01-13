@@ -1,5 +1,5 @@
 #!/bin/bash
-STRAIN_SET="training_strain_set.dat"
+STRAIN_SET="_training_strain_set.dat"
 NR_TRAJ=`wc $STRAIN_SET | awk {'print $1'}`
 LAST_TRAJ=`expr $NR_TRAJ - 1` 
 LEN=${#LAST_TRAJ}
