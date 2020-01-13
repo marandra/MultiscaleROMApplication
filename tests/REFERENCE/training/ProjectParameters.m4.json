@@ -6,6 +6,11 @@
         "end_time": 0.99,
         "echo_level": 0
     },
+    "rve_settings"      : {
+        "boundary_mp_name": "Microstructure.SKIN",
+        "averaging_mp_name": "Microstructure.RVE",
+        "node_search_tolerance": 1e-6
+    },
     "solver_settings": {
         "model_part_name": "Microstructure",
         "domain_size": 3,
@@ -22,42 +27,24 @@
         "material_import_settings": {
             "materials_filename" : "materials.json"
         },
-        "line_search": false,
-        "convergence_criterion": "displacement_criterion",
-        "displacement_relative_tolerance": 1e-6,
-        "displacement_absolute_tolerance": 0.0,
-        "residual_relative_tolerance": 1e-4,
+        "line_search": true,
+        "convergence_criterion": "residual_criterion",
+        "residual_relative_tolerance": 0.0025,
         "residual_absolute_tolerance": 0.0,
-        "max_iteration": 10,
+        "max_iteration": 50,
         "linear_solver_settings": {
-            "solver_type": "ExternalSolversApplication.pastix",
-            "solution_method": "Direct",
-            "tolerance": 1e-6,
-            "gmres_krylov_space_dimension": 100,
-            "ilu_level_of_fill": 1,
-            "is_symmetric": false,
-            "verbosity": 0,
+            "solver_type": "amgcl",
+            "krylov_type": "cg",
             "scaling": false,
-            "block_size": 10000,
-            "use_block_matrices_if_possible": true
+            "verbosity": 0
         },
-        "problem_domain_sub_model_part_list": ["RVE", "MATRIX", "INCLUSION", "COHESIVE"],
-        "processes_sub_model_part_list": ["RVE", "PINNED", "FIXED_X", "FIXED_Y", "FIXED_Z", "MATRIX", "INCLUSION", "COHESIVE"],
         "rotation_dofs": false,
-        "compute_reactions": false,
+        "compute_reactions": true,
         "move_mesh_flag": false,
-        "block_builder": true,
-        "auxiliary_variables_list": ["LAGRANGE_MULTIPLIER_1", "LAGRANGE_MULTIPLIER_2", "LAGRANGE_MULTIPLIER_3", "LAGRANGE_MULTIPLIER_4", "LAGRANGE_MULTIPLIER_5", "LAGRANGE_MULTIPLIER_6", "LAGRANGE_DISPLACEMENT"]
+        "auxiliary_variables_list": ["LAGRANGE_DISPLACEMENT"]
         },
     "processes": {
         "my_processes": [{
-            "python_module": "lagrange_multiplier_process",
-            "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-            "process_name": "LagrangeMultiplierProcess",
-            "Parameters":{
-                "model_part_name": "Microstructure.RVE"
-                }
-            },{
             "python_module": "calculate_total_displacement_process",
             "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
             "process_name": "ComputeTotalDisplacementProcess",
@@ -113,40 +100,7 @@
                 "value": [0.0, 0.0, 0.0],
                 "interval": [0.0, "End"]
                 }
-        },{
-            "python_module": "assign_scalar_variable_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "AssignScalarVariableProcess",
-            "Parameters": {
-                "model_part_name": "Microstructure.FIXED_X",
-                "variable_name": "DISPLACEMENT_X",
-                "constrained": true,
-                "value": 0.0,
-                "interval": [0.0, "End"]
-                }
-            },{
-            "python_module": "assign_scalar_variable_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "AssignScalarVariableProcess",
-            "Parameters": {
-                "model_part_name": "Microstructure.FIXED_Y",
-                "variable_name": "DISPLACEMENT_Y",
-                "constrained": true,
-                "value": 0.0,
-                "interval": [0.0, "End"]
-                }
-            },{
-            "python_module": "assign_scalar_variable_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "AssignScalarVariableProcess",
-            "Parameters": {
-                "model_part_name": "Microstructure.FIXED_Z",
-                "variable_name": "DISPLACEMENT_Z",
-                "constrained": true,
-                "value": 0.0,
-                "interval": [0.0, "End"]
-                }
-            }],
+        }],
         "loads_process_list": [{
             "python_module": "impose_initial_strain_process",
             "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
@@ -156,7 +110,7 @@
                 "variable_name": "INITIAL_STRAIN",
                     "initial_strain": M4VAR_INITIALSTRAIN,
                     "lookuptable_time": [0.0, 1.0],
-                    "lookuptable_mult": [0.0, 1.0]
+                    "lookuptable_mult": [0.0, 0.1]
                     }
             }]
     },
@@ -168,15 +122,9 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name": "Microstructure.RVE",
-                "output_name": "Multiscale",
+                "output_name": "HighFidelity",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostAscii",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
                         "file_label"          : "time",
                         "output_control_type" : "step",
                         "output_frequency"    : 1,
@@ -184,12 +132,12 @@
                         "node_output"         : true,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results": ["DISPLACEMENT", "REACTION"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "ACCUMULATED_PLASTIC_STRAIN", "DAMAGE_VARIABLE"]
-                    },
+                        "nodal_results": ["DISPLACEMENT", "REACTION", "LAGRANGE_DISPLACEMENT"],
+                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_VECTOR", "CAUCHY_STRESS_VECTOR", "DAMAGE_VARIABLE"]
+                        },
                     "point_data_configuration"  : []
-                }
-            }
+                    }
+               }
         }],
         "vtk_output" : [{
             "python_module" : "vtk_output_process",
@@ -205,10 +153,8 @@
                 "output_sub_model_parts": true,
                 "folder_name": "vtk_output",
                 "save_output_files_in_folder": true,
-                "nodal_solution_step_data_variables": ["DISPLACEMENT", "REACTION"],
-                "nodal_data_value_variables": [],
-                "element_data_value_variables": ["GREEN_LAGRANGE_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "ACCUMULATED_PLASTIC_STRAIN", "DAMAGE_VARIABLE"],
-                "condition_data_value_variables": []
+                "nodal_solution_step_data_variables": ["DISPLACEMENT", "REACTION", "LAGRANGE_DISPLACEMENT"],
+                "gauss_point_variables_extrapolated_to_nodes": ["GREEN_LAGRANGE_STRAIN_VECTOR", "CAUCHY_STRESS_VECTOR","DAMAGE_VARIABLE", "STRAIN_ENERGY"]
             }
         }]
     },

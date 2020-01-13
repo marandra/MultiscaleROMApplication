@@ -1,6 +1,10 @@
+0.
+Choose strain set for training (called training_strain_set.dat)
+$ cp training_strain_set/training_strain_set.dat.41 training_strain_set.dat
+
 1.
 Create trajectory directories
-$ bash 0_xxxx.bash
+$ bash 0_make_trajectories.bash
 
 
 2.

@@ -10,14 +10,14 @@
             "Variables": {
                 "YOUNG_MODULUS": 3790.0,
                 "POISSON_RATIO": 0.37,
-                "YIELD_STRESS": 10000.0,
-                "INFINITY_YIELD_STRESS": 20000.0,
-                "HARDENING_MODULI_VECTOR": [0.1, 0.1]
+                "YIELD_STRESS": 200.0,
+                "INFINITY_YIELD_STRESS": 220.0,
+                "HARDENING_MODULI_VECTOR": [0.1, 1e-2]
                 },
             "Tables":  {}
             }
     }, {
-        "model_part_name": "Microstructure.INCLUSION",
+        "model_part_name": "Microstructure.FIBER",
         "properties_id": 1,
         "Material": {
             "name": "inclusion",
@@ -27,8 +27,8 @@
             "Variables": {
                 "YOUNG_MODULUS": 72000.0,
                 "POISSON_RATIO": 0.25,
-                "YIELD_STRESS": 10000.0,
-                "INFINITY_YIELD_STRESS": 20000.0,
+                "YIELD_STRESS": 20000.0,
+                "INFINITY_YIELD_STRESS": 20001.0,
                 "HARDENING_MODULI_VECTOR": [0.1, 0.1]
                 },
             "Tables":  {}
@@ -46,7 +46,24 @@
                 "POISSON_RATIO": 0.37,
                 "YIELD_STRESS": 100.0,
                 "INFINITY_YIELD_STRESS": 100.1,
-                "HARDENING_MODULI_VECTOR": [1e-4, 1e-4]
+                "HARDENING_MODULI_VECTOR": [1e-2, 1e-2]
+                },
+            "Tables":  {}
+            }
+    }, {
+        "model_part_name": "Microstructure.INTERPLY",
+        "properties_id": 4,
+        "Material": {
+            "name": "inclusion",
+            "constitutive_law": {
+                "name": "SmallStrainIsotropicDamageTractionOnly3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 3790.0,
+                "POISSON_RATIO": 0.37,
+                "YIELD_STRESS": 100.0,
+                "INFINITY_YIELD_STRESS": 100.1,
+                "HARDENING_MODULI_VECTOR": [1e-2, 1e-2]
                 },
             "Tables":  {}
             }

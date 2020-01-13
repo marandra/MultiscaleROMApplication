@@ -1,9 +1,9 @@
 #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
+import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.MultiscaleROMApplication
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+import KratosMultiphysics.MultiscaleROMApplication.periodic_bc_analysis as periodic_bc_analysis
 
 """
 For user-scripting it is intended that a new class is derived
@@ -16,5 +16,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model,parameters)
+    simulation = periodic_bc_analysis.PBCAnalysis(model,parameters)
     simulation.Run()
