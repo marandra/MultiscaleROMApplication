@@ -10,7 +10,6 @@ do
 	echo "time python3 MainKratos.py > outMainKratos 2>&1" >> tmp_$TRJ.bash
         echo "cd .." >> tmp_$TRJ.bash
         echo "rm tmp_$TRJ.bash" >> tmp_$TRJ.bash
-        cat tmp_$TRJ.bash
 done
 
 for TRJ in trajectory_*

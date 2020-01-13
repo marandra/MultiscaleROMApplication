@@ -1,6 +1,6 @@
 0.
 Choose strain set for training (called training_strain_set.dat)
-$ cp training_strain_set/training_strain_set.dat.41 training_strain_set.dat
+$ cp _training_strain_sets/training_strain_set.dat.41 training_strain_set.dat
 
 1.
 Create trajectory directories
@@ -9,10 +9,10 @@ $ bash 0_make_trajectories.bash
 
 2.
 If running in local desktop:
-$ bash 1a_xxxx.bash
+$ bash 1a_run_trjectories.bash
 you need to set the for loop accordingly to the number of cores
 
 If running on acuario:
-$ sbatch 1b_xxxxx.bash
-you need to set the slurm options, accordingly to the case (default set to fiber2)
+$ sbatch 1b_slurm_trajectories.bash
+you need to set the slurm options, accordingly to the case.
 
