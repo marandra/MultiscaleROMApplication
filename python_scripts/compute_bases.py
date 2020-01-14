@@ -1,3 +1,4 @@
+import os
 import time
 import glob
 import numpy as np
@@ -103,12 +104,13 @@ def compute_modes(
         logger.info("SVD time: {:.1f}s".format(time.time() - t0))
 
     logger.info("    - SVD time: {:.1f}s".format(time.time() - t0))
-    # logger.info("    - singular value of selected modes:")
-    # logger.info("      {}".format(S[:nr_modes]))
-    # logger.info("      validation: following singular values (excluded):")
-    # logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
+    logger.info("    - singular value of selected modes:")
+    logger.info("      {}".format(S[:nr_modes]))
+    #logger.info("      validation: following singular values (excluded):")
+    #logger.info("      {}".format(S[nr_modes: nr_modes + 4]))
     logger.info("    - nr and size of modes: {}, {}".format(U.shape[1], U.shape[0]))
     logger.info("")
+    np.savetxt("singular_values.dat", S)
 
     return U
 
@@ -133,6 +135,7 @@ def generate_bases(
             nr_components=nr_strain_components,
             svd_algorithm=svd_algorithm,
         )
+        os.rename("singular_values.dat", "singular_values_elastic.dat")
         logger.info("Processing inelastic snapshots")
         Ui = compute_modes(
             nr_ips,
@@ -142,6 +145,7 @@ def generate_bases(
             Ue=Ue,
             svd_algorithm=svd_algorithm,
         )
+        os.rename("singular_values.dat", "singular_values_inelastic.dat")
         U = np.hstack([Ue, Ui])
     else:
         logger.info(

@@ -1,5 +1,6 @@
 # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
+import os
 import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.MultiscaleROMApplication
@@ -129,6 +130,17 @@ if __name__ == "__main__":
             energy_bases_fname,
             svd_algorithm=svd_algorithm,
         )
+        #rename singular values file
+        try:
+            os.rename("singular_values_elastic.dat", "sv_energy_elastic_{}.dat".format(nr_elastic_modes))
+            os.rename("singular_values_inelastic.dat", "sv_energy_inelastic_{}.dat".format(nr_inelastic_modes))
+        except FileNotFoundError:
+            pass
+        try:
+            os.rename("singular_values.dat", "sv_energy_{}.dat".format(nr_elastic_modes+nr_inelastic_modes))
+        except FileNotFoundError:
+            pass
+
     #
     # compute strain bases
     #
@@ -156,6 +168,17 @@ if __name__ == "__main__":
             strain_bases_fname,
             svd_algorithm=svd_algorithm,
         )
+        #rename singular values file
+        try:
+            os.rename("singular_values_elastic.dat", "sv_strain_elastic_{}.dat".format(nr_elastic_modes))
+            os.rename("singular_values_inelastic.dat", "sv_strain_inelastic_{}.dat".format(nr_inelastic_modes))
+        except FileNotFoundError:
+            pass
+        try:
+            os.rename("singular_values.dat", "sv_strain_{}.dat".format(nr_elastic_modes+nr_inelastic_modes))
+        except FileNotFoundError:
+            pass
+
     #
     # compute ip set
     #
