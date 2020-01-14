@@ -41,6 +41,7 @@ class WriteElementsOutputScalar(km.Process):
             os.remove(self.filename)
         except OSError:
             pass
+        self.write_results()
 
     def ExecuteInitializeSolutionStep(self):
         pass

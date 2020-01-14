@@ -14,6 +14,4 @@ do
         m4 -DM4VAR_INITIALSTRAIN="${STRAIN_VECTOR}" ProjectParameters.m4.json > ProjectParameters.json
         mv ProjectParameters.json $TRAJ
 	cp materials.json model.mdpa MainKratos.py $TRAJ
-        echo 0 > elastic_timesteps
-        mv elastic_timesteps $TRAJ
 done
