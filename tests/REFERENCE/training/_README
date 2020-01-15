@@ -1,6 +1,6 @@
 0.
 Choose strain set for training (called training_strain_set.dat)
-$ cp _training_strain_sets/training_strain_set.dat.41 training_strain_set.dat
+$ cp _training_strain_sets/training_strain_set.dat.41 _training_strain_set.dat
 
 1.
 Create trajectory directories
