@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import argparse
 
@@ -49,17 +50,23 @@ def compute_mean_square_error(comp, ref):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Computes several error measurements of homogenized tension.")
-    parser.add_argument('ref_ht', help="reference homogenized tension filename (numpy format)")
-    parser.add_argument('comp_ht', help="computed homogenized tension filename (numpy format)")
-    args = parser.parse_args()
-
-    hf = np.loadtxt(args.ref_ht)
-    hprom = np.loadtxt(args.comp_ht)
-    np.set_printoptions(linewidth=120, precision=3)
-
-    #print("MRE: {}".format(compute_mean_relative_error(hprom, hf)))
-    print("MNE: {}".format(compute_mean_normalized_error(hprom, hf)))
-    #print("MAE: {}".format(compute_mean_absolute_error(hprom, hf)))
-    #print("MSE: {}".format(compute_mean_square_error(hprom, hf)))
+    #parser = argparse.ArgumentParser(description="Computes several error measurements of homogenized tension.")
+    #parser.add_argument('ref_ht', help="reference homogenized tension filename (numpy format)")
+    #parser.add_argument('comp_ht', help="computed homogenized tension filename (numpy format)")
+    #args = parser.parse_args()
+    if len(sys.argv) < 3:
+        print("Computes several error measurements of homogenized tension.")
+        print("arguments: reference measurement1 [measurement2 [measuremente3 [...]]]")
+        sys.exit()
+    compute_error = compute_mean_normalized_error
+    #compute_error = compute_mean_square_error
+    #compute_error = compute_mean_relative_error
+    #compute_error = compute_mean_absolute_error
+    np.set_printoptions(linewidth=1200, precision=3)
+    f = sys.argv[1]
+    ref = np.loadtxt(f)
+    for f in sys.argv[2:]:
+        print(f)
+        measurement = np.loadtxt(f)
+        print("{:.3e}".format(np.max(compute_error(measurement, ref)[6:])))
 
