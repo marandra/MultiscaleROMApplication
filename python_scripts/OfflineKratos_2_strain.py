@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.MultiscaleROMApplication
-from multiscale_rom_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.MultiscaleROMApplication.multiscale_rom_analysis import StructuralMechanicsAnalysis
 
 """
 For user-scripting it is intended that a new class is derived
