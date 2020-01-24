@@ -9,6 +9,11 @@ mesh = meshio.read(i_filename)
 print(mesh)
 print("")
 
+print("*********** WIP notice *************")
+print("Elements currently implemented:")
+print("   hexahedron")
+print("   quad")
+print("************************************")
 with open(o_filename, "w") as fo:
 
     fo.write("Begin ModelPartData\n")
