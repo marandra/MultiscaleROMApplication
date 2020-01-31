@@ -15,3 +15,6 @@ If running on acuario:
 $ sbatch 1b_slurm_trajectories.bash
 you need to set the slurm options, accordingly to the case.
 
+Step 3:
+After computing cases, mv cases no to be included in training to "validation" directory:
+$ mv trajectory_40 validation
