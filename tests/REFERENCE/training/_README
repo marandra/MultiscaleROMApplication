@@ -1,16 +1,15 @@
-0.
+Step 0:
 Choose strain set for training (called training_strain_set.dat)
 $ cp _training_strain_sets/training_strain_set.dat.41 _training_strain_set.dat
 
-1.
+Step 1:
 Create trajectory directories
-$ bash 0_make_trajectories.bash
+$ python _0_make_trajectories.py
 
 
-2.
+Step 2:
 If running in local desktop:
-$ bash 1a_run_trjectories.bash
-you need to set the for loop accordingly to the number of cores
+$ bash _1a_run_trjectories.bash
 
 If running on acuario:
 $ sbatch 1b_slurm_trajectories.bash
