@@ -62,7 +62,7 @@ if __name__ == "__main__":
     logger.debug("Number of timesteps detected: {}".format(nr_timesteps))
     logger.debug("Number of modes detected: {}".format(nr_modes))
 
-    filename = args.mdpa_file.rsplit(".", 1)[0] + ".xdmf"
+    filename = "rve_reconstructed.xdmf"
     with meshio.XdmfTimeSeriesWriter(filename) as writer:
         writer.write_points_cells(rve_nodes, rve_elems)
         for t in range(nr_timesteps):

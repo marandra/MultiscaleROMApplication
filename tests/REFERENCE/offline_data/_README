@@ -1,0 +1,7 @@
+Step 1:
+Check / edit configuration
+$ vim 1_ProjectParameters.json
+
+Step 2:
+Generate bases
+$ python ~
