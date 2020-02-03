@@ -58,6 +58,7 @@ private:
     // elements
     const SmallDisplacementCustom mSmallDisplacementCustom2D4N;
     const SmallDisplacementCustom mSmallDisplacementCustom3D8N;
+    const SmallDisplacementCustom mSmallDisplacementCustom3D6N;
 
     // restrictions
     //const MinimalKineticCondition2D mMinimalKineticCondition2D3N;
