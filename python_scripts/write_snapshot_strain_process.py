@@ -57,6 +57,26 @@ class WriteSnapshotStrain(Kratos.Process):
             ofile.write(b'\n')
         ofile.close()
 
+
+    def write_starting_element_index(self, filename):
+        for elem in self.model_part.Elements:
+            nr_comp = len(elem.GetValuesOnIntegrationPoints(
+                Kratos.GREEN_LAGRANGE_STRAIN_VECTOR,
+                self.model_part.ProcessInfo)[0])
+            break
+        idx_vector = []
+        count = 0
+        for elem in self.model_part.Elements:
+            idx_vector.append(count)
+            nr_ips = len(elem.GetValuesOnIntegrationPoints(
+                Kratos.GREEN_LAGRANGE_STRAIN_VECTOR,
+                self.model_part.ProcessInfo))
+            count = count + nr_ips * nr_comp
+        with open(filename, "w") as ofile:
+            for idx in idx_vector:
+                ofile.write('{}\n'.format(idx))
+
+
     def ExecuteInitialize(self):
         try:
             os.remove(self.filename)
@@ -82,6 +102,7 @@ class WriteSnapshotStrain(Kratos.Process):
     def ExecuteFinalizeSolutionStep(self):
         if self.write_frequency == "every_timestep":
             self.write_results(self.filename + self.time)
+        self.write_starting_element_index("element_global_index")
 
     def ExecuteFinalize(self):
         if self.write_frequency == "last_timestep":
