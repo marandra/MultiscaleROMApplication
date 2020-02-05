@@ -35,8 +35,7 @@ if __name__ == "__main__":
 
     logger.info("Loading RVE node info")
     mesh = meshio.read(args.mdpa_file)
-    # The "+ 1" is a workaround, as meshio assumes nodes start in 1 in mdpa, but we started in 0
-    rve_elems = {"hexahedron": mesh.cells["line8"] + 1}
+    rve_elems = {"hexahedron": mesh.cells["line8"], "wedge": mesh.cells["line6"]}
     rve_nodes = mesh.points
 
     logger.info("Loading strain-displacement correlation data")
@@ -69,7 +68,7 @@ if __name__ == "__main__":
             logger.info("Timestep {}".format(t))
 
             logger.debug("Solving fluctuant displacement")
-            displacement = numpy.dot(strain_correl, rve_interpolation_params[t, :])
+            displacement = numpy.dot(strain_correl[:, :nr_modes], rve_interpolation_params[t, :])
             displacement = numpy.reshape(displacement, (-1, 3))
 
             logger.debug("Solving total displacement")

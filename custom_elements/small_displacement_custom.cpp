@@ -114,10 +114,12 @@ void SmallDisplacementCustom::CalculateAll(
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
 
         const Matrix& r_global_modes = rCurrentProcessInfo.GetValue(GLOBAL_MODES_MATRIX);
+        const Vector& global_start_index_vector = rCurrentProcessInfo.GetValue(GLOBAL_INDEX_VECTOR);
         const int& r_mode_index = rCurrentProcessInfo.GetValue(MODE_INDEX);
         const IndexType element_index = this->Id();
         const int nr_components = this_constitutive_variables.StressVector.size();
-        const int global_index = (element_index - 1) * nr_components * integration_points.size() + point_number * nr_components;
+        //const int global_index = (element_index - 1) * nr_components * integration_points.size() + point_number * nr_components;
+        const int global_index = global_start_index_vector(element_index - 1) + point_number * nr_components;
         Vector ip_mode(nr_components);
         for (int i_component = 0; i_component < nr_components; ++i_component) {
             ip_mode[i_component] = r_global_modes(global_index + i_component, r_mode_index);
