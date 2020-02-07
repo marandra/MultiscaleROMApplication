@@ -12,7 +12,8 @@ def append_to_json(filename, new_data):
    data = io_utilities.read_json(filename)
    data["interpolation_parameters"].append(new_data["interpolation_parameters"])
    data["macro_strain"].append(new_data["macro_strain"])
-   data["stress"].append(new_data["stress"])
+   data["strain_energy"].append(new_data["strain_energy"])
+   #data["stress"].append(new_data["stress"])
    io_utilities.write_json(filename, data)
 
 class WriteRveReconstructionData(Kratos.Process):
@@ -41,7 +42,8 @@ class WriteRveReconstructionData(Kratos.Process):
         self.data = {}
         self.data["interpolation_parameters"] = []
         self.data["macro_strain"] = []
-        self.data["stress"] = []
+        self.data["strain_energy"] = []
+        #self.data["stress"] = []
         io_utilities.write_json(self.filename, self.data)
 
     def ExecuteInitializeSolutionStep(self):
@@ -67,10 +69,17 @@ class WriteRveReconstructionData(Kratos.Process):
                 ip_data = elem.GetValuesOnIntegrationPoints(
                     Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo)
                 self.data["macro_strain"] = ip_data[self.ip]
-                # Get stress vector list
-                ip_data = elem.GetValuesOnIntegrationPoints(
-                    MultiscaleROM.CAUCHY_STRESS_VECTOR_LIST, self.model_part.ProcessInfo)
-                self.data["stress"] = ip_data[self.ip]
+                # Get strain energy list
+                ip_data = elem.CalculateOnIntegrationPoints(MultiscaleROM.STRAIN_ENERGY_VECTOR, self.model_part.ProcessInfo)
+                tmp_Vector = ip_data[self.ip]
+                tmp_list = []
+                for i in tmp_Vector:
+                    tmp_list.append(i)
+                self.data["strain_energy"] = tmp_list
+#                # Get stress vector list
+#                ip_data = elem.GetValuesOnIntegrationPoints(
+#                    MultiscaleROM.CAUCHY_STRESS_VECTOR_LIST, self.model_part.ProcessInfo)
+#                self.data["stress"] = ip_data[self.ip]
         append_to_json(self.filename, self.data)
 
     def ExecuteFinalize(self):
