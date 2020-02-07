@@ -35,12 +35,17 @@ def load_energy_modes(energy_modes_filename, reduced_ip_set):
 def compute_stress_reconstruction_system(reduced_ip_set, reduced_ip_weights, energy_modes, reduced_energy_modes, integration_weights_filename ):
     logger.info("Computing COMPLETE system")
     logger.debug("-- A = reduced modes.T * weights * reduced modes")
-    ip_weights = io_utilities.read_numpy_file(integration_weights_filename, 'ascii')
-    ip_weights_diag = numpy.diag(ip_weights)
+    #ip_weights = io_utilities.read_numpy_file(integration_weights_filename, 'ascii')
+    #ip_weights_diag = numpy.diag(ip_weights)
     reduced_ip_weights_diag = numpy.diag(reduced_ip_weights)
-    weighted_energy_modes_transposed = numpy.dot(energy_modes.T, ip_weights_diag)
+
+
+    #weighted_energy_modes_transposed = numpy.dot(energy_modes.T, ip_weights_diag)
     weighted_reduced_energy_modes_transposed = numpy.dot(reduced_energy_modes.T, reduced_ip_weights_diag)
-    A = numpy.dot(weighted_energy_modes_transposed, energy_modes)
+    #A = numpy.dot(weighted_energy_modes_transposed, energy_modes)
+    A = numpy.dot(weighted_reduced_energy_modes_transposed, reduced_energy_modes)
+
+
     logger.debug("-- checking A is not singular")
     rankA = numpy.linalg.matrix_rank(A)
     logger.debug("A: {}".format(numpy.shape(A)))
@@ -52,7 +57,8 @@ def compute_stress_reconstruction_system(reduced_ip_set, reduced_ip_weights, ene
     Ainv = numpy.linalg.inv(A)
     logger.debug("-- modes * invA * modes.T * weights ")
     aux_1 = numpy.dot(Ainv, weighted_reduced_energy_modes_transposed)
-    return aux_1
+    aux_2 = numpy.dot(energy_modes, aux_1)
+    return aux_2
 
 
 def compute_system(rve_data_filename, energy_modes_filename, integration_weights_filename):
@@ -75,14 +81,15 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     # parse command line arguments
-    parser = argparse.ArgumentParser(description="Computes     matrices for the reconstruction of the stress")
-    parser.add_argument('rve_data', help="rve post-processing     data filename (.json)")
-    parser.add_argument('integration_weights',     help="integration weights filename")
+    parser = argparse.ArgumentParser(description="Computes data necessary for later reconstruction of the energy")
+    parser.add_argument('rve_data', help="rve post-processing data filename (.json)")
+    #parser.add_argument('integration_weights', help="integration weights filename")
     parser.add_argument('energy_modes',     help="energy_modes_filename (binary .npy)")
     parser.add_argument('-v', '--verbose',     action="store_true", help="shows debug information")
     args = parser.parse_args()
 
 
-    A = compute_system(args.rve_data, args.energy_modes, args.integration_weights)
+    #A = compute_system(args.rve_data, args.energy_modes, args.integration_weights)
+    A = compute_system(args.rve_data, args.energy_modes, None)
     logger.info("Saving system")
-    io_utilities.write_numpy_file('reconstruct_stress_binary.npy', 'binary', A)
+    io_utilities.write_numpy_file('correlation_energy.npy', 'binary', A)
