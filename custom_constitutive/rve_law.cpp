@@ -661,6 +661,48 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
 //************************************************************************************
 //************************************************************************************
 
+Vector& RVELaw::CalculateValue(
+        ConstitutiveLaw::Parameters& rValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+)
+{
+    if (rThisVariable == STRAIN_ENERGY_VECTOR) {
+        const std::size_t nr_points = mB_vec.size();
+
+        if (rValue.size() != nr_points)
+            rValue.resize(nr_points, false);
+        rValue.clear();
+
+        const ProcessInfo& process_info = rValues.GetProcessInfo();
+        const Vector& strain_macro = rValues.GetStrainVector(); // input
+
+        for (std::size_t i = 0; i < nr_points; i++) {
+            double dummy;
+            double& strain_energy = dummy;
+
+
+            const Properties material_props = mProperties_map[mPropId_vec[i]];
+            ConstitutiveLaw::Parameters cl_params;
+            cl_params.SetMaterialProperties(material_props);
+
+            Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+            cl_params.SetStrainVector(strain);
+
+            cl_params.SetProcessInfo(process_info);
+
+            mCL_vec[i]->CalculateValue(cl_params, STRAIN_ENERGY, strain_energy);
+
+
+            rValue[i] = strain_energy;
+        }
+    }
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 Matrix& RVELaw::CalculateValue(
     ConstitutiveLaw::Parameters& rValues,
     const Variable<Matrix>& rThisVariable,

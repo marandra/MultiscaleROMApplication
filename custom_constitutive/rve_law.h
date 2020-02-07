@@ -112,6 +112,16 @@ public:
             const Variable<Vector>& rThisVariable,
             const Vector& rValue,
             const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+      * @brief calculates the value of a specified variable
+      * @param rValues the needed parameters for the CL calculation
+      * @param rThisVariable the variable to be returned
+      * @param rValue a reference to the returned value
+      * @return rValue output: the value of the specified variable
+      */
+    Vector& CalculateValue(Parameters& rValues,
+                           const Variable<Vector>& rThisVariable,
+                           Vector& rValue) override;
 
     /**
      * @brief calculates the value of a specified variable
