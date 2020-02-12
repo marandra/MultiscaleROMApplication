@@ -35,6 +35,7 @@ if __name__ == "__main__":
 
     logger.info("Loading RVE node info")
     mesh = meshio.read(args.mdpa_file)
+    # ARREGLAR EL TEMA DEL NODO 0
     rve_elems = {"hexahedron": mesh.cells["line8"], "wedge": mesh.cells["line6"]}
     rve_nodes = mesh.points
 

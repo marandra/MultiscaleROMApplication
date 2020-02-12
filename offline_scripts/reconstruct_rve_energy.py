@@ -16,7 +16,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument("mdpa_file", help="the .mdpa model used in training)")
 parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
 parser.add_argument('correlation_energy', help="energy correlation matrix (.npy)")
-parser.add_argument("rve_data", help="RVE reconstruction data file (.json)")
+parser.add_argument("rve_data", help="multiscale runtime reconstruction data file (.json)")
+parser.add_argument("rve_data", help="multiscale runtime reconstruction data file (.json)")
+parser.add_argument("strain_modes", help="strain modes")
 parser.add_argument(
     "-v", "--verbose", action="store_true", help="shows debug information"
 )
@@ -35,18 +37,14 @@ if __name__ == "__main__":
 
     logger.info("Loading RVE node info")
     mesh = meshio.read(args.mdpa_file)
-    rve_elems = {"hexahedron": mesh.cells["line8"]}
+    rve_elems = {"hexahedron": mesh.cells["line8"] + 1}
     #rve_elems = {"hexahedron": mesh.cells["line8"], "wedge": mesh.cells["line6"]}
     #rve_elems = [("hexahedron", mesh.cells["line8"]), ("wedge", mesh.cells["line6"]), ("hexahedron", mesh.cells["line8"])]
     rve_nodes = mesh.points
 
-    logger.info("Loading strain-displacement correlation data")
+    logger.info("Loading data")
     strain_correl = numpy.load(args.correlation_strain)
-
-    logger.info("Loading energy correlation data")
     energy_correl = numpy.load(args.correlation_energy)
-
-    logger.info("Loading RVE data")
     data = io_utilities.read_json(args.rve_data)
     rve_interpolation_params = numpy.array(data["interpolation_parameters"])
     logger.debug(rve_interpolation_params)
@@ -61,6 +59,7 @@ if __name__ == "__main__":
     nr_modes = numpy.shape(rve_interpolation_params)[1]
     logger.debug("Number of timesteps detected: {}".format(nr_timesteps))
     logger.debug("Number of modes detected: {}".format(nr_modes))
+    strain_modes = numpy.load(args.strain_modes)[:, :nr_modes]
 
     filename = "rve_reconstructed.xdmf"
     with meshio.XdmfTimeSeriesWriter(filename) as writer:
@@ -88,11 +87,23 @@ if __name__ == "__main__":
 
             logger.info("Solving energy field")
             reduced_energy = rve_energy[t, :]
-            energy = numpy.dot(energy_correl, reduced_energy)
-            print(numpy.shape(energy_correl))
-            # TEMP format to XDMF standard
+            energy = numpy.dot(energy_correl, reduced_energy) # Vector. cada entrada es un punto de gauss
+            # Hasta aqui Ok. Ahora chapuzas para visualizar en nodos
             energy_in_elem = numpy.reshape(energy, (-1, 8))
-            energy_list = [list(x) for x in list(energy_in_elem)]
+            mean_energy = numpy.mean(energy_in_elem, axis=1)
+            mean_energy = numpy.reshape(mean_energy, (-1,1))
+
+            logger.debug("Solving damage")
+            #ACA AGRUPAR POR ELEMENTO; VER COMO CONSEGUIR C
+            #for pg in PGs:
+            strain = numpy.dot(strain_modes, rve_interpolation_params[t, :])
+            C = numpy.identity(6)
+            aux_1 = numpy.dot(C, strain)
+            damage = numpy.dot(strain, aux_1)
+
+            damage = numpy.reshape(damage, (-1, 8))
+            mean_damage = numpy.mean(damage, axis=1)
+            mean_damage = numpy.reshape(mean_damage, (-1,1)) # formatting for meshio
 
             logger.debug("Writing timestep data")
             writer.write_data(
@@ -104,8 +115,9 @@ if __name__ == "__main__":
                 cell_data={
                     #[("triangle", [[0, 1, 2], ...])]
                     #[("hexahedra", [[0, 1, 2, 3, 4, 5, 6, 7], ...]), ("wedge", [[0, 1, 2, 3, 4, 5],[],..])]
-                    "STRAIN_ENERGY": {"hexahedron": energy_in_elem}
+                    "nosequees": {"STRAIN_ENERGY": mean_energy}
                     #numpy.reshape(displacement, (-1, 3)),
                 },
             )
+            break
 
