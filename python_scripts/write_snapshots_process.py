@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 import h5py
 
 
@@ -10,44 +11,88 @@ class WriteSnapshots(KratosMultiphysics.Process):
     def __init__(self, settings, model):
         KratosMultiphysics.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = KratosMultiphysics.Parameters(
+            """
         {
             "model_part_name": "unset_model_part_name",
             "filename": "snapshots.hdf5"
         }
-        """)
+        """
+        )
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = model[settings['model_part_name'].GetString()]
-        self.filename = settings['filename'].GetString()
+        self.model_part = model[settings["model_part_name"].GetString()]
+        self.filename = settings["filename"].GetString()
 
+    def has_damaged_elements(self):
+        for elem in self.model_part.Elements:
+            flag = elem.CalculateOnIntegrationPoints(
+                KratosMultiphysics.DAMAGE_VARIABLE, self.model_part.ProcessInfo
+            )
+            if True in [x > 0.0 for x in flag]:
+                return True
 
-    def write_strain(self, time):
+            flag = elem.GetValuesOnIntegrationPoints(
+                KratosMultiphysics.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN,
+                self.model_part.ProcessInfo,
+            )
+            if True in [x > 0.0 for y in flag for x in y]:
+                return True
+
+    def write_strain(self, group):
         data_list = []
         strain_macro = self.model_part.ProcessInfo[KratosMultiphysics.INITIAL_STRAIN]
         for elem in self.model_part.Elements:
             strain_vectors = elem.GetValuesOnIntegrationPoints(
                 KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR,
-                self.model_part.ProcessInfo)
+                self.model_part.ProcessInfo,
+            )
             for strain_ip in strain_vectors:
                 for i, strain_i in enumerate(strain_ip):
                     strain_fluctuant_i = strain_i - strain_macro[i]
                     data_list.append(strain_fluctuant_i)
-        with h5py.File(self.filename, 'a') as f:
-            f.create_dataset("strain/{}".format(time), data=data_list)
+        with h5py.File(self.filename, "a") as f:
+            f.create_dataset(
+                "{}/STRAIN_FLUCTUANT/{}".format(group, self.timestep_counter),
+                data=data_list
+            )
 
-    def write_energy_strain(self, time):
+    def write_energy_strain(self, group):
         data_list = []
         for elem in self.model_part.Elements:
             strain_energy_values = elem.GetValuesOnIntegrationPoints(
-                KratosMultiphysics.STRAIN_ENERGY, self.model_part.ProcessInfo)
+                KratosMultiphysics.STRAIN_ENERGY, self.model_part.ProcessInfo
+            )
             for strain_energy_ip in strain_energy_values:
                 data_list.append(strain_energy_ip[0])
-        with h5py.File(self.filename, 'a') as f:
-           f.create_dataset("energy_strain/{}".format(time), data=data_list)
+        with h5py.File(self.filename, "a") as f:
+            f.create_dataset(
+                "{}/ENERGY_FREE/{}".format(group, self.timestep_counter),
+                data=data_list,
+            )
 
+
+    def write_damage(self, group):
+        data_list = []
+        for elem in self.model_part.Elements:
+            strain_energy_values = elem.GetValuesOnIntegrationPoints(
+                KratosMultiphysics.DAMAGE_VARIABLE, self.model_part.ProcessInfo
+            )
+            for strain_energy_ip in strain_energy_values:
+                data_list.append(strain_energy_ip[0])
+        with h5py.File(self.filename, "a") as f:
+            f.create_dataset(
+                "{}/DAMAGE/{}".format(group, self.timestep_counter),
+                data=data_list,
+            )
+
+    ###########################################################
+    ###########################################################
 
     def ExecuteInitialize(self):
+        self.timestep_counter = 1
+        self.inelastic_flag = False
+        # Create new file
         h5py.File(self.filename, "w").close()
 
     def ExecuteInitializeSolutionStep(self):
@@ -63,9 +108,20 @@ class WriteSnapshots(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        time = "{:.3f}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        self.write_strain(time)
-        self.write_energy_strain(time)
+        if not self.inelastic_flag:
+            self.inelastic_flag = self.has_damaged_elements()
 
-    def ExecuteFinalize(self):
+        if not self.inelastic_flag:
+            group = "ELASTIC"
+            self.write_strain(group)
+            self.write_energy_strain(group)
+        else:
+            group = "INELASTIC"
+            self.write_strain(group)
+            self.write_energy_strain(group)
+            self.write_damage(group)
+
+        self.timestep_counter += 1
+
+def ExecuteFinalize(self):
         pass
