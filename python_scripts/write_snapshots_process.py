@@ -57,7 +57,7 @@ class WriteSnapshots(KratosMultiphysics.Process):
                 data=data_list
             )
 
-    def write_energy_strain(self, group):
+    def write_energy(self, group):
         data_list = []
         for elem in self.model_part.Elements:
             strain_energy_values = elem.GetValuesOnIntegrationPoints(
@@ -72,17 +72,17 @@ class WriteSnapshots(KratosMultiphysics.Process):
             )
 
 
-    def write_damage(self, group):
+    def write_rvalue(self, group):
         data_list = []
         for elem in self.model_part.Elements:
-            strain_energy_values = elem.GetValuesOnIntegrationPoints(
-                KratosMultiphysics.DAMAGE_VARIABLE, self.model_part.ProcessInfo
+            values = elem.GetValuesOnIntegrationPoints(
+                KratosMultiphysics.INTERNAL_VARIABLES, self.model_part.ProcessInfo
             )
-            for strain_energy_ip in strain_energy_values:
-                data_list.append(strain_energy_ip[0])
+            for value_ip in values:
+                data_list.append(value_ip[0])
         with h5py.File(self.filename, "a") as f:
             f.create_dataset(
-                "{}/DAMAGE/{}".format(group, self.timestep_counter),
+                "{}/R_VALUE/{}".format(group, self.timestep_counter),
                 data=data_list,
             )
 
@@ -114,12 +114,13 @@ class WriteSnapshots(KratosMultiphysics.Process):
         if not self.inelastic_flag:
             group = "ELASTIC"
             self.write_strain(group)
-            self.write_energy_strain(group)
+            self.write_energy(group)
+            self.write_rvalue(group)
         else:
             group = "INELASTIC"
             self.write_strain(group)
-            self.write_energy_strain(group)
-            self.write_damage(group)
+            self.write_energy(group)
+            self.write_rvalue(group)
 
         self.timestep_counter += 1
 

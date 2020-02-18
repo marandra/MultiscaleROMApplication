@@ -13,7 +13,7 @@ def append_to_json(filename, new_data):
    data["interpolation_parameters"].append(new_data["interpolation_parameters"])
    data["macro_strain"].append(new_data["macro_strain"])
    data["strain_energy"].append(new_data["strain_energy"])
-   #data["stress"].append(new_data["stress"])
+   data["r_value"].append(new_data["r_value"])
    io_utilities.write_json(filename, data)
 
 class WriteRveReconstructionData(Kratos.Process):
@@ -43,7 +43,7 @@ class WriteRveReconstructionData(Kratos.Process):
         self.data["interpolation_parameters"] = []
         self.data["macro_strain"] = []
         self.data["strain_energy"] = []
-        #self.data["stress"] = []
+        self.data["r_value"] = []
         io_utilities.write_json(self.filename, self.data)
 
     def ExecuteInitializeSolutionStep(self):
@@ -61,14 +61,17 @@ class WriteRveReconstructionData(Kratos.Process):
     def ExecuteFinalizeSolutionStep(self):
         for elem in self.model_part.Elements:
             if elem.Id == self.element:
+
                 # Get fluctuant displacement
                 ip_data = elem.GetValuesOnIntegrationPoints(
                     MultiscaleROM.REDUCED_MODES_WEIGHTS, self.model_part.ProcessInfo)
                 self.data["interpolation_parameters"] = ip_data[self.ip]
+
                 # Get macro strain
                 ip_data = elem.GetValuesOnIntegrationPoints(
                     Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo)
                 self.data["macro_strain"] = ip_data[self.ip]
+
                 # Get strain energy list
                 ip_data = elem.CalculateOnIntegrationPoints(MultiscaleROM.STRAIN_ENERGY_VECTOR, self.model_part.ProcessInfo)
                 tmp_Vector = ip_data[self.ip]
@@ -76,10 +79,13 @@ class WriteRveReconstructionData(Kratos.Process):
                 for i in tmp_Vector:
                     tmp_list.append(i)
                 self.data["strain_energy"] = tmp_list
-#                # Get stress vector list
-#                ip_data = elem.GetValuesOnIntegrationPoints(
-#                    MultiscaleROM.CAUCHY_STRESS_VECTOR_LIST, self.model_part.ProcessInfo)
-#                self.data["stress"] = ip_data[self.ip]
+
+                # Get r_value list
+                ip_data = elem.GetValuesOnIntegrationPoints(
+                    Kratos.INTERNAL_VARIABLES, self.model_part.ProcessInfo)
+                tmp_Vector = ip_data[self.ip]
+                self.data["r_value"] = tmp_Vector
+
         append_to_json(self.filename, self.data)
 
     def ExecuteFinalize(self):

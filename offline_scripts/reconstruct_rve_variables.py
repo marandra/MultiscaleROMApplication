@@ -7,6 +7,21 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 import KratosMultiphysics.MultiscaleROMApplication
 import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 import meshio
+import math
+
+
+def q(r, E, yield_stress, inf_yield_stress, H0, H1):
+    r0 = yield_stress / math.sqrt(E)
+    q0 = r0  # strain_variable_init
+    q1 = inf_yield_stress / math.sqrt(E)  # stress_variable_inf
+    r1 = r0 + (q1 - q0) / H0
+    if r < r0:
+        return q0
+    if r >= r0 and r < r1:
+        return q0 + H0 * (r - r0)
+    # Case r >= r1:
+    return q1 + H1 * (r - r1)
+
 
 def compute_elastic_tensor(E, NU):
     c1 = E / ((1 + NU) * (1 - 2 * NU))
@@ -39,12 +54,11 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("mdpa_file", help="the .mdpa model used in training)")
 parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
-parser.add_argument('correlation_energy', help="energy correlation matrix (.npy)")
+parser.add_argument('correlation_r_value', help="r_value correlation matrix (.npy)")
 parser.add_argument("runtime_data", help="multiscale runtime reconstruction data file (.json)")
 parser.add_argument("rve_data", help="rve data file (.json)")
 parser.add_argument("strain_modes", help="strain modes")
-parser.add_argument(
-    "-v", "--verbose", action="store_true", help="shows debug information"
+parser.add_argument("-v", "--verbose", action="store_true", help="sdebug information"
 )
 args = parser.parse_args()
 
@@ -75,19 +89,31 @@ if __name__ == "__main__":
 
     logger.info("Loading data")
     strain_correl = numpy.load(args.correlation_strain)
-    energy_correl = numpy.load(args.correlation_energy)
+    r_value_correl = numpy.load(args.correlation_r_value)
     data = io_utilities.read_json(args.runtime_data)
 
     logger.info("Loading rve data")
     rve_data = io_utilities.read_json(args.rve_data)
     props = rve_data["material_parameters"]["properties"]
-    material_elastic_tensor = {}
+    material_properties = {}
     material_element_list = {}
     for m in props:
         material_name = m["model_part_name"]
+        material_properties[material_name] = {}
         E = m["Material"]["Variables"]["YOUNG_MODULUS"]
         nu = m["Material"]["Variables"]["POISSON_RATIO"]
-        material_elastic_tensor[material_name] = compute_elastic_tensor(E, nu)
+        yield_stress = m["Material"]["Variables"]["YIELD_STRESS"]
+        inf_yield_stress = m["Material"]["Variables"]["INFINITY_YIELD_STRESS"]
+        H0 = m["Material"]["Variables"]["HARDENING_MODULI_VECTOR"][0]
+        H1 = m["Material"]["Variables"]["HARDENING_MODULI_VECTOR"][1]
+        material_properties[material_name]["E"] = E
+        material_properties[material_name]["nu"] = nu
+        material_properties[material_name]["yield_stress"] = yield_stress
+        material_properties[material_name]["inf_yield_stress"] = inf_yield_stress
+        material_properties[material_name]["H0"] = H0
+        material_properties[material_name]["H1"] = H1
+        material_properties[material_name]["C"] = compute_elastic_tensor(E, nu)
+
         material_element_list[material_name] = []
         for elem in model[material_name].Elements:
             material_element_list[material_name].append(elem.Id)
@@ -113,8 +139,6 @@ if __name__ == "__main__":
     rve_macro_strain = numpy.array(data["macro_strain"])
     logger.debug(rve_macro_strain)
     logger.debug(numpy.shape(rve_macro_strain))
-    rve_energy = numpy.array(data["strain_energy"])
-    logger.debug(numpy.shape(rve_energy))
 
     nr_timesteps = numpy.shape(rve_interpolation_params)[0]
     nr_modes = numpy.shape(rve_interpolation_params)[1]
@@ -146,36 +170,39 @@ if __name__ == "__main__":
             comp = numpy.dot(strain_macro_tensor, rve_nodes.T)
             total_displacement = comp.T + displacement
 
-            logger.debug("Solving energy field")
-            reduced_energy = rve_energy[t, :]
-            energy = numpy.dot(energy_correl, reduced_energy) # Vector. cada entrada es un punto de gauss
-            # Hasta aqui Ok. Ahora chapuzas para visualizar en nodos
-            energy_in_elem = numpy.reshape(energy, (-1, 8))
-            mean_energy = numpy.mean(energy_in_elem, axis=1)
-            mean_energy = numpy.reshape(mean_energy, (-1,1))
-
             logger.debug("Solving damage")
             damage_list = []
-            elastic_energy_list = []
+            r = numpy.dot(r_value_correl, data["r_value"][t])
+            r_in_elem = numpy.reshape(r, (-1, 8))
             strain_global = numpy.dot(strain_modes, rve_interpolation_params[t, :])
+            stress_list = []
             for elem_id, nr_ips in nr_of_ips.items():
-                C = material_elastic_tensor[material_elem_map[elem_id]]
+                C = material_properties[material_elem_map[elem_id]]["C"]
+                E = material_properties[material_elem_map[elem_id]]["E"]
+                nu = material_properties[material_elem_map[elem_id]]["nu"]
+                yield_stress = material_properties[material_elem_map[elem_id]]["yield_stress"]
+                inf_yield_stress = material_properties[material_elem_map[elem_id]]["inf_yield_stress"]
+                H0 = material_properties[material_elem_map[elem_id]]["H0"]
+                H1 = material_properties[material_elem_map[elem_id]]["H1"]
+                r0 = yield_stress / math.sqrt(E)
                 ip_0 = ip_elem_map[elem_id]
-                #damage = 0
-                mean_elastic_energy = 0
+                damage = 0
+                stress = [0, 0, 0, 0, 0, 0]
                 for i in range(nr_ips):
+                    r = r_in_elem[elem_id - 1, i]
+                    if r < r0:
+                        r = r0
+                    d = (1 - q(r, E, yield_stress, inf_yield_stress, H0, H1) / r)
+                    # stress
                     strain = strain_global[ip_0 : ip_0 + nr_comps] + strain_macro
-                    aux_1 = numpy.dot(C, strain)
-                    elastic_energy = numpy.dot(strain.T, aux_1) / 2
-                    #damage +=  (1 - energy_in_elem[elem_id - 1, i] / elastic_energy) / nr_ips
-                    mean_elastic_energy +=  elastic_energy / nr_ips
+                    stress_ip = (1 - d) * numpy.dot(C, strain)
+                    stress =  stress + stress_ip / nr_ips
+
+                    damage += d / nr_ips
                     ip_0 += nr_comps
-                #damage_list.append(damage)
-                damage = 1 - mean_energy / mean_elastic_energy
                 damage_list.append(damage)
-                elastic_energy_list.append(mean_elastic_energy)
+                stress_list.append(stress)
             element_damage = numpy.array(damage_list).reshape((-1, 1)) # formatting for meshio
-            element_elastic_energy = numpy.array(elastic_energy_list).reshape((-1, 1)) # formatting for meshio
 
             logger.debug("Writing timestep data")
             writer.write_data(
@@ -187,9 +214,8 @@ if __name__ == "__main__":
                 cell_data={
                     #[("triangle", [[0, 1, 2], ...])]
                     #[("hexahedra", [[0, 1, 2, 3, 4, 5, 6, 7], ...]), ("wedge", [[0, 1, 2, 3, 4, 5],[],..])]
-                    "dummy_1": {"STRAIN_ENERGY": mean_energy},
-                    "dummy_2": {"DAMAGE": element_damage},
-                    "dummy_3": {"ELASTIC_ENERGY": element_elastic_energy},
+                    "dummy_1": {"DAMAGE": element_damage},
+                    "dummy_2": {"STRESS": stress_list},
                 },
             )
 
