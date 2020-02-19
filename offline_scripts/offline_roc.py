@@ -1,17 +1,8 @@
-import os
 import numpy as np
-import KratosMultiphysics as Kratos
+import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import (
     structural_mechanics_analysis,
 )
-import KratosMultiphysics.MultiscaleROMApplication
-from KratosMultiphysics.MultiscaleROMApplication import (
-    compute_bases,
-    compute_ip_weights,
-    io_utilities,
-    pack_reduced_rve_dataset,
-)
-import h5py
 import logging
 from offline_common import Common
 
@@ -216,7 +207,7 @@ if __name__ == "__main__":
     elem_ids = []
     for elem in rve_modelpart.Elements:
         iw_list = elem.GetValuesOnIntegrationPoints(
-            Kratos.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo
+            KratosMultiphysics.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo
         )
         for ip_lid, ip_weight in enumerate(iw_list):
             ip_weights.append(ip_weight[0])
@@ -230,10 +221,6 @@ if __name__ == "__main__":
     #
     for p in Common().ip_subsets:
         nr_roc_points = p.GetInt()
-        #if nr_roc_points != -1:  # HPROM case
-        #    set_name = "{}".format(nr_roc_points)
-        #else:  # ROM case
-        #    set_name = "{}".format("ROM")
         roc_filename = Common().roc_fname(nr_roc_points)
         if skip_calculation(roc_filename, Common().reuse_existing_files):
             print("File {} exists. Skipping calculation".format(roc_filename))

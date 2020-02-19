@@ -53,7 +53,7 @@ class Common:
         "offline_path": "../offline/",
         "bases_fname_pattern": "bases_{}_{}m.npy",
         "roc_fname_pattern": "roc_{}ip",
-        "rve_fname_pattern": "rve_{}m_{}ip"
+        "rve_fname_pattern": "rve_{}m_{}ip.json"
         }
         """
         )
@@ -105,20 +105,38 @@ class Common:
         self.ip_subsets = config["rve_data_points"]
         self.roc_fname_pattern = config["roc_fname_pattern"].GetString()
 
+        self.materials_fname = (
+            config["training_path"].GetString()
+            + config["training_rve_materials_fname"].GetString()
+        )
+        self.reduced_nr_modes = config["rve_data_modes"]
+        self.rve_fname_pattern = config["rve_fname_pattern"].GetString()
+
     def roc_fname(self, p):
-        if p==-1:
+        if p == -1:
             return self.roc_fname_pattern.format("ROM")
         else:
             return self.roc_fname_pattern.format(p)
 
+    def rve_fname(self, m, p):
+        if p == -1:
+            return self.rve_fname_pattern.format(m, "ROM")
+        else:
+            return self.rve_fname_pattern.format(m, p)
+
+
 if __name__ == "__main__":
     print(Common().energy_name)
-    print(Common().energy_bases_fname)
     print(Common().strain_name)
-    print(Common().strain_bases_fname)
     print(Common().rvalue_name)
+    print(Common().energy_bases_fname)
+    print(Common().strain_bases_fname)
     print(Common().rvalue_bases_fname)
     print(Common().roc_fname(1))
     print(Common().roc_fname(100))
     print(Common().roc_fname(1000))
     print(Common().roc_fname(-1))
+    print(Common().rve_fname(20, 1))
+    print(Common().rve_fname(20, 100))
+    print(Common().rve_fname(200, 1000))
+    print(Common().rve_fname(2000, -1))

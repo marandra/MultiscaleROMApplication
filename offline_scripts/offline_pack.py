@@ -1,30 +1,14 @@
-import os
+import json
 import numpy
-import KratosMultiphysics as Kratos
+import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import (
     structural_mechanics_analysis,
 )
-import KratosMultiphysics.MultiscaleROMApplication
-from KratosMultiphysics.MultiscaleROMApplication import (
-    compute_bases,
-    compute_ip_weights,
-    io_utilities,
-    pack_reduced_rve_dataset,
-)
-import h5py
+from offline_common import Common
 
 """
 TODO: pending description here.
 """
-
-
-def check_consistent_config_values(config):
-    # TODO: Use this function
-    # Ideas:
-    # number of base modes < number of snapshots
-    # number of base mode > number of requested modes
-    check = True
-    return check
 
 
 def skip_calculation(filename, flag_reuse):
@@ -36,38 +20,78 @@ def skip_calculation(filename, flag_reuse):
     return flag_exists and flag_reuse
 
 
-def create_bases(field_name, nr_elastic_modes, nr_inelastic_modes, trajectory_filename, svd_algorithm):
-    bases_fname = "bases_{}_{}m.npy".format(
-        field_name, nr_elastic_modes + nr_inelastic_modes
+def write_json(filename, data_dict):
+    with open(filename, "w") as fo:
+        json.dump(data_dict, fo, indent=2)
+
+
+def read_json(filename):
+    with open(filename) as f:
+        data_dict = json.load(f)
+    return data_dict
+
+
+def get_properties(rve_modelpart, iw_list):
+    # read model materials
+    out_prop = []
+    for l in iw_list:
+        elem_id = int(l[0])
+        elem = rve_modelpart.GetElement(elem_id)
+        prop_id = elem.Properties.Id
+        out_prop.append(prop_id)
+    return out_prop
+
+
+def unpack_ip_data(iw_list):
+    out_e = []
+    out_ip = []
+    out_w = []
+    out_gip = []
+    for l in iw_list:
+        out_e.append(int(l[0]))
+        out_ip.append(int(l[1]))
+        out_w.append(float(l[2]))
+        out_gip.append(int(l[3]))
+    return out_e, out_ip, out_w, out_gip
+
+
+def parse_strain_bases(strain_bases_filename, iw_list, nr_modes):
+    strain_bases = numpy.load(strain_bases_filename, mmap_mode="r")
+    strain_bases = strain_bases[:, :nr_modes]
+    nr_comps = 6
+    out_B = []
+    for l in iw_list:
+        gip = int(l[3])
+        index = gip * nr_comps
+        B = strain_bases[index : index + nr_comps, :]
+        out_B.append(B.tolist())
+    return out_B
+
+
+def create_rve_params_structure(
+    strain_bases_filename,
+    rve_materials_filename,
+    nr_modes,
+    reduced_ip_set,
+    rve_modelpart,
+):
+    """ gather and pack IP data for RVE constitutive law """
+    rve_params = {}
+    out_e, out_lip, out_w, out_gip = unpack_ip_data(reduced_ip_set)
+    # required data
+    rve_params["ip_global_id"] = out_gip
+    rve_params["ip_weight"] = out_w
+    rve_params["ip_property_id"] = get_properties(rve_modelpart, reduced_ip_set)
+    rve_params["ip_strain_modes"] = parse_strain_bases(
+        strain_bases_filename, reduced_ip_set, nr_modes
     )
-    print("Generating {} bases".format(field_name))
-    e_files, i_files = compute_bases.list_of_snapshots(trajectory_filename, field_name)
-    compute_bases.generate_bases(
-        nr_elastic_modes,
-        nr_inelastic_modes,
-        e_files,
-        i_files,
-        bases_fname,
-        svd_algorithm=svd_algorithm,
-    )
-    try:
-        os.rename(
-            "singular_values_elastic.dat",
-            "sv_{}_elastic_{}.dat".format(field_name, nr_elastic_modes),
-        )
-        os.rename(
-            "singular_values_inelastic.dat",
-            "sv_{}_inelastic_{}.dat".format(field_name, nr_inelastic_modes),
-        )
-    except FileNotFoundError:
-        pass
-    try:
-        os.rename(
-            "singular_values.dat",
-            "sv_{}_{}.dat".format(field_name, nr_elastic_modes + nr_inelastic_modes),
-        )
-    except FileNotFoundError:
-        pass
+    rve_params["material_parameters"] = read_json(rve_materials_filename)
+    #  metadata
+    rve_params["nr_modes"] = nr_modes
+    rve_params["nr_reduced_ip"] = len(reduced_ip_set)
+    rve_params["ip_element_id"] = out_e  # TODO: check if we use this data
+    rve_params["ip_local_id"] = out_lip  # TODO: check if we use this data
+    return rve_params
 
 
 #######################################################################
@@ -75,56 +99,32 @@ def create_bases(field_name, nr_elastic_modes, nr_inelastic_modes, trajectory_fi
 
 if __name__ == "__main__":
 
-    with open("1_ProjectParameters.json", "r") as parameter_file:
+    with open("../configuration.json", "r") as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    config = parameters["config_data"]
-    config_defaults = KratosMultiphysics.Parameters(
-        """{
-    "reuse_existing_files": true,
-    "svd_algorithm": "standard",
-    "rve_materials_filename": "../training/materials.json",
-    "trajectory_filename": "../training/trajectory",
-    "nr_elastic_modes_energy": 21,
-    "nr_inelastic_modes_energy": 200,
-    "nr_elastic_modes_strain": 6,
-    "nr_inelastic_modes_strain": 100,
-    "rve_data_points": [200, -1],
-    "rve_data_modes": [20]
-    }
-    """
+    model = KratosMultiphysics.Model()
+    simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(
+        model, parameters
     )
-    config.ValidateAndAssignDefaults(config_defaults)
+    simulation.Initialize()
+    modelpart = simulation._GetSolver().GetComputingModelPart()
 
-    if not check_consistent_config_values(config):
-        exit()
-
-
-    #
-    # pack dataset
-    #
-    rve_materials_filename = config["rve_materials_filename"].GetString()
-    for p in config["rve_data_points"]:
-        nr_roc_points = p.GetInt()
-        if nr_roc_points != -1:  # HPROM case
-            set_name = "{}".format(nr_roc_points)
-        else:  # ROM case
-            set_name = "{}".format("ROM")
-        ip_set = numpy.loadtxt("roc_{}ip".format(set_name))
-        for m in config["rve_data_modes"]:
+    materials_fname = Common().materials_fname
+    for p in Common().ip_subsets:
+        nr_points = p.GetInt()
+        roc_filename = Common().roc_fname(nr_points)
+        ip_set = numpy.loadtxt(roc_filename)
+        for m in Common().reduced_nr_modes:
             nr_modes = m.GetInt()
-            rve_data_filename = "rve_{}m_{}ip.json".format(nr_modes, set_name)
-            if skip_calculation(
-                rve_data_filename, config["reuse_existing_files"].GetBool()
-            ):
-                print("File {} exists. Skipping calculation".format(rve_data_filename))
+            rve_fname = Common().rve_fname(nr_modes, nr_points)
+            if skip_calculation(rve_fname, Common().reuse_existing_files):
+                print("File {} exists. Skipping calculation".format(rve_fname))
                 continue
-            print("Generating {}".format(rve_data_filename))
-            rve_params = pack_reduced_rve_dataset.create_rve_params_structure(
-                strain_bases_fname,
-                rve_materials_filename,
+            print("Generating {}".format(rve_fname))
+            rve_params = create_rve_params_structure(
+                Common().strain_bases_fname,
+                materials_fname,
                 nr_modes,
                 ip_set,
-                rve_modelpart,
+                modelpart,
             )
-            io_utilities.write_json(rve_data_filename, rve_params)
+            write_json(rve_fname, rve_params)
