@@ -4,7 +4,7 @@
         "parallel_type": "OpenMP",
         "start_time": 0.0,
         "end_time": 0.99,
-        "echo_level": 0
+        "echo_level": 1
     },
     "rve_settings": {
         "boundary_mp_name": "Microstructure.SKIN",
@@ -19,7 +19,6 @@
             "time_step": 0.025
         },
         "solver_type": "Static",
-        "analysis_type": "non_linear",
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename": "model"
@@ -28,6 +27,8 @@
             "materials_filename": "materials.json"
         },
         "line_search": true,
+        "use_old_stiffness_in_first_iteration": true,
+        "move_mesh_flag": false,
         "convergence_criterion": "residual_criterion",
         "residual_relative_tolerance": 0.0025,
         "residual_absolute_tolerance": 0.0,
@@ -40,7 +41,6 @@
         },
         "rotation_dofs": false,
         "compute_reactions": true,
-        "move_mesh_flag": false,
         "auxiliary_variables_list": [
             "LAGRANGE_DISPLACEMENT"
         ]
@@ -56,42 +56,11 @@
                 }
             },
             {
-                "python_module": "write_flag_timesteps_process",
+                "python_module": "write_snapshots_process",
                 "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-                "process_name": "WriteElementOutputScalar",
+                "process_name": "WriteSnapshots",
                 "Parameters": {
-                    "model_part_name": "Microstructure.RVE",
-                    "filename": "elastic_timesteps"
-                }
-            },
-            {
-                "python_module": "write_elements_homogenized_output_process",
-                "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-                "process_name": "WriteElementsHomogenizedOutput",
-                "Parameters": {
-                    "model_part_name": "Microstructure.RVE",
-                    "filename": "homogenized_stress.dat",
-                    "variable_name": "CAUCHY_STRESS_VECTOR"
-                }
-            },
-            {
-                "python_module": "write_snapshot_energy_process",
-                "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-                "process_name": "WriteSnapshotEnergy",
-                "Parameters": {
-                    "model_part_name": "Microstructure.RVE",
-                    "filename": "snapshot_energy",
-                    "write_mode": "binary"
-                }
-            },
-            {
-                "python_module": "write_snapshot_strain_process",
-                "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-                "process_name": "WriteSnapshotStrain",
-                "Parameters": {
-                    "model_part_name": "Microstructure.RVE",
-                    "filename": "snapshot_strain",
-                    "write_mode": "binary"
+                    "model_part_name": "Microstructure.RVE"
                 }
             }
         ],

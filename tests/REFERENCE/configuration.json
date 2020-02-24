@@ -1,11 +1,11 @@
 {
     "config_data": {
-         "reuse_existing_files": true,
-         "svd_algorithm": "randomized",
-         "nr_inelastic_modes_energy": 200,
-         "nr_inelastic_modes_strain": 100,
-         "rve_data_points": [100, -1],
-         "rve_data_modes": [10, 20]
+         "energy_inelastic_modes": 500,
+         "strain_inelastic_modes": 50,
+         "rvalue_inelastic_modes": 50,
+         "rve_data_points": [100, 200, 400, -1],
+         "rve_data_modes": [10, 20, 30],
+         "reuse_existing_files": true
     },
     "problem_data": {
         "problem_name": "High_Fidelity",
