@@ -1,7 +1,11 @@
 Step 1:
-Check / edit configuration
-$ vim 1_ProjectParameters.json
+Edit configuration
+$ vim ../configuration.json
 
 Step 2:
-Generate bases
-$ python ~
+Generate rve data
+$ python ~/offline_scripts/offline_bases.py
+$ python ~/offline_scripts/offline_roc.py
+$ python ~/offline_scripts/offline_pack.py
+
+
