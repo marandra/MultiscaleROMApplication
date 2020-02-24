@@ -1,5 +1,5 @@
+import os
 import KratosMultiphysics as km
-import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 
 
 def Factory(settings, Model):
@@ -37,6 +37,32 @@ def homogenization_function(self):
     return stress_accum, strain_accum, tensor_accum
 
 
+def write_strain_stress_header(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+    with open(filename, "w") as fo:
+        fo.write("#{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                 "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
+            "1", "2", "3", "4", "5", "6",  # strain
+            "7", "8", "9", "10", "11", "12"))  # stress
+        fo.write("#{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+                 "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
+            "strain XX", "YY", "ZZ", "XY", "YZ", "XZ",
+            "stress XX", "YY", "ZZ", "XY", "YZ", "XZ"))
+
+
+def write_strain_stress(filename, strain, stress):
+    line = "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
+           "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
+        strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
+        stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
+    with open(filename, 'a') as ofile:
+        ofile.write(line)
+
+
+
 class WriteElementsHomogenizedOutput(km.Process):
     def __init__(self, param, Model):
         km.Process.__init__(self)
@@ -48,12 +74,12 @@ class WriteElementsHomogenizedOutput(km.Process):
         self.tensor = km.CONSTITUTIVE_MATRIX
 
     def ExecuteInitialize(self):
-        io_utilities.write_strain_stress_header(self.filename)
+        write_strain_stress_header(self.filename)
         # WORKAROUND: added 0,0 row for consistency
         nr_comp = 6
         stress = [0.0] * nr_comp
         strain = [0.0] * nr_comp
-        io_utilities.write_strain_stress(self.filename, strain, stress)
+        write_strain_stress(self.filename, strain, stress)
 
     def ExecuteInitializeSolutionStep(self):
         pass
@@ -69,7 +95,7 @@ class WriteElementsHomogenizedOutput(km.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         stress, strain, const_tensor = homogenization_function(self)
-        io_utilities.write_strain_stress(self.filename, strain, stress)
+        write_strain_stress(self.filename, strain, stress)
 
     def ExecuteFinalize(self):
         pass
