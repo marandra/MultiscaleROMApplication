@@ -48,7 +48,7 @@
     "processes": {
         "my_processes": [
             {
-                "python_module": "calculate_total_displacement_process",
+                "python_module": "kratos_process_calculate_total_displacement",
                 "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
                 "process_name": "ComputeTotalDisplacementProcess",
                 "Parameters": {
@@ -56,7 +56,7 @@
                 }
             },
             {
-                "python_module": "write_snapshots_process",
+                "python_module": "kratos_process_write_snapshots",
                 "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
                 "process_name": "WriteSnapshots",
                 "Parameters": {
@@ -92,7 +92,7 @@
         ],
         "loads_process_list": [
             {
-                "python_module": "impose_initial_strain_process",
+                "python_module": "kratos_process_impose_initial_strain",
                 "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
                 "process_name": "ImposeInitialStrainProcess",
                 "Parameters": {
