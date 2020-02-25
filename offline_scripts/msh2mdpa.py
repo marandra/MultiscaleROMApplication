@@ -49,13 +49,13 @@ with open(o_filename, "w") as fo:
     fo.write("End Conditions\n\n")
     max_i = i + 1
 
-    #fo.write("Begin Conditions SurfaceCondition3D3N\n")
-    #for i, r in enumerate(mesh.cells["triangle"]):
+    # fo.write("Begin Conditions SurfaceCondition3D3N\n")
+    # for i, r in enumerate(mesh.cells["triangle"]):
     #    fo.write(
     #        "{:6d}  0  {:6d} {:6d} {:6d}\n".format(max_i + i + 1, r[0], r[1], r[2])
     #    )
-    #fo.write("End Conditions\n\n")
-    #max_i = i
+    # fo.write("End Conditions\n\n")
+    # max_i = i
 
     fo.write("Begin SubModelPart SKIN\n")
     fo.write("    Begin SubModelPartNodes\n")
@@ -108,7 +108,7 @@ with open(o_filename, "w") as fo:
         fo.write("        {:6d}\n".format(i + 1))
     fo.write("    End SubModelPartElements\n")
     fo.write("    Begin SubModelPartConditions\n")
-    #for i in range(len(skin_eq) + len(skin_et)):
+    # for i in range(len(skin_eq) + len(skin_et)):
     #    fo.write("       {:6d}\n".format(i + 1))
     fo.write("    End SubModelPartConditions\n")
     fo.write("End SubModelPart\n\n")

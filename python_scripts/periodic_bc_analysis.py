@@ -3,14 +3,20 @@ from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import (
+    StructuralMechanicsAnalysis,
+)
 
 
 class PBCAnalysis(StructuralMechanicsAnalysis):
     def __init__(self, model, project_parameters):
 
-        self.boundary_mp_name = project_parameters["rve_settings"]["boundary_mp_name"].GetString()
-        self.averaging_mp_name = project_parameters["rve_settings"]["averaging_mp_name"].GetString()
+        self.boundary_mp_name = project_parameters["rve_settings"][
+            "boundary_mp_name"
+        ].GetString()
+        self.averaging_mp_name = project_parameters["rve_settings"][
+            "averaging_mp_name"
+        ].GetString()
 
         super(PBCAnalysis, self).__init__(model, project_parameters)
 
@@ -25,7 +31,6 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
         self.min_corner, self.max_corner = self._DetectBoundingBox(averaging_mp)
         self._ConstructFaceModelParts(self.min_corner, self.max_corner, boundary_mp)
 
-
     def Initialize(self):
         # construct MPCs according to the provided strain
         super(PBCAnalysis, self).Initialize()
@@ -33,7 +38,6 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
         averaging_mp = self.model[self.averaging_mp_name]
         strain = KratosMultiphysics.Matrix(3, 3, 0.0)
         self._ApplyPeriodicity(strain, averaging_mp, boundary_mp)
-
 
     def _DetectBoundingBox(self, mp):
         min_corner = KratosMultiphysics.Array3()
@@ -77,13 +81,13 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
 
         for cond in mp.Conditions:
             xc = cond.GetGeometry().Center()
-            if abs(xc[component]-coordinate) < eps:
+            if abs(xc[component] - coordinate) < eps:
                 face_mp.AddCondition(cond)
 
         node_ids = set()
         for cond in face_mp.Conditions:
             for node in cond.GetNodes():
-                if(not node.Is(KratosMultiphysics.SLAVE)):
+                if not node.Is(KratosMultiphysics.SLAVE):
                     node_ids.add(node.Id)
                     node.Set(KratosMultiphysics.SLAVE)
 
@@ -92,10 +96,14 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
 
     def _ConstructFaceModelParts(self, min_corner, max_corner, mp):
 
-        eps = 0.0001*(max_corner[0] - min_corner[0])/mp.NumberOfNodes()
+        eps = 0.0001 * (max_corner[0] - min_corner[0]) / mp.NumberOfNodes()
 
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, False, mp.Nodes)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, False, mp.Nodes)
+        KratosMultiphysics.VariableUtils().SetFlag(
+            KratosMultiphysics.SLAVE, False, mp.Nodes
+        )
+        KratosMultiphysics.VariableUtils().SetFlag(
+            KratosMultiphysics.MASTER, False, mp.Nodes
+        )
 
         # Populate the slave faces
         self.max_x_face = self.__PopulateMp("max_x_face", max_corner[0], 0, eps, mp)
@@ -114,25 +122,41 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
         if self.min_z_face.NumberOfConditions() == 0:
             raise Exception("min_z_face has 0 conditions")
 
-
-
     def _ApplyPeriodicity(self, strain, volume_mp, boundary_mp):
         # clear
         for constraint in volume_mp.GetRootModelPart().MasterSlaveConstraints:
             constraint.Set(KratosMultiphysics.TO_ERASE)
         volume_mp.GetRootModelPart().RemoveMasterSlaveConstraintsFromAllLevels(
-            KratosMultiphysics.TO_ERASE)
+            KratosMultiphysics.TO_ERASE
+        )
 
         dx = self.max_corner[0] - self.min_corner[0]
         dy = self.max_corner[1] - self.min_corner[1]
         dz = self.max_corner[2] - self.min_corner[2]
 
-        periodicity_utility = KratosMultiphysics.StructuralMechanicsApplication.RVEPeriodicityUtility(self._GetSolver().GetComputingModelPart())
+        periodicity_utility = KratosMultiphysics.StructuralMechanicsApplication.RVEPeriodicityUtility(
+            self._GetSolver().GetComputingModelPart()
+        )
 
         # assign periodicity to faces
-        periodicity_utility.AssignPeriodicity(self.min_x_face, self.max_x_face, strain, KratosMultiphysics.Vector([dx, 0.0, 0.0]))
-        periodicity_utility.AssignPeriodicity(self.min_y_face, self.max_y_face, strain, KratosMultiphysics.Vector([0.0, dy, 0.0]))
-        periodicity_utility.AssignPeriodicity(self.min_z_face, self.max_z_face, strain, KratosMultiphysics.Vector([0.0, 0.0, dz]))
+        periodicity_utility.AssignPeriodicity(
+            self.min_x_face,
+            self.max_x_face,
+            strain,
+            KratosMultiphysics.Vector([dx, 0.0, 0.0]),
+        )
+        periodicity_utility.AssignPeriodicity(
+            self.min_y_face,
+            self.max_y_face,
+            strain,
+            KratosMultiphysics.Vector([0.0, dy, 0.0]),
+        )
+        periodicity_utility.AssignPeriodicity(
+            self.min_z_face,
+            self.max_z_face,
+            strain,
+            KratosMultiphysics.Vector([0.0, 0.0, dz]),
+        )
 
         periodicity_utility.Finalize(KratosMultiphysics.DISPLACEMENT)
 
@@ -142,5 +166,5 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
             x[0] = node.X0
             x[1] = node.Y0
             x[2] = node.Z0
-            d = strain*x
+            d = strain * x
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, d)

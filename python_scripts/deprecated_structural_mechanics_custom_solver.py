@@ -1,7 +1,9 @@
 # Importing the Kratos Library and applications
 import KratosMultiphysics
 import KratosMultiphysics.MultiscaleROMApplication as MultiscaleROMApplication
-from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_solver
+from KratosMultiphysics.StructuralMechanicsApplication import (
+    structural_mechanics_solver,
+)
 
 
 def CreateSolver(model, custom_settings):
@@ -12,12 +14,16 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def __init__(self, model, custom_settings):
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[Custom MechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo(
+            "::[Custom MechanicalSolver]:: ", "Construction finished"
+        )
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        builder_and_solver = MultiscaleROMApplication.ResidualBasedBlockBuilderAndSolverCustom(linear_solver)
+        builder_and_solver = MultiscaleROMApplication.ResidualBasedBlockBuilderAndSolverCustom(
+            linear_solver
+        )
         return builder_and_solver

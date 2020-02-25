@@ -5,18 +5,22 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.MultiscaleROMApplication as kms
 
-def Factory(settings, Model): 
-    if(type(settings) != KratosMultiphysics.Parameters): 
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string") 
+
+def Factory(settings, Model):
+    if type(settings) != KratosMultiphysics.Parameters:
+        raise Exception(
+            "expected input shall be a Parameters object, encapsulating a json string"
+        )
     return LagrangeMultiplierProcess(Model, settings["Parameters"])
 
- 
-## All the processes python should be derived from "Process" 
+
+## All the processes python should be derived from "Process"
 class LagrangeMultiplierProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
-        KratosMultiphysics.Process.__init__(self) 
- 
-        default_settings = KratosMultiphysics.Parameters(""" 
+        KratosMultiphysics.Process.__init__(self)
+
+        default_settings = KratosMultiphysics.Parameters(
+            """ 
         {
             "model_part_name": "default"
         }

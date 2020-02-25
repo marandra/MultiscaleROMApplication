@@ -9,30 +9,33 @@ def Factory(settings, model):
 
 
 def append_to_json(filename, new_data):
-   data = io_utilities.read_json(filename)
-   data["interpolation_parameters"].append(new_data["interpolation_parameters"])
-   data["macro_strain"].append(new_data["macro_strain"])
-   data["strain_energy"].append(new_data["strain_energy"])
-   data["r_value"].append(new_data["r_value"])
-   io_utilities.write_json(filename, data)
+    data = io_utilities.read_json(filename)
+    data["interpolation_parameters"].append(new_data["interpolation_parameters"])
+    data["macro_strain"].append(new_data["macro_strain"])
+    data["strain_energy"].append(new_data["strain_energy"])
+    data["r_value"].append(new_data["r_value"])
+    io_utilities.write_json(filename, data)
+
 
 class WriteRveReconstructionData(Kratos.Process):
     def __init__(self, settings, model):
         Kratos.Process.__init__(self)
 
-        default_settings = Kratos.Parameters("""
+        default_settings = Kratos.Parameters(
+            """
         {
             "model_part_name": "unset_model_part_name",
             "filename": "unset_filename",
             "element": 1,
             "integration_point": 0
         }
-        """)
+        """
+        )
         settings.ValidateAndAssignDefaults(default_settings)
-        self.model_part = model[settings['model_part_name'].GetString()]
-        self.filename = settings['filename'].GetString()
-        self.element = settings['element'].GetInt()
-        self.ip = settings['integration_point'].GetInt()
+        self.model_part = model[settings["model_part_name"].GetString()]
+        self.filename = settings["filename"].GetString()
+        self.element = settings["element"].GetInt()
+        self.ip = settings["integration_point"].GetInt()
 
     def ExecuteInitialize(self):
         try:
@@ -64,16 +67,20 @@ class WriteRveReconstructionData(Kratos.Process):
 
                 # Get fluctuant displacement
                 ip_data = elem.GetValuesOnIntegrationPoints(
-                    MultiscaleROM.REDUCED_MODES_WEIGHTS, self.model_part.ProcessInfo)
+                    MultiscaleROM.REDUCED_MODES_WEIGHTS, self.model_part.ProcessInfo
+                )
                 self.data["interpolation_parameters"] = ip_data[self.ip]
 
                 # Get macro strain
                 ip_data = elem.GetValuesOnIntegrationPoints(
-                    Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo)
+                    Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo
+                )
                 self.data["macro_strain"] = ip_data[self.ip]
 
                 # Get strain energy list
-                ip_data = elem.CalculateOnIntegrationPoints(MultiscaleROM.STRAIN_ENERGY_VECTOR, self.model_part.ProcessInfo)
+                ip_data = elem.CalculateOnIntegrationPoints(
+                    MultiscaleROM.STRAIN_ENERGY_VECTOR, self.model_part.ProcessInfo
+                )
                 tmp_Vector = ip_data[self.ip]
                 tmp_list = []
                 for i in tmp_Vector:
@@ -82,7 +89,8 @@ class WriteRveReconstructionData(Kratos.Process):
 
                 # Get r_value list
                 ip_data = elem.GetValuesOnIntegrationPoints(
-                    Kratos.INTERNAL_VARIABLES, self.model_part.ProcessInfo)
+                    Kratos.INTERNAL_VARIABLES, self.model_part.ProcessInfo
+                )
                 tmp_Vector = ip_data[self.ip]
                 self.data["r_value"] = tmp_Vector
 

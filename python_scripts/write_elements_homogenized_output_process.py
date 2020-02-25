@@ -7,7 +7,9 @@ def Factory(settings, Model):
 
 
 def homogenization_function(self):
-    stress_ref = self.model_part.Elements[1].GetValuesOnIntegrationPoints(self.stress, self.model_part.ProcessInfo)
+    stress_ref = self.model_part.Elements[1].GetValuesOnIntegrationPoints(
+        self.stress, self.model_part.ProcessInfo
+    )
     nr_comp = len(stress_ref[0])
     stress_accum = [0.0] * nr_comp
     strain_accum = [0.0] * nr_comp
@@ -15,10 +17,18 @@ def homogenization_function(self):
     volume = 0.0
 
     for e, elem in enumerate(self.model_part.Elements):
-        stress = elem.GetValuesOnIntegrationPoints(self.stress, self.model_part.ProcessInfo)
-        strain = elem.GetValuesOnIntegrationPoints(self.strain, self.model_part.ProcessInfo)
-        tensor = elem.GetValuesOnIntegrationPoints(self.tensor, self.model_part.ProcessInfo)
-        weights = elem.GetValuesOnIntegrationPoints(km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo)
+        stress = elem.GetValuesOnIntegrationPoints(
+            self.stress, self.model_part.ProcessInfo
+        )
+        strain = elem.GetValuesOnIntegrationPoints(
+            self.strain, self.model_part.ProcessInfo
+        )
+        tensor = elem.GetValuesOnIntegrationPoints(
+            self.tensor, self.model_part.ProcessInfo
+        )
+        weights = elem.GetValuesOnIntegrationPoints(
+            km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo
+        )
         weights = [x[0] for x in weights]  # to unpack received list-inside-list
         for i, w in enumerate(weights):
             # used in HPROM case, to ignore GP
@@ -43,32 +53,59 @@ def write_strain_stress_header(filename):
     except OSError:
         pass
     with open(filename, "w") as fo:
-        fo.write("#{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
-                 "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
-            "1", "2", "3", "4", "5", "6",  # strain
-            "7", "8", "9", "10", "11", "12"))  # stress
-        fo.write("#{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
-                 "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
-            "strain XX", "YY", "ZZ", "XY", "YZ", "XZ",
-            "stress XX", "YY", "ZZ", "XY", "YZ", "XZ"))
+        fo.write(
+            "#{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+            "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"  # strain
+            )
+        )  # stress
+        fo.write(
+            "#{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
+            "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
+                "strain XX",
+                "YY",
+                "ZZ",
+                "XY",
+                "YZ",
+                "XZ",
+                "stress XX",
+                "YY",
+                "ZZ",
+                "XY",
+                "YZ",
+                "XZ",
+            )
+        )
 
 
 def write_strain_stress(filename, strain, stress):
-    line = "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  " \
-           "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
-        strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
-        stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
-    with open(filename, 'a') as ofile:
+    line = (
+        "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  "
+        "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
+            strain[0],
+            strain[1],
+            strain[2],
+            strain[3],
+            strain[4],
+            strain[5],
+            stress[0],
+            stress[1],
+            stress[2],
+            stress[3],
+            stress[4],
+            stress[5],
+        )
+    )
+    with open(filename, "a") as ofile:
         ofile.write(line)
-
 
 
 class WriteElementsHomogenizedOutput(km.Process):
     def __init__(self, param, Model):
         km.Process.__init__(self)
 
-        self.model_part = Model[param['model_part_name'].GetString()]
-        self.filename = param['filename'].GetString()
+        self.model_part = Model[param["model_part_name"].GetString()]
+        self.filename = param["filename"].GetString()
         self.stress = km.CAUCHY_STRESS_VECTOR
         self.strain = km.GREEN_LAGRANGE_STRAIN_VECTOR
         self.tensor = km.CONSTITUTIVE_MATRIX

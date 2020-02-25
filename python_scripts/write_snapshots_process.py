@@ -54,7 +54,7 @@ class WriteSnapshots(KratosMultiphysics.Process):
         with h5py.File(self.filename, "a") as f:
             f.create_dataset(
                 "{}/STRAIN_FLUCTUANT/{}".format(group, self.timestep_counter),
-                data=data_list
+                data=data_list,
             )
 
     def write_energy(self, group):
@@ -67,10 +67,8 @@ class WriteSnapshots(KratosMultiphysics.Process):
                 data_list.append(strain_energy_ip[0])
         with h5py.File(self.filename, "a") as f:
             f.create_dataset(
-                "{}/ENERGY_FREE/{}".format(group, self.timestep_counter),
-                data=data_list,
+                "{}/ENERGY_FREE/{}".format(group, self.timestep_counter), data=data_list
             )
-
 
     def write_rvalue(self, group):
         data_list = []
@@ -82,8 +80,7 @@ class WriteSnapshots(KratosMultiphysics.Process):
                 data_list.append(value_ip[0])
         with h5py.File(self.filename, "a") as f:
             f.create_dataset(
-                "{}/R_VALUE/{}".format(group, self.timestep_counter),
-                data=data_list,
+                "{}/R_VALUE/{}".format(group, self.timestep_counter), data=data_list
             )
 
     ###########################################################
@@ -124,5 +121,6 @@ class WriteSnapshots(KratosMultiphysics.Process):
 
         self.timestep_counter += 1
 
+
 def ExecuteFinalize(self):
-        pass
+    pass

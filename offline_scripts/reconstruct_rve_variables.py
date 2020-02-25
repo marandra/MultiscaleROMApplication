@@ -3,7 +3,9 @@ import logging
 import numpy
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import (
+    StructuralMechanicsAnalysis,
+)
 import KratosMultiphysics.MultiscaleROMApplication
 import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 import meshio
@@ -49,17 +51,16 @@ def compute_elastic_tensor(E, NU):
 #######################################
 
 # parse command line arguments
-parser = argparse.ArgumentParser(
-    description="reconstructs fields"
-)
+parser = argparse.ArgumentParser(description="reconstructs fields")
 parser.add_argument("mdpa_file", help="the .mdpa model used in training)")
 parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
-parser.add_argument('correlation_r_value', help="r_value correlation matrix (.npy)")
-parser.add_argument("runtime_data", help="multiscale runtime reconstruction data file (.json)")
+parser.add_argument("correlation_r_value", help="r_value correlation matrix (.npy)")
+parser.add_argument(
+    "runtime_data", help="multiscale runtime reconstruction data file (.json)"
+)
 parser.add_argument("rve_data", help="rve data file (.json)")
 parser.add_argument("strain_modes", help="strain modes")
-parser.add_argument("-v", "--verbose", action="store_true", help="sdebug information"
-)
+parser.add_argument("-v", "--verbose", action="store_true", help="sdebug information")
 args = parser.parse_args()
 
 # configure logger
@@ -74,17 +75,16 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
 
     model = KratosMultiphysics.Model()
-    with open("ProjectParameters.json",'r') as parameter_file:
+    with open("ProjectParameters.json", "r") as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     simulation = StructuralMechanicsAnalysis(model, parameters)
     simulation.Initialize()
 
-
     logger.info("Loading RVE node info")
     mesh = meshio.read(args.mdpa_file)
     rve_elems = {"hexahedron": mesh.cells["line8"] + 1}
-    #rve_elems = {"hexahedron": mesh.cells["line8"], "wedge": mesh.cells["line6"]}
-    #rve_elems = [("hexahedron", mesh.cells["line8"]), ("wedge", mesh.cells["line6"]), ("hexahedron", mesh.cells["line8"])]
+    # rve_elems = {"hexahedron": mesh.cells["line8"], "wedge": mesh.cells["line6"]}
+    # rve_elems = [("hexahedron", mesh.cells["line8"]), ("wedge", mesh.cells["line6"]), ("hexahedron", mesh.cells["line8"])]
     rve_nodes = mesh.points
 
     logger.info("Loading data")
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         for elem in model[material_name].Elements:
             material_element_list[material_name].append(elem.Id)
     material_elem_map = {}
-    for k, v in	material_element_list.items():
+    for k, v in material_element_list.items():
         for idx in v:
             material_elem_map[idx] = k
 
@@ -129,7 +129,11 @@ if __name__ == "__main__":
     nr_of_ips = {}
     for elem in modelpart.Elements:
         ip_elem_map[elem.Id] = count
-        nr_ip = len(elem.GetValuesOnIntegrationPoints(KratosMultiphysics.INTEGRATION_WEIGHT, modelpart.ProcessInfo))
+        nr_ip = len(
+            elem.GetValuesOnIntegrationPoints(
+                KratosMultiphysics.INTEGRATION_WEIGHT, modelpart.ProcessInfo
+            )
+        )
         nr_of_ips[elem.Id] = nr_ip
         count += nr_ip * nr_comps
 
@@ -153,7 +157,9 @@ if __name__ == "__main__":
             logger.info("Timestep {}".format(t))
 
             logger.debug("Solving fluctuant displacement")
-            displacement = numpy.dot(strain_correl[:, :nr_modes], rve_interpolation_params[t, :])
+            displacement = numpy.dot(
+                strain_correl[:, :nr_modes], rve_interpolation_params[t, :]
+            )
             displacement = numpy.reshape(displacement, (-1, 3))
 
             logger.debug("Solving total displacement")
@@ -180,8 +186,12 @@ if __name__ == "__main__":
                 C = material_properties[material_elem_map[elem_id]]["C"]
                 E = material_properties[material_elem_map[elem_id]]["E"]
                 nu = material_properties[material_elem_map[elem_id]]["nu"]
-                yield_stress = material_properties[material_elem_map[elem_id]]["yield_stress"]
-                inf_yield_stress = material_properties[material_elem_map[elem_id]]["inf_yield_stress"]
+                yield_stress = material_properties[material_elem_map[elem_id]][
+                    "yield_stress"
+                ]
+                inf_yield_stress = material_properties[material_elem_map[elem_id]][
+                    "inf_yield_stress"
+                ]
                 H0 = material_properties[material_elem_map[elem_id]]["H0"]
                 H1 = material_properties[material_elem_map[elem_id]]["H1"]
                 r0 = yield_stress / math.sqrt(E)
@@ -192,17 +202,19 @@ if __name__ == "__main__":
                     r = r_in_elem[elem_id - 1, i]
                     if r < r0:
                         r = r0
-                    d = (1 - q(r, E, yield_stress, inf_yield_stress, H0, H1) / r)
+                    d = 1 - q(r, E, yield_stress, inf_yield_stress, H0, H1) / r
                     # stress
                     strain = strain_global[ip_0 : ip_0 + nr_comps] + strain_macro
                     stress_ip = (1 - d) * numpy.dot(C, strain)
-                    stress =  stress + stress_ip / nr_ips
+                    stress = stress + stress_ip / nr_ips
 
                     damage += d / nr_ips
                     ip_0 += nr_comps
                 damage_list.append(damage)
                 stress_list.append(stress)
-            element_damage = numpy.array(damage_list).reshape((-1, 1)) # formatting for meshio
+            element_damage = numpy.array(damage_list).reshape(
+                (-1, 1)
+            )  # formatting for meshio
 
             logger.debug("Writing timestep data")
             writer.write_data(
@@ -212,10 +224,9 @@ if __name__ == "__main__":
                     "TOTAL_DISPLACEMENT": total_displacement,
                 },
                 cell_data={
-                    #[("triangle", [[0, 1, 2], ...])]
-                    #[("hexahedra", [[0, 1, 2, 3, 4, 5, 6, 7], ...]), ("wedge", [[0, 1, 2, 3, 4, 5],[],..])]
+                    # [("triangle", [[0, 1, 2], ...])]
+                    # [("hexahedra", [[0, 1, 2, 3, 4, 5, 6, 7], ...]), ("wedge", [[0, 1, 2, 3, 4, 5],[],..])]
                     "dummy_1": {"DAMAGE": element_damage},
                     "dummy_2": {"STRESS": stress_list},
                 },
             )
-

@@ -12,6 +12,7 @@ s_filename = sys.argv[3]
 mesh = meshio.read(i_filename)
 meshio.write(o_filename, mesh)
 
+
 def explode_hexa(e):
     """return quadrilaterals of the input hexahedron"""
     q0 = [e[0], e[1], e[5], e[4]]
@@ -61,10 +62,10 @@ def filter_faces(candidates):
 
 candidates_t = []
 candidates_q = []
-#hexas = [[1, 2, 3, 4, 5, 6, 7, 8], [4, 3, 9, 10, 8, 7, 11, 12]]
-#prism1 = [[21, 22, 23, 24, 25, 26], [27, 28, 29, 21, 22, 23]]
-#prism2 = [[31, 32, 33, 34, 35, 36], [37, 31, 33, 38, 34, 36]]
-#tetras = [[41, 42, 43, 44], [42, 45, 43, 44]]
+# hexas = [[1, 2, 3, 4, 5, 6, 7, 8], [4, 3, 9, 10, 8, 7, 11, 12]]
+# prism1 = [[21, 22, 23, 24, 25, 26], [27, 28, 29, 21, 22, 23]]
+# prism2 = [[31, 32, 33, 34, 35, 36], [37, 31, 33, 38, 34, 36]]
+# tetras = [[41, 42, 43, 44], [42, 45, 43, 44]]
 hexas = mesh.cells["hexahedron"]
 print(hexas)
 stop

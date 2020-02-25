@@ -2,8 +2,10 @@ import KratosMultiphysics as km
 
 
 def Factory(settings, Model):
-    if(type(settings) != km.Parameters):
-        raise Exception("expected input is Parameters object, encapsulating a json string")
+    if type(settings) != km.Parameters:
+        raise Exception(
+            "expected input is Parameters object, encapsulating a json string"
+        )
     return ComputeTotalDisplacementProcess(Model, settings["Parameters"])
 
 
@@ -27,11 +29,13 @@ def TotalDisplacement(node, strain):
 class ComputeTotalDisplacementProcess(km.Process):
     def __init__(self, Model, settings):
         km.Process.__init__(self)
-        default_settings = km.Parameters("""
+        default_settings = km.Parameters(
+            """
         {
             "model_part_name": "unset_model_part_name"
         }
-        """)
+        """
+        )
         settings.ValidateAndAssignDefaults(default_settings)
         self.model_part = Model[settings["model_part_name"].GetString()]
 
