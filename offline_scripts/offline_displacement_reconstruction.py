@@ -5,6 +5,9 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import (
     MechanicalSolver,
 )
+from KratosMultiphysics.StructuralMechanicsApplication import (
+    structural_mechanics_analysis,
+)
 
 
 class DisplacementReconstructionSolver(MechanicalSolver):
@@ -39,23 +42,61 @@ class DisplacementReconstructionAnalysis(AnalysisStage):
         return solver
 
 
+###############################################################
+###############################################################
+
 if __name__ == "__main__":
 
+    # Read parametres for reconstruction
     with open("../configuration_offline_reconstruction.json", "r") as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        parameters_reconstr = KratosMultiphysics.Parameters(parameter_file.read())
 
+    #  Generate auxiliar data structure
+    with open("../configuration.json", "r") as parameter_file:
+        parameters_aux = KratosMultiphysics.Parameters(parameter_file.read())
     model = KratosMultiphysics.Model()
-    simulation = DisplacementReconstructionAnalysis(model, parameters)
-    # simulation.Run()
+    simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(
+        model, parameters_aux
+    )
+    simulation.Initialize()
+    modelpart = simulation._GetSolver().GetComputingModelPart()
+    for elem in modelpart.Elements:
+        nr_comp = len(
+            elem.GetValuesOnIntegrationPoints(
+                KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, modelpart.ProcessInfo
+            )[0]
+        )
+        break
+    idx_vector = []
+    count = 0
+    for elem in modelpart.Elements:
+        idx_vector.append(count)
+        nr_ips = len(
+            elem.GetValuesOnIntegrationPoints(
+                KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, modelpart.ProcessInfo
+            )
+        )
+        count = count + nr_ips * nr_comp
+    fname = parameters_reconstr["processes"]["my_processes"][0]["Parameters"][
+        "global_index_filename"
+    ].GetString()
+    with open(fname, "w") as ofile:
+        for idx in idx_vector:
+            ofile.write("{}\n".format(idx))
+    # end of generating auxiliar file
 
+    # Reconstruction 
+    model = KratosMultiphysics.Model()
+    simulation = DisplacementReconstructionAnalysis(model, parameters_reconstr)
     # we replace .Run() by the code below so we can remove conditions
     # (and in the future replace elements, no we don need to modify model.mdpa)
+    # simulation.Run()
     simulation.Initialize()
-    rve_modelpart = simulation._GetSolver().GetComputingModelPart()
+    modelpart = simulation._GetSolver().GetComputingModelPart()
 
-    for condition in rve_modelpart.Conditions:
+    for condition in modelpart.Conditions:
         condition.Set(KratosMultiphysics.TO_ERASE)
-    rve_modelpart.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+    modelpart.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
     # settings = KratosMultiphysics.Parameters("""
     #    {
@@ -63,7 +104,7 @@ if __name__ == "__main__":
     #        "condition_name": ""
     #    }
     #    """)
-    # KratosMultiphysics.ReplaceElementsAndConditionsProcess(rve_modelpart, settings).Execute()
+    # KratosMultiphysics.ReplaceElementsAndConditionsProcess(modelpart, settings).Execute()
 
     simulation.RunSolutionLoop()
     simulation.Finalize()

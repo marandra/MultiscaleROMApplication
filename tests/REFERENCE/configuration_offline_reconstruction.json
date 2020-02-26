@@ -1,0 +1,83 @@
+{
+    "problem_data": {
+        "problem_name": "High_Fidelity",
+        "parallel_type": "OpenMP",
+        "start_time": 0.0,
+        "end_time": 0.99,
+        "echo_level": 1
+    },
+    "solver_settings": {
+        "model_part_name": "Microstructure",
+        "domain_size": 3,
+        "echo_level": 1,
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "Static",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "model_custom_elem"
+        },
+        "material_import_settings": {
+            "materials_filename" : "../training/materials.json"
+        },
+        "linear_solver_settings": {
+            "solver_type": "amgcl",
+            "krylov_type": "cg",
+	    "max_iteration": 500,
+            "scaling": false,
+            "verbosity": 1
+	},
+        "line_search": false,
+        "convergence_criterion": "residual_criterion",
+        "residual_relative_tolerance": 1e-4,
+        "residual_absolute_tolerance": 0.0,
+        "max_iteration": 1,
+        "problem_domain_sub_model_part_list": ["RVE"],
+        "rotation_dofs": false,
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "block_builder": true,
+        "auxiliary_variables_list": []
+        },
+    "processes": {
+        "my_processes": [{
+            "python_module": "kratos_process_load_modes_to_properties",
+            "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
+            "process_name": "LoadModesToProperties",
+            "Parameters": {
+                "model_part_name": "Microstructure.RVE",
+                "modes_filename": "bases_STRAIN_FLUCTUANT_56m.npy",
+                "modes_file_format": "binary",
+		"global_index_filename": "auxiliar_global_index",
+                "number_modes_to_load": 20,
+                "modes_to_nodes_matrix_filename": "correlation_strain_20.npy",
+                "modes_to_nodes_matrix_file_format": "binary"
+                }
+            }],
+        "list_initial_processes": [],
+        "list_boundary_processes": [{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
+            "Parameters": {
+                "model_part_name": "Microstructure.PINNED",
+                "variable_name": "DISPLACEMENT",
+                "constrained": [true, true, true],
+                "value": [0.0, 0.0, 0.0],
+                "interval": [0.0, "End"]
+            }
+        }],
+        "loads_process_list": []},
+    "output_processes": {},
+    "restart_options": {
+        "SaveRestart": false,
+        "RestartFrequency": 0,
+        "LoadRestart": false,
+        "Restart_Step": 0
+    },
+    "constraints_data": {
+        "incremental_load": false,
+        "incremental_displacement": false
+    }
+}

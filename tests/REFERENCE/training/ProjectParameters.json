@@ -36,8 +36,9 @@
         "linear_solver_settings": {
             "solver_type": "amgcl",
             "krylov_type": "cg",
+	    "max_iteration": 500,
             "scaling": false,
-            "verbosity": 0
+            "verbosity": 1
         },
         "rotation_dofs": false,
         "compute_reactions": true,

@@ -60,7 +60,7 @@ class LoadModesToProperties(Kratos.Process):
             "mesh_id": 0,
             "model_part_name": "unset_model_part_name",
             "modes_filename": "unset_filename",
-            "global_index_filename": "unset_filename",
+            "global_index_filename": "unset_global_index_filename",
             "modes_file_format": "binary",
             "number_modes_to_load": 0,
             "modes_to_nodes_matrix_filename": "unset_modes_to_nodes_filename.npy",
