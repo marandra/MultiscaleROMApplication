@@ -22,30 +22,32 @@ def write_points(fo, points):
 
 def write_elements_hexahedron(fo, elems, offset=0):
     fo.write("Begin Elements SmallDisplacementElement3D8N\n")
-    i = -1
-    for i, p in enumerate(elems):
+    i = 0
+    for i0, p0 in enumerate(elems):
+        i = i0 + 1  # We start elements by 1
+        p = p0 + 1  # We start nodes by 1
         fo.write(
             "{:6d}  0  {:6d} {:6d} {:6d} {:6d} {:6d} {:6d} {:6d} {:6d}\n".format(
-                offset + i + 1, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
+                offset + i, *p
             )
         )
     fo.write("End Elements\n")
     fo.write("\n")
-    return i + 1
+    return i
 
 
 def write_elements_wedge(fo, elems, offset=0):
     fo.write("Begin Elements SmallDisplacementElement3D6N\n")
-    i = -1
-    for i, p in enumerate(elems):
+    i = 0
+    for i0, p0 in enumerate(elems):
+        i = i0 + 1  # We start elements by 1
+        p = p0 + 1  # We start nodes by 1
         fo.write(
-            "{:6d}  0  {:6d} {:6d} {:6d} {:6d} {:6d} {:6d}\n".format(
-                offset + i + 1, p[0], p[1], p[2], p[3], p[4], p[5]
-            )
+            "{:6d}  0  {:6d} {:6d} {:6d} {:6d} {:6d} {:6d}\n".format(offset + i, *p)
         )
     fo.write("End Elements\n")
     fo.write("\n")
-    return i + 1
+    return i
 
 
 def write_conditions_quad(fo, elems, offset=0):
@@ -53,7 +55,9 @@ def write_conditions_quad(fo, elems, offset=0):
     i = -1
     for i, r in enumerate(elems):
         fo.write(
-            "{:6d}  0  {:6d} {:6d} {:6d} {:6d}\n".format(offset + i + 1, r[0], r[1], r[2], r[3])
+            "{:6d}  0  {:6d} {:6d} {:6d} {:6d}\n".format(
+                offset + i + 1, r[0] + 1, r[1] + 1, r[2] + 1, r[3] + 1
+            )
         )
     fo.write("End Conditions\n\n")
     return i + 1
@@ -63,11 +67,34 @@ def write_conditions_triangle(fo, elems, offset=0):
     fo.write("Begin Conditions SurfaceCondition3D3N\n")
     i = -1
     for i, r in enumerate(elems):
-       fo.write(
-           "{:6d}  0  {:6d} {:6d} {:6d}\n".format(offset + i + 1, r[0], r[1], r[2])
-       )
+        fo.write(
+            "{:6d}  0  {:6d} {:6d} {:6d}\n".format(
+                offset + i + 1, r[0] + 1, r[1] + 1, r[2] + 1
+            )
+        )
     fo.write("End Conditions\n\n")
     return i + 1
+
+
+def write_submodelpart(fo, group_name, points=[], cells=[], conditions=[]):
+    fo.write("Begin SubModelPart {}\n".format(group_name))
+    fo.write("    Begin SubModelPartNodes\n")
+    for p0 in points:
+        p = p0 + 1
+        fo.write("        {:6d}\n".format(p))
+    fo.write("    End SubModelPartNodes\n")
+    fo.write("    Begin SubModelPartElements\n")
+    for c0 in cells:
+        c = c0 + 1
+        fo.write("        {:6d}\n".format(c))
+    fo.write("    End SubModelPartElements\n")
+    fo.write("    Begin SubModelPartConditions\n")
+    for c0 in conditions:
+        c = c0 + 1
+        fo.write("        {:6d}\n".format(c))
+    fo.write("    End SubModelPartConditions\n")
+    fo.write("End SubModelPart\n\n")
+
 
 ######################################################
 # main
@@ -89,10 +116,9 @@ print("   triangle")
 print("************************************")
 with open(o_filename, "w") as fo:
 
-
     write_header(fo)
 
-    #write_points(fo, mesh.points)
+    write_points(fo, mesh.points)
 
     element_offset = []
     offset = 0
@@ -118,11 +144,13 @@ with open(o_filename, "w") as fo:
             condition_offset.append(offset)
             offset += write_conditions_triangle(fo, condition_data, offset=offset)
 
-    for group_name, element_list in mesh.cell_sets.items():
-        name = cell_group
-        write_submodelpart_elements(fo, group_name)
-
-
+    for group_name, cell_arrays in mesh.cell_sets.items():
+        group_cells = []
+        for i, e in enumerate(cell_arrays):
+            g = element_offset[i]
+            elements = e + g
+            group_cells.extend(elements)
+        write_submodelpart(fo, group_name, cells=group_cells)
 
     # fo.write("Begin SubModelPart SKIN\n")
     # fo.write("    Begin SubModelPartNodes\n")
