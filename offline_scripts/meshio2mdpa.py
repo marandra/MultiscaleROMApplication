@@ -52,28 +52,32 @@ def write_elements_wedge(fo, elems, offset=0):
 
 def write_conditions_quad(fo, elems, offset=0):
     fo.write("Begin Conditions SurfaceCondition3D4N\n")
-    i = -1
-    for i, r in enumerate(elems):
+    i = 0
+    for i0, p0 in enumerate(elems):
+        i = i0 + 1  # We start elements by 1
+        p = p0 + 1  # We start elements by 1
         fo.write(
             "{:6d}  0  {:6d} {:6d} {:6d} {:6d}\n".format(
-                offset + i + 1, r[0] + 1, r[1] + 1, r[2] + 1, r[3] + 1
+                offset + i, *p
             )
         )
     fo.write("End Conditions\n\n")
-    return i + 1
+    return i
 
 
 def write_conditions_triangle(fo, elems, offset=0):
     fo.write("Begin Conditions SurfaceCondition3D3N\n")
-    i = -1
-    for i, r in enumerate(elems):
+    i = 0
+    for i0, p0 in enumerate(elems):
+        i = i0 + 1  # We start elements by 1
+        p = p0 + 1  # We start elements by 1
         fo.write(
             "{:6d}  0  {:6d} {:6d} {:6d}\n".format(
-                offset + i + 1, r[0] + 1, r[1] + 1, r[2] + 1
+                offset + i, *p
             )
         )
     fo.write("End Conditions\n\n")
-    return i + 1
+    return i
 
 
 def write_submodelpart(fo, group_name, points=[], cells=[], conditions=[]):
@@ -138,23 +142,31 @@ with open(o_filename, "w") as fo:
 
     # Conditions. Surface elements obtained exploiding volume elements
     # my script: generating skin
-    faces = []
+    quads = []
+    triangles = []
     for cell_block in mesh.cells:
+        print(cell_block)
         element_type = cell_block[0]
         element_data = cell_block[1]
         if "hexa" in element_type:
             for e in element_data:
-                faces.extend(skin_detect.explode_hexa(e))
+                quads.extend(skin_detect.explode_hexa(e))
         elif "wedge" in element_type:
             for e in element_data:
-                faces.extend(skin_detect.explode_prism(e))
-        skin_faces = skin_detect.filter_faces(faces)
-        print(skin_faces)
-
+                qs, ts = skin_detect.explode_prism(e)
+                quads.extend(qs)
+                triangles.extend(ts)
+    skin_quads = skin_detect.filter_faces(quads)
+    skin_triangles = skin_detect.filter_faces(triangles)
+    cb_q = meshio.CellBlock("quads", numpy.array(skin_quads))
+    cb_t = meshio.CellBlock("triangles", numpy.array(skin_triangles))
+    skin_cells = [cb_q, cb_t]
+    print(skin_cells)
     # end of my scrip
+
     condition_offset = []
     offset = 0
-    for cell_block in mesh.cells:
+    for cell_block in skin_cells:
         condition_type = cell_block[0]
         condition_data = cell_block[1]
         if "quad" in condition_type:
@@ -163,6 +175,7 @@ with open(o_filename, "w") as fo:
         elif "triangle" in condition_type:
             condition_offset.append(offset)
             offset += write_conditions_triangle(fo, condition_data, offset=offset)
+    nr_conditions = offset
 
     # Groups (as submodelparts)
     for group_name, cell_arrays in mesh.cell_sets.items():
@@ -174,41 +187,17 @@ with open(o_filename, "w") as fo:
         write_submodelpart(fo, group_name, cells=group_cells)
 
     #  Custom groups
+    # TODO: add following submodelparts as groups in mesh.cell_sets, so we avoid these write_submodelparts():w
+
     write_submodelpart(fo, "PINNED", points=[0])
     points = [x for x in range(len(mesh.points))]
     cells = [x for x in range(nr_cells)]
     write_submodelpart(fo, "RVE", points=points, cells=cells)
-    points = [x for x in range(len(mesh.points))]  # FIX
-    conditions = [x for x in range(nr_cells)]  # FIX
+    aux_points = []
+    for cb in skin_cells:
+        for a in cb[1]:
+            aux_points.extend(a)
+    skin_points = set(aux_points)
+    points = [x for x in skin_points]
+    conditions = [x for x in range(nr_conditions)]
     write_submodelpart(fo, "SKIN", points=points, conditions=conditions)
-
-    # fo.write("Begin SubModelPart SKIN\n")
-    # fo.write("    Begin SubModelPartNodes\n")
-    # # if we have triangles use numpy concatenate quad and triangles arrays
-    # skin_nodes = set(mesh.cells["quad"].flatten())
-    # for n in sorted(skin_nodes):
-    #     fo.write("{:6d}\n".format(int(n)))
-    # fo.write("    End SubModelPartNodes\n")
-    # fo.write("    Begin SubModelPartElements\n")
-    # fo.write("    End SubModelPartElements\n")
-    # fo.write("    Begin SubModelPartConditions\n")
-    # for i in range(max_i):
-    #     fo.write("{:6d}\n".format(i + 1))
-    # fo.write("    End SubModelPartConditions\n")
-    # fo.write("End SubModelPart\n\n")
-    #
-    # for name, idx in mesh.field_data.items():
-    #     if "SKIN" in name:
-    #         continue
-    #     group_array = mesh.cell_data["hexahedron"]["gmsh:physical"]
-    #     fo.write("Begin SubModelPart {}\n".format(name))
-    #     fo.write("    Begin SubModelPartNodes\n")
-    #     fo.write("    End SubModelPartNodes\n")
-    #     fo.write("    Begin SubModelPartElements\n")
-    #     for e in numpy.where(group_array == idx[0])[0]:
-    #         fo.write("{:6d}\n".format(e + 1))
-    #     fo.write("    End SubModelPartElements\n")
-    #     fo.write("    Begin SubModelPartConditions\n")
-    #     fo.write("    End SubModelPartConditions\n")
-    #     fo.write("End SubModelPart\n")
-    #     fo.write("\n")

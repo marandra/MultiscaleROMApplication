@@ -44,7 +44,7 @@ def filter_faces(candidates):
         # print("debug try: ", key, es)
         if key in skin:
             del skin[key]
-            print('debug:    deleted faces with key "{}"'.format(key))
+            #print('debug:    deleted faces with key "{}"'.format(key))
         else:
             skin[key] = es
     # we return a list, as we do not need keys anymore
