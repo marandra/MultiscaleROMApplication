@@ -1,7 +1,7 @@
 import meshio
 import sys
 import numpy
-
+import skin_detect
 
 def write_header(fo):
     fo.write("Begin ModelPartData\n")
@@ -116,10 +116,13 @@ print("   triangle")
 print("************************************")
 with open(o_filename, "w") as fo:
 
+    #  Header
     write_header(fo)
 
+    #  Nodes
     write_points(fo, mesh.points)
 
+    #  Elements
     element_offset = []
     offset = 0
     for cell_block in mesh.cells:
@@ -131,7 +134,24 @@ with open(o_filename, "w") as fo:
         elif "wedge" in element_type:
             element_offset.append(offset)
             offset += write_elements_wedge(fo, element_data, offset=offset)
+    nr_cells = offset
 
+    # Conditions. Surface elements obtained exploiding volume elements
+    # my script: generating skin
+    faces = []
+    for cell_block in mesh.cells:
+        element_type = cell_block[0]
+        element_data = cell_block[1]
+        if "hexa" in element_type:
+            for e in element_data:
+                faces.extend(skin_detect.explode_hexa(e))
+        elif "wedge" in element_type:
+            for e in element_data:
+                faces.extend(skin_detect.explode_prism(e))
+        skin_faces = skin_detect.filter_faces(faces)
+        print(skin_faces)
+
+    # end of my scrip
     condition_offset = []
     offset = 0
     for cell_block in mesh.cells:
@@ -144,6 +164,7 @@ with open(o_filename, "w") as fo:
             condition_offset.append(offset)
             offset += write_conditions_triangle(fo, condition_data, offset=offset)
 
+    # Groups (as submodelparts)
     for group_name, cell_arrays in mesh.cell_sets.items():
         group_cells = []
         for i, e in enumerate(cell_arrays):
@@ -151,6 +172,15 @@ with open(o_filename, "w") as fo:
             elements = e + g
             group_cells.extend(elements)
         write_submodelpart(fo, group_name, cells=group_cells)
+
+    #  Custom groups
+    write_submodelpart(fo, "PINNED", points=[0])
+    points = [x for x in range(len(mesh.points))]
+    cells = [x for x in range(nr_cells)]
+    write_submodelpart(fo, "RVE", points=points, cells=cells)
+    points = [x for x in range(len(mesh.points))]  # FIX
+    conditions = [x for x in range(nr_cells)]  # FIX
+    write_submodelpart(fo, "SKIN", points=points, conditions=conditions)
 
     # fo.write("Begin SubModelPart SKIN\n")
     # fo.write("    Begin SubModelPartNodes\n")
@@ -182,28 +212,3 @@ with open(o_filename, "w") as fo:
     #     fo.write("    End SubModelPartConditions\n")
     #     fo.write("End SubModelPart\n")
     #     fo.write("\n")
-    #
-    # fo.write("Begin SubModelPart PINNED\n")
-    # fo.write("    Begin SubModelPartNodes\n")
-    # fo.write("        {:6d}\n".format(0))
-    # fo.write("    End SubModelPartNodes\n")
-    # fo.write("    Begin SubModelPartElements\n")
-    # fo.write("    End SubModelPartElements\n")
-    # fo.write("    Begin SubModelPartConditions\n")
-    # fo.write("    End SubModelPartConditions\n")
-    # fo.write("End SubModelPart\n\n")
-    #
-    # fo.write("Begin SubModelPart RVE\n")
-    # fo.write("    Begin SubModelPartNodes\n")
-    # for i, p in enumerate(mesh.points):
-    #     fo.write("        {:6d}\n".format(i))
-    # fo.write("    End SubModelPartNodes\n")
-    # fo.write("    Begin SubModelPartElements\n")
-    # for i, p in enumerate(mesh.cells["hexahedron"]):
-    #     fo.write("        {:6d}\n".format(i + 1))
-    # fo.write("    End SubModelPartElements\n")
-    # fo.write("    Begin SubModelPartConditions\n")
-    # # for i in range(len(skin_eq) + len(skin_et)):
-    # #    fo.write("       {:6d}\n".format(i + 1))
-    # fo.write("    End SubModelPartConditions\n")
-    # fo.write("End SubModelPart\n\n")
