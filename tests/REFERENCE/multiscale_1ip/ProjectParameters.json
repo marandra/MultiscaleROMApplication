@@ -4,7 +4,7 @@
         "parallel_type": "OpenMP",
         "start_time": 0.0,
         "end_time": 0.99,
-        "echo_level": 0
+        "echo_level": 1
     },
     "solver_settings": {
         "model_part_name": "Structure",
@@ -14,15 +14,16 @@
             "time_step": 0.025
         },
         "solver_type": "Static",
-        "analysis_type": "non_linear",
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename": "macro_model"
         },
         "material_import_settings": {
-            "materials_filename" : "macro_materials.json"
+            "materials_filename": "macro_materials.json"
         },
         "line_search": true,
+        "use_old_stiffness_in_first_iteration": true,
+        "move_mesh_flag": false,
         "convergence_criterion": "residual_criterion",
         "residual_relative_tolerance": 1e-2,
         "residual_absolute_tolerance": 0.0,
@@ -30,17 +31,17 @@
         "linear_solver_settings": {
             "solver_type": "amgcl",
             "krylov_type": "cg",
+            "max_iteration": 500,
             "scaling": false,
-            "verbosity": 0
+            "verbosity": 1
         },
         "rotation_dofs": false,
         "compute_reactions": true,
-        "move_mesh_flag": false,
         "auxiliary_variables_list": []
         },
     "processes": {
         "my_processes": [{
-           "python_module": "write_rve_reconstruction_data_process",
+           "python_module": "kratos_process_write_rve_reconstruction_data",
            "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
            "process_name": "WriteRveReconstructionData",
            "Parameters": {
@@ -50,7 +51,7 @@
                "integration_point": 0
                }
            },{
-            "python_module": "write_elements_homogenized_output_process",
+            "python_module": "kratos_process_write_elements_homogenized_output",
             "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
             "process_name": "WriteElementsHomogenizedOutput",
             "Parameters": {
