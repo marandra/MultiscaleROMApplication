@@ -7,9 +7,15 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
     StructuralMechanicsAnalysis,
 )
 import KratosMultiphysics.MultiscaleROMApplication
-import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
 import meshio
 import math
+import json
+
+
+def read_json(filename):
+    with open(filename) as f:
+        data_dict = json.load(f)
+    return data_dict
 
 
 def q(r, E, yield_stress, inf_yield_stress, H0, H1):
@@ -90,10 +96,10 @@ if __name__ == "__main__":
     logger.info("Loading data")
     strain_correl = numpy.load(args.correlation_strain)
     r_value_correl = numpy.load(args.correlation_r_value)
-    data = io_utilities.read_json(args.runtime_data)
+    data = read_json(args.runtime_data)
 
     logger.info("Loading rve data")
-    rve_data = io_utilities.read_json(args.rve_data)
+    rve_data = read_json(args.rve_data)
     props = rve_data["material_parameters"]["properties"]
     material_properties = {}
     material_element_list = {}

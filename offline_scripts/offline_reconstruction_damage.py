@@ -1,7 +1,13 @@
 import argparse
 import numpy
 import logging
-import KratosMultiphysics.MultiscaleROMApplication.io_utilities as io_utilities
+import json
+
+
+def read_json(filename):
+    with open(filename) as f:
+        data_dict = json.load(f)
+    return data_dict
 
 
 def load_rve_data(rve_data):
@@ -22,7 +28,8 @@ def load_rve_data(rve_data):
 
 
 def load_energy_modes(modes_filename, reduced_ip_set, nr_modes):
-    modes = io_utilities.read_numpy_file(modes_filename, "binary")[:, :nr_modes]
+    #modes = io_utilities.read_numpy_file(modes_filename, "binary")[:, :nr_modes]
+    modes = numpy.load(modes_filename)[:, :nr_modes]
     reduced_modes = modes[reduced_ip_set, :]
     logger.info(
         "Modes matrix {} {} - Reduced modes matrix: {} {}".format(
@@ -54,7 +61,7 @@ def compute_reconstruction_system(
     logger.debug("A: {}".format(numpy.shape(A)))
     logger.debug("rank A: {}".format(numpy.linalg.matrix_rank(A)))
     if rankA != numpy.shape(A)[0]:
-        logger.info("Matrix rank not complete (Too many ROQ points?). Aborting.")
+        logger.info("Matrix rank not complete (Too many ROC points?). Aborting.")
         exit()
     logger.debug("-- inverse A")
     Ainv = numpy.linalg.inv(A)
@@ -66,7 +73,7 @@ def compute_reconstruction_system(
 
 
 def compute_system(rve_data_filename, energy_modes_filename, nr_modes):
-    rve_data = io_utilities.read_json(rve_data_filename)
+    rve_data = read_json(rve_data_filename)
     reduced_ip_set, reduced_ip_weights = load_rve_data(rve_data)
     modes, reduced_modes = load_energy_modes(
         energy_modes_filename, reduced_ip_set, nr_modes
@@ -106,6 +113,7 @@ if __name__ == "__main__":
     # A = compute_system(args.rve_data, args.energy_modes, args.integration_weights)
     A = compute_system(args.rve_data, args.r_value_modes, int(args.nr_modes))
     logger.info("Saving system")
-    io_utilities.write_numpy_file(
-        "correlation_r_value_{}.npy".format(args.nr_modes), "binary", A
-    )
+    #io_utilities.write_numpy_file(
+    #    "correlation_r_value_{}.npy".format(args.nr_modes), "binary", A
+    #)
+    numpy.save("correlation_r_value_{}.npy".format(args.nr_modes), A)
