@@ -145,7 +145,6 @@ with open(o_filename, "w") as fo:
     quads = []
     triangles = []
     for cell_block in mesh.cells:
-        print(cell_block)
         element_type = cell_block[0]
         element_data = cell_block[1]
         if "hexa" in element_type:
@@ -161,7 +160,6 @@ with open(o_filename, "w") as fo:
     cb_q = meshio.CellBlock("quads", numpy.array(skin_quads))
     cb_t = meshio.CellBlock("triangles", numpy.array(skin_triangles))
     skin_cells = [cb_q, cb_t]
-    print(skin_cells)
     # end of my scrip
 
     condition_offset = []
@@ -187,9 +185,9 @@ with open(o_filename, "w") as fo:
         write_submodelpart(fo, group_name, cells=group_cells)
 
     #  Custom groups
-    # TODO: add following submodelparts as groups in mesh.cell_sets, so we avoid these write_submodelparts():w
-
-    write_submodelpart(fo, "PINNED", points=[0])
+    # TODO: add following submodelparts as groups in mesh.cell_sets, so we avoid these write_submodelparts()
+    p_origin = numpy.where((mesh.points[:,0]==0) * (mesh.points[:,1]==0) * (mesh.points[:,2]==0))[0]
+    write_submodelpart(fo, "PINNED", p_origin)
     points = [x for x in range(len(mesh.points))]
     cells = [x for x in range(nr_cells)]
     write_submodelpart(fo, "RVE", points=points, cells=cells)
