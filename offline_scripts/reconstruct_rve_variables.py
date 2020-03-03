@@ -88,10 +88,14 @@ if __name__ == "__main__":
 
     logger.info("Loading RVE node info")
     mesh = meshio.read(args.mdpa_file)
-    rve_elems = {"hexahedron": mesh.cells["line8"] + 1}
-    # rve_elems = {"hexahedron": mesh.cells["line8"], "wedge": mesh.cells["line6"]}
-    # rve_elems = [("hexahedron", mesh.cells["line8"]), ("wedge", mesh.cells["line6"]), ("hexahedron", mesh.cells["line8"])]
-    rve_nodes = mesh.points
+    rve_cells = []
+    for cell_block in mesh.cells:
+        element_type = cell_block[0]
+        #if "hexa" in element_type or "wedge" in element_type:
+        if "line8" in element_type:
+            rve_cells.append(meshio.CellBlock("hexahedron", cell_block[1]))
+        if "line6" in element_type:
+            rve_cells.append(meshio.CellBlock("wedge", cell_block[1]))
 
     logger.info("Loading data")
     strain_correl = numpy.load(args.correlation_strain)
@@ -157,8 +161,9 @@ if __name__ == "__main__":
     strain_modes = numpy.load(args.strain_modes)[:, :nr_modes]
 
     filename = "rve_reconstructed.xdmf"
-    with meshio.XdmfTimeSeriesWriter(filename) as writer:
-        writer.write_points_cells(rve_nodes, rve_elems)
+    meshio.write_points_cells(filename, mesh.points, rve_cells)
+    with meshio.xdmf.TimeSeriesWriter(filename) as writer:
+        writer.write_points_cells(mesh.points, rve_cells)
         for t in range(nr_timesteps):
             logger.info("Timestep {}".format(t))
 
@@ -179,7 +184,8 @@ if __name__ == "__main__":
             strain_macro_tensor = numpy.array(
                 [[s_xx, s_xy, s_xz], [s_xy, s_yy, s_yz], [s_yz, s_yz, s_zz]]
             )
-            comp = numpy.dot(strain_macro_tensor, rve_nodes.T)
+            #comp = numpy.dot(strain_macro_tensor, rve_nodes.T)
+            comp = numpy.dot(strain_macro_tensor, mesh.points.T)
             total_displacement = comp.T + displacement
 
             logger.debug("Solving damage")
@@ -230,9 +236,9 @@ if __name__ == "__main__":
                     "TOTAL_DISPLACEMENT": total_displacement,
                 },
                 cell_data={
-                    # [("triangle", [[0, 1, 2], ...])]
-                    # [("hexahedra", [[0, 1, 2, 3, 4, 5, 6, 7], ...]), ("wedge", [[0, 1, 2, 3, 4, 5],[],..])]
-                    "dummy_1": {"DAMAGE": element_damage},
-                    "dummy_2": {"STRESS": stress_list},
+                #    # [("triangle", [[0, 1, 2], ...])]
+                #    # [("hexahedra", [[0, 1, 2, 3, 4, 5, 6, 7], ...]), ("wedge", [[0, 1, 2, 3, 4, 5],[],..])]
+                      "DAMAGE": element_damage,
+                      "STRESS": stress_list,
                 },
             )
