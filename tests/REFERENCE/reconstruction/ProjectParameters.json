@@ -1,0 +1,58 @@
+{
+    "problem_data": {
+        "problem_name": "High_Fidelity",
+        "parallel_type": "OpenMP",
+        "start_time": 0.0,
+        "end_time": 0.99,
+        "echo_level": 1
+    },
+    "solver_settings": {
+        "model_part_name": "Microstructure",
+        "domain_size": 3,
+        "echo_level": 1,
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "Static",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "../training/model"
+        },
+        "material_import_settings": {
+            "materials_filename" : "../training/materials.json"
+        },
+        "linear_solver_settings": {
+            "solver_type": "amgcl",
+            "krylov_type": "cg",
+	    "max_iteration": 500,
+            "scaling": false,
+            "verbosity": 1
+	},
+        "line_search": false,
+        "convergence_criterion": "residual_criterion",
+        "residual_relative_tolerance": 1e-4,
+        "residual_absolute_tolerance": 0.0,
+        "max_iteration": 1,
+        "rotation_dofs": false,
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "block_builder": true,
+        "auxiliary_variables_list": []
+        },
+    "processes": {
+        "my_processes": [],
+        "list_initial_processes": [],
+        "list_boundary_processes": [],
+        "loads_process_list": []},
+    "output_processes": {},
+    "restart_options": {
+        "SaveRestart": false,
+        "RestartFrequency": 0,
+        "LoadRestart": false,
+        "Restart_Step": 0
+    },
+    "constraints_data": {
+        "incremental_load": false,
+        "incremental_displacement": false
+    }
+}

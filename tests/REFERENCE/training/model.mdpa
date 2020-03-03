@@ -5,7 +5,6 @@ Begin Properties 0
 End Properties
 
 Begin Nodes
-     0   0.000000 0.000000 0.000000
      1   0.060000 0.000000 0.000000
      2   0.060000 0.000600 0.000000
      3   0.000000 0.000600 0.000000
@@ -2665,10 +2664,11 @@ Begin Nodes
   2657   0.040000 0.065988 0.010654
   2658   0.046667 0.065988 0.010654
   2659   0.053333 0.065988 0.010654
+  2660   0.000000 0.000000 0.000000
 End Nodes
 
 Begin Elements SmallDisplacementElement3D8N
-     1  0       0     52     67      3     84    524    644    108
+     1  0    2660     52     67      3     84    524    644    108
      2  0      84    524    644    108     85    525    645    109
      3  0      85    525    645    109     86    526    646    110
      4  0      86    526    646    110     87    527    647    111
@@ -4813,7 +4813,7 @@ Begin Elements SmallDisplacementElement3D8N
 End Elements
 
 Begin Conditions SurfaceCondition3D4N
-     1  0       0     52     67      3
+     1  0    2660     52     67      3
      2  0      52     53     66     67
      3  0      53     54     65     66
      4  0      54     55     64     65
@@ -4822,7 +4822,7 @@ Begin Conditions SurfaceCondition3D4N
      7  0      57     58     61     62
      8  0      58     59     60     61
      9  0      59      1      2     60
-    10  0       0     52    524     84
+    10  0    2660     52    524     84
     11  0      84    524    525     85
     12  0      85    525    526     86
     13  0      86    526    527     87
@@ -4912,7 +4912,7 @@ Begin Conditions SurfaceCondition3D4N
     97  0      97    105    106     98
     98  0      98    106    107     99
     99  0      99    107      6      5
-   100  0       3      0     84    108
+   100  0       3   2660     84    108
    101  0     108     84     85    109
    102  0     109     85     86    110
    103  0     110     86     87    111
@@ -5779,7 +5779,6 @@ End Conditions
 
 Begin SubModelPart SKIN
     Begin SubModelPartNodes
-     0
      1
      2
      3
@@ -6743,6 +6742,7 @@ Begin SubModelPart SKIN
   1793
   1794
   1795
+  2660
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -9892,7 +9892,7 @@ End SubModelPart
 
 Begin SubModelPart PINNED
     Begin SubModelPartNodes
-             0
+          2660
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -9902,7 +9902,6 @@ End SubModelPart
 
 Begin SubModelPart RVE
     Begin SubModelPartNodes
-             0
              1
              2
              3
@@ -12562,6 +12561,7 @@ Begin SubModelPart RVE
           2657
           2658
           2659
+          2660
     End SubModelPartNodes
     Begin SubModelPartElements
              1

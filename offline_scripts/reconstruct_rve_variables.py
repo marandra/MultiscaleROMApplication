@@ -184,14 +184,18 @@ if __name__ == "__main__":
             strain_macro_tensor = numpy.array(
                 [[s_xx, s_xy, s_xz], [s_xy, s_yy, s_yz], [s_yz, s_yz, s_zz]]
             )
-            #comp = numpy.dot(strain_macro_tensor, rve_nodes.T)
             comp = numpy.dot(strain_macro_tensor, mesh.points.T)
             total_displacement = comp.T + displacement
 
             logger.debug("Solving damage")
             damage_list = []
             r = numpy.dot(r_value_correl, data["r_value"][t])
-            r_in_elem = numpy.reshape(r, (-1, 8))
+            #r_in_elem = numpy.reshape(r, (-1, 8)) #TODO: FIX THIS
+            r_in_elem = {}
+            for elem_id, nr_ips in nr_of_ips.items():
+                r_in_elem[elem_id] = r[:nr_ips]
+                r = r[nr_ips:]
+
             strain_global = numpy.dot(strain_modes, rve_interpolation_params[t, :])
             stress_list = []
             for elem_id, nr_ips in nr_of_ips.items():
@@ -210,8 +214,9 @@ if __name__ == "__main__":
                 ip_0 = ip_elem_map[elem_id]
                 damage = 0
                 stress = [0, 0, 0, 0, 0, 0]
-                for i in range(nr_ips):
-                    r = r_in_elem[elem_id - 1, i]
+                #for i in range(nr_ips):
+                #    r = r_in_elem[elem_id], #i]
+                for r in r_in_elem[elem_id]:
                     if r < r0:
                         r = r0
                     d = 1 - q(r, E, yield_stress, inf_yield_stress, H0, H1) / r
@@ -236,8 +241,6 @@ if __name__ == "__main__":
                     "TOTAL_DISPLACEMENT": total_displacement,
                 },
                 cell_data={
-                #    # [("triangle", [[0, 1, 2], ...])]
-                #    # [("hexahedra", [[0, 1, 2, 3, 4, 5, 6, 7], ...]), ("wedge", [[0, 1, 2, 3, 4, 5],[],..])]
                       "DAMAGE": element_damage,
                       "STRESS": stress_list,
                 },
