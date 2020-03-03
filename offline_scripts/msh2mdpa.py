@@ -46,14 +46,16 @@ def write_quad(fo, elems):
     fo.write("End Conditions\n\n")
     return i + 1
 
+
 def write_traingle(fo, elems):
     fo.write("Begin Conditions SurfaceCondition3D3N\n")
     for i, r in enumerate(elems):
-       fo.write(
-           "{:6d}  0  {:6d} {:6d} {:6d}\n".format(max_i + i + 1, r[0], r[1], r[2])
-       )
+        fo.write(
+            "{:6d}  0  {:6d} {:6d} {:6d}\n".format(max_i + i + 1, r[0], r[1], r[2])
+        )
     fo.write("End Conditions\n\n")
     return i + 1
+
 
 ######################################################
 # main
@@ -89,7 +91,6 @@ with open(o_filename, "w") as fo:
             max_i += write_wedge(fo, cb[1])
         elif "quad" in cb[0]:
             max_i += write_quad(fo, cb[1])
-
 
     fo.write("Begin SubModelPart SKIN\n")
     fo.write("    Begin SubModelPartNodes\n")

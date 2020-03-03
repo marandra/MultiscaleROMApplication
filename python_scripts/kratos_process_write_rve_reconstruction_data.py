@@ -8,11 +8,11 @@ def write_json(filename, data_dict):
     with open(filename, "w") as fo:
         json.dump(data_dict, fo, indent=2)
 
+
 def read_json(filename):
     with open(filename) as f:
         data_dict = json.load(f)
     return data_dict
-
 
 
 def Factory(settings, model):

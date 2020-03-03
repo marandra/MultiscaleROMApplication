@@ -3,6 +3,7 @@ import sys
 import numpy
 import skin_detect
 
+
 def write_header(fo):
     fo.write("Begin ModelPartData\n")
     fo.write("End ModelPartData\n")
@@ -56,11 +57,7 @@ def write_conditions_quad(fo, elems, offset=0):
     for i0, p0 in enumerate(elems):
         i = i0 + 1  # We start elements by 1
         p = p0 + 1  # We start elements by 1
-        fo.write(
-            "{:6d}  0  {:6d} {:6d} {:6d} {:6d}\n".format(
-                offset + i, *p
-            )
-        )
+        fo.write("{:6d}  0  {:6d} {:6d} {:6d} {:6d}\n".format(offset + i, *p))
     fo.write("End Conditions\n\n")
     return i
 
@@ -71,11 +68,7 @@ def write_conditions_triangle(fo, elems, offset=0):
     for i0, p0 in enumerate(elems):
         i = i0 + 1  # We start elements by 1
         p = p0 + 1  # We start elements by 1
-        fo.write(
-            "{:6d}  0  {:6d} {:6d} {:6d}\n".format(
-                offset + i, *p
-            )
-        )
+        fo.write("{:6d}  0  {:6d} {:6d} {:6d}\n".format(offset + i, *p))
     fo.write("End Conditions\n\n")
     return i
 
@@ -186,7 +179,9 @@ with open(o_filename, "w") as fo:
 
     #  Custom groups
     # TODO: add following submodelparts as groups in mesh.cell_sets, so we avoid these write_submodelparts()
-    p_origin = numpy.where((mesh.points[:,0]==0) * (mesh.points[:,1]==0) * (mesh.points[:,2]==0))[0]
+    p_origin = numpy.where(
+        (mesh.points[:, 0] == 0) * (mesh.points[:, 1] == 0) * (mesh.points[:, 2] == 0)
+    )[0]
     write_submodelpart(fo, "PINNED", p_origin)
     points = [x for x in range(len(mesh.points))]
     cells = [x for x in range(nr_cells)]

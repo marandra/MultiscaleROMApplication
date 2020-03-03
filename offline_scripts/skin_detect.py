@@ -44,16 +44,17 @@ def filter_faces(candidates):
         # print("debug try: ", key, es)
         if key in skin:
             del skin[key]
-            #print('debug:    deleted faces with key "{}"'.format(key))
+            # print('debug:    deleted faces with key "{}"'.format(key))
         else:
             skin[key] = es
     # we return a list, as we do not need keys anymore
     return list(skin.values())
 
-####################################################    
+
+####################################################
 # main
-####################################################    
-if __name__=="__main":
+####################################################
+if __name__ == "__main":
     i_filename = sys.argv[1]
     o_filename = sys.argv[2]
     s_filename = sys.argv[3]
@@ -62,7 +63,7 @@ if __name__=="__main":
     # o_filename = "{}_skin.{}".format(o_name, o_ext)
     mesh = meshio.read(i_filename)
     meshio.write(o_filename, mesh)
-    
+
     candidates_t = []
     candidates_q = []
     # hexas = [[1, 2, 3, 4, 5, 6, 7, 8], [4, 3, 9, 10, 8, 7, 11, 12]]
@@ -78,26 +79,26 @@ if __name__=="__main":
     tetras = mesh.cells["tetra"]
     print(tetras)
     stop
-    
+
     for ev in hexas:
         quads = explode_hexa(ev)
         candidates_q.extend(quads)
-    
+
     for ev in prisms:
         quads, triangles = explode_prism(ev)
         candidates_q.extend(quads)
         candidates_t.extend(triangles)
-    
+
     for ev in tetras:
         triangles = explode_tetra(ev)
         candidates_t.extend(triangles)
-    
+
     skin_eq = filter_faces(candidates_q)
     skin_et = filter_faces(candidates_t)
-    
+
     pp.pprint(skin_eq)
     pp.pprint(skin_et)
-    
+
     skin_cells = {"triangle": numpy.array(skin_et), "quad": numpy.array(skin_eq)}
-    
+
     meshio.write(s_filename, mesh.points, skin_cells)

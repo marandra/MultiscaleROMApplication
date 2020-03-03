@@ -85,7 +85,7 @@ if __name__ == "__main__":
             ofile.write("{}\n".format(idx))
     # end of generating auxiliar file
 
-    # Reconstruction 
+    # Reconstruction
     model = KratosMultiphysics.Model()
     simulation = DisplacementReconstructionAnalysis(model, parameters_reconstr)
     # we replace .Run() by the code below so we can remove conditions

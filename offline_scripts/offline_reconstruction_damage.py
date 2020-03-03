@@ -28,7 +28,7 @@ def load_rve_data(rve_data):
 
 
 def load_energy_modes(modes_filename, reduced_ip_set, nr_modes):
-    #modes = io_utilities.read_numpy_file(modes_filename, "binary")[:, :nr_modes]
+    # modes = io_utilities.read_numpy_file(modes_filename, "binary")[:, :nr_modes]
     modes = numpy.load(modes_filename)[:, :nr_modes]
     reduced_modes = modes[reduced_ip_set, :]
     logger.info(
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # A = compute_system(args.rve_data, args.energy_modes, args.integration_weights)
     A = compute_system(args.rve_data, args.r_value_modes, int(args.nr_modes))
     logger.info("Saving system")
-    #io_utilities.write_numpy_file(
+    # io_utilities.write_numpy_file(
     #    "correlation_r_value_{}.npy".format(args.nr_modes), "binary", A
-    #)
+    # )
     numpy.save("correlation_r_value_{}.npy".format(args.nr_modes), A)

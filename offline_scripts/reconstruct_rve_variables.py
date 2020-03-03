@@ -52,6 +52,19 @@ def compute_elastic_tensor(E, NU):
     return ConstitutiveMatrix
 
 
+def strain_voigt_to_tensor(strain_vector):
+    s_xx = strain_vector[0]
+    s_yy = strain_vector[1]
+    s_zz = strain_vector[2]
+    s_xy = 0.5 * strain_vector[3]
+    s_yz = 0.5 * strain_vector[4]
+    s_xz = 0.5 * strain_vector[5]
+    strain_tensor = numpy.array(
+        [[s_xx, s_xy, s_xz], [s_xy, s_yy, s_yz], [s_yz, s_yz, s_zz]]
+    )
+    return strain_tensor
+
+
 #######################################
 # Main
 #######################################
@@ -91,7 +104,7 @@ if __name__ == "__main__":
     rve_cells = []
     for cell_block in mesh.cells:
         element_type = cell_block[0]
-        #if "hexa" in element_type or "wedge" in element_type:
+        # if "hexa" in element_type or "wedge" in element_type:
         if "line8" in element_type:
             rve_cells.append(meshio.CellBlock("hexahedron", cell_block[1]))
         if "line6" in element_type:
@@ -175,27 +188,17 @@ if __name__ == "__main__":
 
             logger.debug("Solving total displacement")
             strain_macro = rve_macro_strain[t, :]
-            s_xx = strain_macro[0]
-            s_yy = strain_macro[1]
-            s_zz = strain_macro[2]
-            s_xy = 0.5 * strain_macro[3]
-            s_yz = 0.5 * strain_macro[4]
-            s_xz = 0.5 * strain_macro[5]
-            strain_macro_tensor = numpy.array(
-                [[s_xx, s_xy, s_xz], [s_xy, s_yy, s_yz], [s_yz, s_yz, s_zz]]
-            )
+            strain_macro_tensor = strain_voigt_to_tensor(strain_macro)
             comp = numpy.dot(strain_macro_tensor, mesh.points.T)
             total_displacement = comp.T + displacement
 
-            logger.debug("Solving damage")
+            logger.debug("Solving damage and stress")
             damage_list = []
             r = numpy.dot(r_value_correl, data["r_value"][t])
-            #r_in_elem = numpy.reshape(r, (-1, 8)) #TODO: FIX THIS
             r_in_elem = {}
             for elem_id, nr_ips in nr_of_ips.items():
                 r_in_elem[elem_id] = r[:nr_ips]
                 r = r[nr_ips:]
-
             strain_global = numpy.dot(strain_modes, rve_interpolation_params[t, :])
             stress_list = []
             for elem_id, nr_ips in nr_of_ips.items():
@@ -214,8 +217,6 @@ if __name__ == "__main__":
                 ip_0 = ip_elem_map[elem_id]
                 damage = 0
                 stress = [0, 0, 0, 0, 0, 0]
-                #for i in range(nr_ips):
-                #    r = r_in_elem[elem_id], #i]
                 for r in r_in_elem[elem_id]:
                     if r < r0:
                         r = r0
@@ -224,7 +225,6 @@ if __name__ == "__main__":
                     strain = strain_global[ip_0 : ip_0 + nr_comps] + strain_macro
                     stress_ip = (1 - d) * numpy.dot(C, strain)
                     stress = stress + stress_ip / nr_ips
-
                     damage += d / nr_ips
                     ip_0 += nr_comps
                 damage_list.append(damage)
@@ -240,8 +240,5 @@ if __name__ == "__main__":
                     "FLUCTUANT_DISPLACEMENT": numpy.reshape(displacement, (-1, 3)),
                     "TOTAL_DISPLACEMENT": total_displacement,
                 },
-                cell_data={
-                      "DAMAGE": element_damage,
-                      "STRESS": stress_list,
-                },
+                cell_data={"DAMAGE": element_damage, "STRESS": stress_list},
             )
