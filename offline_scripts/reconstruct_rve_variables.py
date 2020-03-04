@@ -79,7 +79,9 @@ parser.add_argument(
 )
 parser.add_argument("rve_data", help="rve data file (.json)")
 parser.add_argument("strain_modes", help="strain modes")
-parser.add_argument("-v", "--verbose", action="store_true", help="sdebug information")
+parser.add_argument(
+    "-v", "--verbose", action="store_true", help="set debug verbosity level"
+)
 args = parser.parse_args()
 
 # configure logger

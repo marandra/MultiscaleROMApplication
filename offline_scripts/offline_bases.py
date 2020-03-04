@@ -15,7 +15,16 @@ TODO: pending description here.
 logging.basicConfig(
     format="[%(asctime)s] %(message)s", datefmt="%H:%M:%S", level=logging.DEBUG
 )
+fh = logging.FileHandler("offline_bases.log")
+# fh.setLevel(logging.DEBUG)
+fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.DEBUG)
+# ch.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
 logger = logging.getLogger(__name__)
+logger.addHandler(fh)
+# logger.addHandler(ch)
+logger.info("--------------------------------------------------")
 
 
 def skip_calculation(filename, flag_reuse):
@@ -30,15 +39,40 @@ def skip_calculation(filename, flag_reuse):
 def read_snapshots(trajectory_filename, group, field):
     logger.info("Loading snapshots")
     trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
-    arrays = []
-    batch_size = int(len(trajectory_paths) / 10 + 0.5)
-    counter = 1
+
+    # count snapshots so we know the size of X
+    logger.info("Getting number and size of snapshots to allocate array")
+    nr_snapshots = 0
     for path in trajectory_paths:
         with h5py.File(path + "/" + "snapshots.hdf5", "r") as f:
             try:
                 d = f[group][field]
                 for k, v in d.items():
-                    arrays.append(numpy.array(v))
+                    nr_snapshots += 1
+            except KeyError:
+                pass
+    for path in trajectory_paths:
+        with h5py.File(path + "/" + "snapshots.hdf5", "r") as f:
+            try:
+                d = f[group][field]
+                for k, v in d.items():
+                    len_snapshot = len(v)
+            except KeyError:
+                pass
+    logger.info("    - {} snapshots size {}".format(nr_snapshots, len_snapshot))
+
+    # start loading snapshots
+    arrays = numpy.empty([len_snapshot, nr_snapshots])
+    batch_size = int(len(trajectory_paths) / 10 + 0.5)
+    counter = 0
+    column = 0
+    for path in trajectory_paths:
+        with h5py.File(path + "/" + "snapshots.hdf5", "r") as f:
+            try:
+                d = f[group][field]
+                for k, v in d.items():
+                    arrays[:, column] = numpy.array(v)
+                    column += 1
             except KeyError:
                 logger.debug(
                     "Skipping {}/{} (dataset not present)".format(group, field)
@@ -49,11 +83,8 @@ def read_snapshots(trajectory_filename, group, field):
                     counter, len(trajectory_paths)
                 )
             )
-        counter = counter + 1
-    X = numpy.empty([len(arrays[0]), len(arrays)])
-    for i, array in enumerate(arrays):
-        X[:, i] = array
-    return X
+        counter += 1
+    return arrays
 
 
 def remove_elastic_modes(X, Ue):
@@ -76,13 +107,11 @@ def compute_svd(X, nr_modes, svd_algorithm="standard"):
         svd.fit(X.T)
         U = svd.components_.T
         S = svd.singular_values_.T
-        logger.info("SVD time: {:.1f}s".format(time.time() - t0))
     elif "standard" in svd_algorithm:
         t0 = time.time()
         logger.info("Computing SVD using STANDARD algorithm")
         [U, S] = numpy.linalg.svd(X, full_matrices=False)[:2]
         U = U[:, :nr_modes]
-        logger.info("SVD time: {:.1f}s".format(time.time() - t0))
 
     logger.info("    - SVD time: {:.1f}s".format(time.time() - t0))
     logger.info("    - singular value of selected modes:")
