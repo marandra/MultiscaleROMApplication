@@ -64,18 +64,18 @@ def read_snapshots(trajectory_filename, group, field):
     logger.info("Loading snapshots")
     arrays = numpy.empty([len_snapshot, nr_snapshots])
     batch_size = int(len(trajectory_paths) / 10 + 0.5)
-    counter = 0
+    counter = 1
     column = 0
     for path in trajectory_paths:
         with h5py.File(path + "/" + "snapshots.hdf5", "r") as f:
             try:
                 d = f[group][field]
                 for k, v in d.items():
-                    arrays[:, column] = numpy.array(v)
+                    arrays[:, column] = v
                     column += 1
             except KeyError:
                 logger.debug(
-                    "Skipping {}/{} (dataset not present)".format(group, field)
+                    "Skipping {}/{} of {} (dataset not present)".format(group, field, path)
                 )
         if not counter % batch_size:
             logger.info(
