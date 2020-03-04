@@ -37,7 +37,6 @@ def skip_calculation(filename, flag_reuse):
 
 
 def read_snapshots(trajectory_filename, group, field):
-    logger.info("Loading snapshots")
     trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
 
     # count snapshots so we know the size of X
@@ -62,6 +61,7 @@ def read_snapshots(trajectory_filename, group, field):
     logger.info("    - {} snapshots size {}".format(nr_snapshots, len_snapshot))
 
     # start loading snapshots
+    logger.info("Loading snapshots")
     arrays = numpy.empty([len_snapshot, nr_snapshots])
     batch_size = int(len(trajectory_paths) / 10 + 0.5)
     counter = 0
