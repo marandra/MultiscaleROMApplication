@@ -47,34 +47,7 @@
         ]
     },
     "processes": {
-        "my_processes": [
-            {
-                "python_module": "kratos_process_calculate_total_displacement",
-                "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-                "process_name": "ComputeTotalDisplacementProcess",
-                "Parameters": {
-                    "model_part_name": "Microstructure.RVE"
-                }
-            },
-            {
-                "python_module": "kratos_process_write_elements_homogenized_output",
-                "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-                "process_name": "WriteElementsHomogenizedOutput",
-                "Parameters": {
-                    "model_part_name": "Microstructure.RVE",
-                    "filename": "homogenized_stress.dat",
-                    "variable_name": "CAUCHY_STRESS_VECTOR"
-                    }
-            },
-            {
-                "python_module": "kratos_process_write_snapshots",
-                "kratos_module": "KratosMultiphysics.MultiscaleROMApplication",
-                "process_name": "WriteSnapshots",
-                "Parameters": {
-                    "model_part_name": "Microstructure.RVE"
-                }
-            }
-        ],
+        "my_processes": [],
         "list_initial_processes": [],
         "list_boundary_processes": [
             {
@@ -129,37 +102,7 @@
             }
         ]
     },
-    "output_processes": {
-        "vtk_output": [
-            {
-                "python_module": "vtk_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "VtkOutputProcess",
-                "help": "This process writes postprocessing files for Paraview",
-                "Parameters": {
-                    "model_part_name": "Microstructure.RVE",
-                    "output_control_type": "step",
-                    "output_frequency": 1,
-                    "file_format": "binary",
-                    "output_precision": 7,
-                    "output_sub_model_parts": true,
-                    "folder_name": "vtk_output",
-                    "save_output_files_in_folder": true,
-                    "nodal_solution_step_data_variables": [
-                        "DISPLACEMENT",
-                        "REACTION",
-                        "LAGRANGE_DISPLACEMENT"
-                    ],
-                    "gauss_point_variables_extrapolated_to_nodes": [
-                        "GREEN_LAGRANGE_STRAIN_VECTOR",
-                        "CAUCHY_STRESS_VECTOR",
-                        "DAMAGE_VARIABLE",
-                        "STRAIN_ENERGY"
-                    ]
-                }
-            }
-        ]
-    },
+    "output_processes": {},
     "restart_options": {
         "SaveRestart": false,
         "RestartFrequency": 0,

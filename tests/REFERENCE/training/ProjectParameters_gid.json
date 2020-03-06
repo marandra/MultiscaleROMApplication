@@ -130,6 +130,46 @@
         ]
     },
     "output_processes": {
+        "gid_output": [
+            {
+                "python_module": "gid_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "help": "This process writes postprocessing files for GiD",
+                "Parameters": {
+                    "model_part_name": "Microstructure.RVE",
+                    "output_name": "HighFidelity",
+                    "postprocess_parameters": {
+                        "result_file_configuration": {
+                            "gidpost_flags"       : {
+                                "GiDPostMode"           : "GiD_PostAscii",
+                                "WriteDeformedMeshFlag" : "WriteDeformed",
+                                "WriteConditionsFlag"   : "WriteConditions",
+                                "MultiFileFlag"         : "SingleFile"
+                            },
+                            "file_label": "time",
+                            "output_control_type": "step",
+                            "output_frequency": 1,
+                            "body_output": true,
+                            "node_output": true,
+                            "skin_output": false,
+                            "plane_output": [],
+                            "nodal_results": [
+                                "DISPLACEMENT",
+                                "REACTION",
+                                "LAGRANGE_DISPLACEMENT"
+                            ],
+                            "gauss_point_results": [
+                                "GREEN_LAGRANGE_STRAIN_VECTOR",
+                                "CAUCHY_STRESS_VECTOR",
+                                "DAMAGE_VARIABLE"
+                            ]
+                        },
+                        "point_data_configuration": []
+                    }
+                }
+            }
+        ],
         "vtk_output": [
             {
                 "python_module": "vtk_output_process",
