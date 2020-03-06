@@ -1,5 +1,22 @@
 {  
     "properties": [{
+        "model_part_name": "Microstructure.INCLUSION",
+        "properties_id": 1,
+        "Material": {
+            "name": "inclusion",
+            "constitutive_law": {
+                "name": "SmallStrainIsotropicDamageTractionOnly3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 72000.0,
+                "POISSON_RATIO": 0.25,
+                "YIELD_STRESS": 20000.0,
+                "INFINITY_YIELD_STRESS": 20001.0,
+                "HARDENING_MODULI_VECTOR": [0.1, 0.1]
+                },
+            "Tables":  {}
+            }
+    }, {
         "model_part_name": "Microstructure.MATRIX",
         "properties_id": 2,
         "Material": {
@@ -17,27 +34,10 @@
             "Tables":  {}
             }
     }, {
-        "model_part_name": "Microstructure.FIBER",
-        "properties_id": 1,
-        "Material": {
-            "name": "inclusion",
-            "constitutive_law": {
-                "name": "SmallStrainIsotropicDamageTractionOnly3DLaw"
-            },
-            "Variables": {
-                "YOUNG_MODULUS": 72000.0,
-                "POISSON_RATIO": 0.25,
-                "YIELD_STRESS": 20000.0,
-                "INFINITY_YIELD_STRESS": 20001.0,
-                "HARDENING_MODULI_VECTOR": [0.1, 0.1]
-                },
-            "Tables":  {}
-            }
-    }, {
         "model_part_name": "Microstructure.COHESIVE",
         "properties_id": 3,
         "Material": {
-            "name": "inclusion",
+            "name": "cohesive",
             "constitutive_law": {
                 "name": "SmallStrainIsotropicDamageTractionOnly3DLaw"
             },
@@ -54,7 +54,7 @@
         "model_part_name": "Microstructure.INTERPLY",
         "properties_id": 4,
         "Material": {
-            "name": "inclusion",
+            "name": "interply",
             "constitutive_law": {
                 "name": "SmallStrainIsotropicDamageTractionOnly3DLaw"
             },
