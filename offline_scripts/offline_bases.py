@@ -24,7 +24,6 @@ fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
 logger = logging.getLogger(__name__)
 logger.addHandler(fh)
 # logger.addHandler(ch)
-logger.info("--------------------------------------------------")
 
 
 def skip_calculation(filename, flag_reuse):
@@ -151,8 +150,21 @@ def create_bases(
 
         logger.info("Processing inelastic snapshots")
         X = read_snapshots(trajectory_filename, "INELASTIC", field_name)
+        # backup inelastic snapshot in case we run out of memory
+        snapshots_fname = "auxiliar_snapshots_{}_{}.npy".format("INELASTIC", field_name)
+        numpy.save(snapshots_fname, X)
         X = remove_elastic_modes(X, Ue)
-        Ui = compute_svd(X, nr_inelastic_modes, svd_algorithm=svd_algorithm)
+        # backup inelastic snapshot in case we run out of memory
+        snapshots_fname = "auxiliar_snapshots_{}_{}_removed_elastic.npy".format("INELASTIC", field_name)
+        numpy.save(snapshots_fname, X)
+        try:
+            Ui = compute_svd(X, nr_inelastic_modes, svd_algorithm=svd_algorithm)
+        except MemoryError:
+            # We don't have enough RAM for SVD. We free up memory moving snapshots array to disk
+            logger.warning("Run out of memory. Reloading snapshots from disk as memory map.")
+            del X
+            X = numpy.load(snapshots_fname, mmap_mode="r")
+            Ui = compute_svd(X, nr_inelastic_modes, svd_algorithm=svd_algorithm)
         os.rename(
             "singular_values.dat",
             "sv_{}_inelastic_{}.dat".format(field_name, nr_inelastic_modes),
@@ -182,6 +194,8 @@ def create_bases(
 #######################################################################
 
 if __name__ == "__main__":
+
+    logger.info("Begining bases calculation -----------------------")
 
     case_basename = "../training/trajectory"
 
@@ -223,3 +237,5 @@ if __name__ == "__main__":
         Common().svd_algorithm,
         Common().reuse_existing_files,
     )
+
+    logger.info("Finished -----------------------------------------")
