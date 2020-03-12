@@ -49,6 +49,21 @@ def read_data():
     return errors
 
 
+def read_rom():
+    stress_ref = numpy.loadtxt(
+        "../training/validation/trajectory_35/homogenized_stress.dat"
+    )
+    case_paths = glob.glob("../multiscale_1ip/ROM_cases/case_*/homogenized_stress.dat")
+    errors = {}
+    for case_path in case_paths:
+        stress = numpy.loadtxt(case_path)
+        case = case_path.split("/")[3]
+        errors[case] = max(
+            aposteriori_error.compute_mean_normalized_error(stress, stress_ref)[6:]
+        )
+    return errors
+
+
 def make_matrix(errors):
     m = []
     p = []
@@ -75,6 +90,8 @@ if __name__ == "__main__":
     fp = open("config.json", "r")
     params = json.load(fp)
     errors = read_data()
+    errors_rom = read_rom()
+    print(errors_rom)
     times, time_hf = read_time()
     print("Time HF: {}s".format(time_hf))
     first = True
@@ -104,6 +121,11 @@ if __name__ == "__main__":
     for k, v in a.items():
         ax1.plot(p, v, label=k, marker="")
         ax2.plot(p, v, label=k, marker="o")
+        #ax2.hlines(y=0.005, xmin=min(v), xmax=max(v), color='r', linestyle='-')
+    color = 0
+    for k, v in errors_rom.items():
+        ax2.hlines(y=v, xmin=200, xmax=1200, label=k, linestyles='dotted', color="C{}".format(color))
+        color += 1
     # configure plot
     ax1.legend()
     #ax1.set_title(params["ax1_title"])
@@ -114,6 +136,7 @@ if __name__ == "__main__":
     # ax1.xaxis.tick_top()
     # ax1.tick_params(labeltop=False)  # don't put tick labels at the top
     # ax2.xaxis.tick_bottom()
+
 
     plt.savefig(params["fig_fname"])
     plt.show()
