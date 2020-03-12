@@ -8,7 +8,7 @@ import json
 
 
 def read_time():
-    with open("../training/validation/time_trajectory_39/time.dat") as fi:
+    with open("../training/validation/time_trajectory_35/time.dat") as fi:
         for line in fi.readlines():
             if "User time" in line:
                 utime = float(line.split(":")[-1])
@@ -36,7 +36,7 @@ def read_time():
 
 def read_data():
     stress_ref = numpy.loadtxt(
-        "../training/validation/trajectory_39/homogenized_stress.dat"
+        "../training/validation/trajectory_35/homogenized_stress.dat"
     )
     case_paths = glob.glob("../multiscale_1ip/case_*/homogenized_stress.dat")
     errors = {}
@@ -63,7 +63,7 @@ def make_matrix(errors):
     for m in ms:
         a[m] = []
         for p in ps:
-            k = "case_39t_{}m_{}ip".format(m, p)
+            k = "case_35t_{}m_{}ip".format(m, p)
             a[m].append(errors[k])
     return a, ps
 
@@ -85,7 +85,7 @@ if __name__ == "__main__":
             first = False
             print(
                 "{:<25} {}      {}      {}  {}  {}  {}".format(
-                    "Case", "error", "time", "s/err", "s=tr/t", "err=e/er", "speedup"
+                    "case", "error", "time", "s/err", "s=tr/t", "err=e/er", "speedup"
                 )
             )
             print("----------------------------------------------------------------")
@@ -115,4 +115,5 @@ if __name__ == "__main__":
     # ax1.tick_params(labeltop=False)  # don't put tick labels at the top
     # ax2.xaxis.tick_bottom()
 
+    plt.savefig(params["fig_fname"])
     plt.show()
