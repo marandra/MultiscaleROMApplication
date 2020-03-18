@@ -1,3 +1,4 @@
+import pprint
 import aposteriori_error
 import numpy
 from pathlib import Path, PurePath
@@ -5,6 +6,7 @@ import glob
 import pprint
 import matplotlib.pyplot as plt
 import json
+import matplotlib.ticker as ticker
 
 
 def read_time():
@@ -21,6 +23,8 @@ def read_time():
     case_paths = glob.glob("../multiscale_1ip_speedup/case_*/time.dat")
     times = {}
     for case_path in case_paths:
+        if "ROM" in case_path:
+            continue
         with open(case_path) as fi:
             for line in fi.readlines():
                 if "User time" in line:
@@ -41,6 +45,8 @@ def read_data():
     case_paths = glob.glob("../multiscale_1ip/case_*/homogenized_stress.dat")
     errors = {}
     for case_path in case_paths:
+        if "ROM" in case_path:
+            continue
         stress = numpy.loadtxt(case_path)
         case = case_path.split("/")[2]
         errors[case] = max(
@@ -89,53 +95,59 @@ def make_matrix(errors):
 if __name__ == "__main__":
     fp = open("config.json", "r")
     params = json.load(fp)
+    fo = open(params["dat_fname"], "w")
     errors = read_data()
     errors_rom = read_rom()
-    print(errors_rom)
     times, time_hf = read_time()
-    print("Time HF: {}s".format(time_hf))
+    line = "Time HF: {}s".format(time_hf)
+    print(line)
+    fo.write(line + "\n")
     first = True
     for c in sorted(errors, key=errors.get):
         if first:
             er = errors[c]
             tr = times[c]
             first = False
-            print(
-                "{:<25} {}      {}      {}  {}  {}  {}".format(
-                    "case", "error", "time", "s/err", "s=tr/t", "err=e/er", "speedup"
-                )
-            )
-            print("----------------------------------------------------------------")
+            line = "{:<25} {}      {}      {}  {}  {}  {}".format( "case", "error", "time", "s/err", "s=tr/t", "err=e/er", "speedup")
+            print(line)
+            fo.write(line + "\n")
+            line = "----------------------------------------------------------------"
+            print(line)
+            fo.write(line + "\n")
         e = errors[c]
         t = times[c]
         s = tr / t
         err = e / er
-        print(
-                "{:<25} {:>1.3e} {:>6.2f}s {:>8.3f} {:>8.3f} {:>8.3f} {:>8.3f}".format(
-                c, e, t, s / err, s, err, time_hf/t
-            )
-        )
+        line = "{:<25} {:>1.3e} {:>6.2f}s {:>8.3f} {:>8.3f} {:>8.3f} {:>8.3f}".format( c, e, t, s / err, s, err, time_hf/t)
+        print(line)
+        fo.write(line + "\n")
     # errors_series = make_matrix(errors)
     a, p = make_matrix(errors)
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=False)
     for k, v in a.items():
         ax1.plot(p, v, label=k, marker="")
         ax2.plot(p, v, label=k, marker="o")
-        #ax2.hlines(y=0.005, xmin=min(v), xmax=max(v), color='r', linestyle='-')
     color = 0
+    error_rom = []
     for k, v in errors_rom.items():
         ax2.hlines(y=v, xmin=200, xmax=1200, label=k, linestyles='dotted', color="C{}".format(color))
+        error_rom.append(v)
         color += 1
     # configure plot
-    ax1.legend()
-    #ax1.set_title(params["ax1_title"])
-    #ax2.set_ylabel("error")
-    ax2.set_ylim(0, params["ax2_ylimit"])
+    ax1.legend(loc="upper right")
+    ax1.set_title(params["ax1_title"])
+    ax1.set_ylabel("error HRFE2 - HF")
+    ax1.set_xlim(0, 1200)
+    ax1.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=0))
     # ax1.spines['bottom'].set_visible(False)
     # ax2.spines['top'].set_visible(False)
     # ax1.xaxis.tick_top()
     # ax1.tick_params(labeltop=False)  # don't put tick labels at the top
     # ax2.xaxis.tick_bottom()
+    #ax2.yaxis.set_ticks(error_rom)
+    ax2.set_xlim(0, 1200)
+    ax2.set_ylim(0, params["ax2_ylimit"])
+    ax2.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
 
 
     plt.savefig(params["fig_fname"])
