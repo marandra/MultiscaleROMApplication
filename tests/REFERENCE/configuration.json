@@ -1,10 +1,10 @@
 {
     "config_data": {
-         "energy_inelastic_modes": 500,
-         "strain_inelastic_modes": 50,
+         "energy_inelastic_modes": 1300,
+         "strain_inelastic_modes": 100,
          "rvalue_inelastic_modes": 50,
-         "rve_data_points": [100, 200, 400, -1],
-         "rve_data_modes": [10, 20, 30],
+         "rve_data_points": [100, 200, 400, 600, 800, 1000, 1200, -1],
+         "rve_data_modes": [10, 20, 30, 40, 50],
          "reuse_existing_files": true
     },
     "problem_data": {

@@ -33,7 +33,6 @@
         "residual_relative_tolerance": 1e-4,
         "residual_absolute_tolerance": 0.0,
         "max_iteration": 1,
-        "problem_domain_sub_model_part_list": ["RVE"],
         "rotation_dofs": false,
         "compute_reactions": false,
         "move_mesh_flag": false,
@@ -47,11 +46,11 @@
             "process_name": "LoadModesToProperties",
             "Parameters": {
                 "model_part_name": "Microstructure.RVE",
-                "modes_filename": "bases_STRAIN_FLUCTUANT_56m.npy",
+                "modes_filename": "bases_STRAIN_FLUCTUANT_106m.npy",
                 "modes_file_format": "binary",
-		"global_index_filename": "auxiliar_global_index",
-                "number_modes_to_load": 20,
-                "modes_to_nodes_matrix_filename": "correlation_strain_20.npy",
+                "global_index_filename": "auxiliar_global_index",
+                "number_modes_to_load": 30,
+                "modes_to_nodes_matrix_filename": "correlation_strain_30.npy",
                 "modes_to_nodes_matrix_file_format": "binary"
                 }
             }],
