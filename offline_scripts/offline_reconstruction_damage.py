@@ -49,11 +49,9 @@ def compute_reconstruction_system(
     logger.debug("-- A = reduced modes.T * weights * reduced modes")
     reduced_ip_weights_diag = numpy.diag(reduced_ip_weights)
 
-    # weighted_energy_modes_transposed = numpy.dot(energy_modes.T, ip_weights_diag)
     weighted_reduced_modes_transposed = numpy.dot(
         reduced_energy_modes.T, reduced_ip_weights_diag
     )
-    # A = numpy.dot(weighted_energy_modes_transposed, energy_modes)
     A = numpy.dot(weighted_reduced_modes_transposed, reduced_energy_modes)
 
     logger.debug("-- checking A is not singular")
@@ -101,9 +99,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Computes data necessary for later reconstruction of the damage"
     )
-    parser.add_argument("rve_data", help="rve post-processing data filename (.json)")
+    parser.add_argument("rve_data", help="rve data filename")
     # parser.add_argument('damage_modes',     help="damage_modes_filename (binary .npy)")
-    parser.add_argument("r_value_modes", help="r_value_modes_filename (binary .npy)")
+    parser.add_argument("r_value_bases", help="r_value bases filename")
     parser.add_argument("nr_modes", help="nr of modes")
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="shows debug information"
@@ -111,7 +109,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # A = compute_system(args.rve_data, args.energy_modes, args.integration_weights)
-    A = compute_system(args.rve_data, args.r_value_modes, int(args.nr_modes))
+    A = compute_system(args.rve_data, args.r_value_bases, int(args.nr_modes))
     logger.info("Saving system")
     # io_utilities.write_numpy_file(
     #    "correlation_r_value_{}.npy".format(args.nr_modes), "binary", A
