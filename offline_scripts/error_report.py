@@ -10,7 +10,7 @@ import matplotlib.ticker as ticker
 
 
 def read_time():
-    with open("../training/validation/time_trajectory_35/time.dat") as fi:
+    with open("../training/validation/time_trajectory_99/time.dat") as fi:
         for line in fi.readlines():
             if "User time" in line:
                 utime = float(line.split(":")[-1])
@@ -40,7 +40,7 @@ def read_time():
 
 def read_data():
     stress_ref = numpy.loadtxt(
-        "../training/validation/trajectory_35/homogenized_stress.dat"
+        "../training/validation/trajectory_99/homogenized_stress.dat"
     )
     case_paths = glob.glob("../multiscale_1ip/case_*/homogenized_stress.dat")
     errors = {}
@@ -57,7 +57,7 @@ def read_data():
 
 def read_rom():
     stress_ref = numpy.loadtxt(
-        "../training/validation/trajectory_35/homogenized_stress.dat"
+        "../training/validation/trajectory_99/homogenized_stress.dat"
     )
     case_paths = glob.glob("../multiscale_1ip/ROM_cases/case_*/homogenized_stress.dat")
     errors = {}
@@ -84,7 +84,7 @@ def make_matrix(errors):
     for m in ms:
         a[m] = []
         for p in ps:
-            k = "case_35t_{}m_{}ip".format(m, p)
+            k = "case_99t_{}m_{}ip".format(m, p)
             a[m].append(errors[k])
     return a, ps
 
@@ -122,32 +122,40 @@ if __name__ == "__main__":
         print(line)
         fo.write(line + "\n")
     # errors_series = make_matrix(errors)
+
     a, p = make_matrix(errors)
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=False)
+    ax3 = ax2.twinx()
     for k, v in a.items():
         ax1.plot(p, v, label=k, marker="")
         ax2.plot(p, v, label=k, marker="o")
     color = 0
     error_rom = []
     for k, v in errors_rom.items():
-        ax2.hlines(y=v, xmin=200, xmax=1200, label=k, linestyles='dotted', color="C{}".format(color))
+        ax3.plot(p, [v] * len(p), label=k, marker="", linestyle='dotted', color="C{}".format(color))
         error_rom.append(v)
         color += 1
+
     # configure plot
     ax1.legend(loc="upper right")
-    ax1.set_title(params["ax1_title"])
+    #ax1.set_title(params["ax1_title"])
     ax1.set_ylabel("error HRFE2 - HF")
-    ax1.set_xlim(0, 1200)
+    ax1.xaxis.set_ticks(p)
+    ax1.set_xlim(params["xlimit"][0], params["xlimit"][1])
     ax1.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=0))
-    # ax1.spines['bottom'].set_visible(False)
-    # ax2.spines['top'].set_visible(False)
-    # ax1.xaxis.tick_top()
-    # ax1.tick_params(labeltop=False)  # don't put tick labels at the top
-    # ax2.xaxis.tick_bottom()
-    #ax2.yaxis.set_ticks(error_rom)
-    ax2.set_xlim(0, 1200)
+    #ax4 = ax1.twinx()
+    #ax4.yaxis.set_ticks([x for x in error_rom if x > params["ax2_ylimit"]])
+    #ax4.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=0))
+
+    ax2.xaxis.set_ticks(p)
+    ax2.set_xlim(params["xlimit"][0], params["xlimit"][1])
     ax2.set_ylim(0, params["ax2_ylimit"])
     ax2.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
+
+    ax3.yaxis.set_ticks(error_rom)
+    #ax3.set_ylabel("error ROM - HF")
+    ax3.set_ylim(0, params["ax2_ylimit"])
+    ax3.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
 
 
     plt.savefig(params["fig_fname"])
