@@ -94,11 +94,9 @@ if __name__ == "__main__":
     with open("../configuration.json", "r") as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
     # configuration
-    trajectories = [99]
+    trajectories = Common().skip_cases
     points = Common().ip_subsets
     modes = Common().reduced_nr_modes
-    #modes = [10, 20, 30, 40, 50, 60, 70, 80]
-    #points = [50, 100, 200, "ROM"]
     validation_path = Path("../training/validation")
     offline_path = Path("../offline_data")
 
