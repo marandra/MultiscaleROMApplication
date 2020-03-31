@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 import h5py
+import offline_bases
 
 
 def Factory(settings, model):
@@ -15,7 +16,8 @@ class WriteSnapshots(KratosMultiphysics.Process):
             """
         {
             "model_part_name": "unset_model_part_name",
-            "filename": "snapshots.hdf5"
+            "filename": "snapshots.hdf5",
+            "svd": true
         }
         """
         )
@@ -23,6 +25,7 @@ class WriteSnapshots(KratosMultiphysics.Process):
 
         self.model_part = model[settings["model_part_name"].GetString()]
         self.filename = settings["filename"].GetString()
+        self.svd = settings["svd"].GetBool()
 
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
@@ -121,6 +124,11 @@ class WriteSnapshots(KratosMultiphysics.Process):
 
         self.timestep_counter += 1
 
-
-def ExecuteFinalize(self):
-    pass
+    def ExecuteFinalize(self):
+        if self.svd:
+            field = "STRAIN_FLUCTUANT"
+            offline_bases.generate_local_bases(".", field)
+            field = "ENERGY_FREE"
+            offline_bases.generate_local_bases(".", field)
+            field = "R_VALUE"
+            offline_bases.generate_local_bases(".", field)
