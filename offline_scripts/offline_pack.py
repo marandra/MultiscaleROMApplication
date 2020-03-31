@@ -11,15 +11,6 @@ TODO: pending description here.
 """
 
 
-def skip_calculation(filename, flag_reuse):
-    try:
-        with open(filename):
-            flag_exists = True
-    except IOError:
-        flag_exists = False
-    return flag_exists and flag_reuse
-
-
 def write_json(filename, data_dict):
     with open(filename, "w") as fo:
         json.dump(data_dict, fo, indent=2)
@@ -116,12 +107,12 @@ if __name__ == "__main__":
         for m in Common().reduced_nr_modes:
             nr_modes = m.GetInt()
             rve_fname = Common().rve_fname(nr_modes, nr_points)
-            if skip_calculation(rve_fname, Common().reuse_existing_files):
+            if Common().skip_calculation(rve_fname, Common().reuse_existing_files):
                 print("File {} exists. Skipping calculation".format(rve_fname))
                 continue
             print("Generating {}".format(rve_fname))
             rve_params = create_rve_params_structure(
-                Common().strain_bases_fname,
+                Common().get_bases_fname(Common().strain_name),
                 materials_fname,
                 nr_modes,
                 ip_set,

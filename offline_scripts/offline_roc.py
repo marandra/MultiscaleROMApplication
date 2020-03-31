@@ -4,6 +4,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import (
     structural_mechanics_analysis,
 )
 import logging
+import offline_common
 from offline_common import Common
 
 
@@ -15,15 +16,6 @@ logging.basicConfig(
     format="[%(asctime)s] %(message)s", datefmt="%H:%M:%S", level=logging.DEBUG
 )
 logger = logging.getLogger(__name__)
-
-
-def skip_calculation(filename, flag_reuse):
-    try:
-        with open(filename):
-            flag_exists = True
-    except IOError:
-        flag_exists = False
-    return flag_exists and flag_reuse
 
 
 ###########################################################
@@ -222,15 +214,17 @@ if __name__ == "__main__":
     for p in Common().ip_subsets:
         nr_roc_points = p.GetInt()
         roc_filename = Common().roc_fname(nr_roc_points)
-        if skip_calculation(roc_filename, Common().reuse_existing_files):
+        if Common().skip_calculation(roc_filename, Common().reuse_existing_files):
             print("File {} exists. Skipping calculation".format(roc_filename))
             continue
         print("Generating {}".format(roc_filename))
         # compute ROC list
         if nr_roc_points != -1:  # HPROM case
-            roc_list = compute_hprom_weights(
-                ip_data, nr_roc_points, Common().energy_bases_fname
-            )
+            energy_bases_fname = Common().get_bases_fname(Common().energy_name)
+            if energy_bases_fname is None:
+                logger.error("Missing energy bases file. Exiting.")
+                exit()
+            roc_list = compute_hprom_weights(ip_data, nr_roc_points, energy_bases_fname)
         else:  # ROM case
             roc_list = compute_rom_weights(ip_data)
         with open(roc_filename, "w") as ofile:
