@@ -92,7 +92,7 @@ def create_case_dir(traj_name, rve_name, training_path, offline_path):
 if __name__ == "__main__":
 
     with open("../configuration.json", "r") as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
     # configuration
     trajectories = Common().skip_cases
     points = Common().ip_subsets

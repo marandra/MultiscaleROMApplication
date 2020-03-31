@@ -6,7 +6,7 @@ import glob
 import logging
 import sklearn.decomposition
 from offline_common import Common
-from pathlib import (Path,)
+from pathlib import Path
 
 
 """
@@ -147,7 +147,7 @@ def remove_elastic_modes(X, Ue):
     logger.debug("    elapsed time: {:.1f}s".format(time.time() - t0))
     return X
 
-    
+
 def compute_svd(X, nr_modes, svd_algorithm="standard"):
     # SVD stage  # svd_algorithm = standard, iterative, arpack, randomized, auto?
     t0 = time.time()
@@ -184,9 +184,7 @@ def create_bases(
     reuse_files,
     cutoff_tol,
 ):
-    if Common().skip_calculation(
-        bases_fname.format(field_name, "*"), reuse_files
-    ):
+    if Common().skip_calculation(bases_fname.format(field_name, "*"), reuse_files):
         logger.info(
             "File {} exists. Skipping calculation".format(
                 bases_fname.format(field_name, "*")
@@ -249,7 +247,7 @@ def generate_missing_local_bases(training_path, field):
         base_path = Path(case_path, Common().local_bases_fname.format(field))
         if Common().skip_calculation(base_path, Common().reuse_existing_files):
             continue
-        # Missing bases file. Let's generate it. 
+        # Missing bases file. Let's generate it.
         logger.debug("Generating missing {}".format(base_path))
         generate_local_bases(case_path, field)
 
@@ -267,18 +265,15 @@ if __name__ == "__main__":
     # generate missing local bases
     #
     generate_missing_local_bases(
-        case_basename,
-        Common().energy_name,
+        case_basename, Common().energy_name,
     )
     generate_missing_local_bases(
-        case_basename,
-        Common().strain_name,
+        case_basename, Common().strain_name,
     )
     generate_missing_local_bases(
-        case_basename,
-        Common().rvalue_name,
+        case_basename, Common().rvalue_name,
     )
-    
+
     #
     # compute bases
     #
