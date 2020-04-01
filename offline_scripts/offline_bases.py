@@ -7,6 +7,7 @@ import logging
 import sklearn.decomposition
 from offline_common import Common
 from pathlib import Path
+import multiprocessing
 
 
 """
@@ -231,8 +232,9 @@ def create_bases(
 
 
 def generate_local_bases(case_path, field):
+    logger.debug("   - missing {} {}".format(case_path, field))
     case_path = Path(case_path)  # we can accept strings or Paths
-    base_path = Path(case_path, Common().local_bases_fname.format(field))
+    base_path = case_path / Common().local_bases_fname.format(field)
     X = get_snapshots(case_path, "INELASTIC", field)
     [U, S] = numpy.linalg.svd(X, full_matrices=False)[:2]
     numpy.save(base_path, U)
@@ -240,16 +242,34 @@ def generate_local_bases(case_path, field):
     numpy.savetxt(path, S)
 
 
-def generate_missing_local_bases(training_path, field):
-    logger.info("Generating missing local bases in cases")
+def generate_missing_local_bases(training_path, field, threads=1):
+    logger.info("Looking for missing local bases {}".format(field))
     cases_path = Path(training_path).glob("trajectory_*")
-    for case_path in cases_path:
-        base_path = Path(case_path, Common().local_bases_fname.format(field))
-        if Common().skip_calculation(base_path, Common().reuse_existing_files):
+    missing = []
+    for case in cases_path:
+        bases = case / Common().local_bases_fname.format(field)
+        if Common().skip_calculation(bases, Common().reuse_existing_files):
             continue
-        # Missing bases file. Let's generate it.
-        logger.debug("Generating missing {}".format(base_path))
-        generate_local_bases(case_path, field)
+        missing.append(case)
+    if not missing:
+        return
+    # There are missing bases files. Let's generate them.
+
+    # Testing: version with Pool
+    with multiprocessing.Pool(processes=threads) as pool:
+        logger.debug("   - generating bases")
+        logger.debug("   - multiprocessing {} threads".format(threads))
+        pool.starmap(generate_local_bases, zip(missing, [field] * len(missing)))
+
+    # Testing: version with Process
+    # processes = []
+    # for case in missing:
+    #    semaphore.acquire()
+    #    p = multiprocessing.Process(target=generate_local_bases, args=(case, field, semaphore))
+    #    processes.append(p)
+    #    p.start()
+    # for p in processes:
+    #    p.join()
 
 
 #######################################################################
@@ -257,7 +277,7 @@ def generate_missing_local_bases(training_path, field):
 
 if __name__ == "__main__":
 
-    logger.info("Begining bases calculation -----------------------")
+    logger.info("Beginning bases calculation -----------------------")
 
     case_basename = "../training"
 
