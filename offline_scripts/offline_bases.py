@@ -28,114 +28,120 @@ logger.addHandler(fh)
 # logger.addHandler(ch)
 
 
-def get_shape_of_snapshots(path, group, field):
-    ns = 0
-    ls = 0
-    fpath = Path(path, "snapshots.hdf5")
-    with h5py.File(fpath, "r") as f:
+def _get_shape_of_snapshots_in_case(spath, group, field):
+    """
+    Receives path and filename of snapshots file
+    """
+    rows = 0
+    cols = 0
+    with h5py.File(spath, "r") as f:
         try:
             d = f[group][field]
             for k, v in d.items():
-                ns += 1
-                ls = len(v)  # TODO not optimal. read only once
+                rows = len(v)  # TODO not optimal. read only once
+                cols += 1
         except KeyError:
+            # not counting missing datasets
             pass
-    return ns, ls
+    return rows, cols
 
 
-def get_snapshots(path, group, field):
-    ns, ls = get_shape_of_snapshots(path, group, field)
-    arrays = numpy.empty([ls, ns])
+def _read_snapshots_in_case(spath, group, field):
+    """
+    Receives path and filename of snapshots file
+    """
+    rows, cols = _get_shape_of_snapshots_in_case(spath, group, field)
+    snapshots = numpy.empty([rows, cols])
     column = 0
-    fpath = Path(path, "snapshots.hdf5")
-    with h5py.File(fpath, "r") as f:
+    with h5py.File(spath, "r") as f:
         try:
             d = f[group][field]
             for k, v in d.items():
-                arrays[:, column] = v
+                snapshots[:, column] = v
                 column += 1
         except KeyError:
             logger.debug(
-                "Skipping {}/{} of {} (dataset not present)".format(group, field, path)
+                "    skipping {}/{} of {} (dataset not present)".format(group, field, spath.parent.name)
             )
-    return arrays
+    return snapshots
 
 
-def read_local_svd(trajectory_filename, field, cutoff_tol):
-    trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
+def read_snapshots(training_path, group, field):
+    case_pattern = "trajectory_" + "*" # TODO get from config
+    fname = "snapshots.hdf5"  # TODO get from config
+    p = Path.cwd() / training_path / case_pattern
+    paths = sorted([f / fname for f in p.parent.glob(p.name)])
 
-    logger.info("Getting size of local svd")
+    logger.debug("  - getting shape of snapshots to allocate array")
+    rows = 0
+    cols = 0
+    for path in paths:
+        r, c = _get_shape_of_snapshots_in_case(path, group, field)
+        cols += c
+        rows = r
 
-    nr_modes = 0
-    for path in trajectory_paths:
-        a = numpy.load(
-            path + "/" + "bases_inelastic_local_{}.npy".format(field), mmap_mode="r"
-        )
-        sv = numpy.loadtxt(path + "/" + "sv_inelastic_local_{}".format(field))
-        idx = numpy.where(sv > cutoff_tol)[0]
-        nr_col = len(idx)
-        nr_modes += nr_col
-        len_mode = numpy.shape(a)[0]
-    logger.info("    - {} modes size {}".format(nr_modes, len_mode))
-
-    # start loading bases
-    logger.info("Loading local bases")
-    arrays = numpy.empty([len_mode, nr_modes])
-    batch_size = int(len(trajectory_paths) / 10 + 0.5)
+    logger.info("  - loading {} snapshots".format(cols))
+    arrays = numpy.empty([rows, cols])
+    batch_size = int(len(paths) / 10 + 0.5)
     counter = 1
     column = 0
-    for path in trajectory_paths:
-        array = numpy.load(
-            path + "/" + "bases_inelastic_local_{}.npy".format(field), mmap_mode="r"
-        )
-        sv = numpy.loadtxt(path + "/" + "sv_inelastic_local_{}".format(field))
-        idx = numpy.where(sv > cutoff_tol)[0]
-        nr_col = len(idx)
-        arrays[:, column : column + nr_col] = array[:, idx] * sv[idx]
-        column += nr_col
-        #
-        if not counter % batch_size:
-            logger.info(
-                "    {}/{} trajectories processed".format(
-                    counter, len(trajectory_paths)
-                )
-            )
-        counter += 1
-        #
-    return arrays
-
-
-def read_snapshots(trajectory_filename, group, field):
-    trajectory_paths = sorted(glob.glob("{}_*".format(trajectory_filename)))
-
-    # count snapshots so we know the size of X
-    logger.info("Getting number and size of snapshots to allocate array")
-
-    nr_snapshots = 0
-    for path in trajectory_paths:
-        ns, len_snapshot = get_shape_of_snapshots(path, group, field)
-        nr_snapshots += ns
-    logger.info("    - {} snapshots size {}".format(nr_snapshots, len_snapshot))
-
-    # start loading snapshots
-    logger.info("Loading snapshots")
-    arrays = numpy.empty([len_snapshot, nr_snapshots])
-    batch_size = int(len(trajectory_paths) / 10 + 0.5)
-    counter = 1
-    column = 0
-    for path in trajectory_paths:
-        array = get_snapshots(path, group, field)
+    for path in paths:
+        array = _read_snapshots_in_case(path, group, field)
+        if numpy.shape(array)[1] == 0:  # missing dataset
+            continue
         arrays[:, column : column + numpy.shape(array)[1]] = array
         column += numpy.shape(array)[1]
         #
         if not counter % batch_size:
             logger.info(
                 "    {}/{} trajectories processed".format(
-                    counter, len(trajectory_paths)
+                    counter, len(paths)
                 )
             )
         counter += 1
         #
+    return arrays
+
+
+def read_local_svd(training_path, field, cutoff_tol):
+    case_pattern = "trajectory_" + "*" # TODO get from config
+    b_fname = "bases_inelastic_local_{}.npy".format(field)  # TODO get from config
+    sv_fname = "sv_inelastic_local_{}.dat".format(field)  # TODO get from config
+    p = Path.cwd() / training_path / case_pattern
+    paths = sorted([f for f in p.parent.glob(p.name)])
+
+    logger.debug("  - getting shape of local bases to allocate array")
+    rows = 0
+    cols = 0
+    for path in paths:
+        a = numpy.load(str(path / b_fname) , mmap_mode="r")
+        sv = numpy.loadtxt(path / sv_fname)
+        idx = numpy.where(sv > cutoff_tol)[0]
+        c = len(idx)
+        cols += c
+        rows = numpy.shape(a)[0]
+
+    logger.info("  - loading {} inelastic modes".format(cols))
+    arrays = numpy.empty([rows, cols])
+    batch_size = int(len(paths) / 10 + 0.5)
+    counter = 1
+    column = 0
+    for path in paths:
+        a = numpy.load(str(path / b_fname) , mmap_mode="r")
+        sv = numpy.loadtxt(path / sv_fname)
+        idx = numpy.where(sv > cutoff_tol)[0]
+        c = len(idx)
+        arrays[:, column : column + c] = a[:, idx] * sv[idx]
+        column += c
+        
+        if not counter % batch_size:
+            logger.info(
+                "    {}/{} trajectories processed".format(
+                    counter, len(paths)
+                )
+            )
+        counter += 1
+        
     return arrays
 
 
@@ -149,11 +155,10 @@ def remove_elastic_modes(X, Ue):
     return X
 
 
-def compute_svd(X, nr_modes, svd_algorithm="standard"):
-    # SVD stage  # svd_algorithm = standard, iterative, arpack, randomized, auto?
+def compute_svd(X, nr_modes):
     t0 = time.time()
     if nr_modes > -1:
-        logger.info("Computing SVD using RANDOMIZED algorithm")
+        logger.info("- Computing SVD using RANDOMIZED algorithm")
         svd = sklearn.decomposition.TruncatedSVD(
             n_components=nr_modes, algorithm="randomized"
         )
@@ -161,7 +166,7 @@ def compute_svd(X, nr_modes, svd_algorithm="standard"):
         U = svd.components_.T
         S = svd.singular_values_.T
     else:
-        logger.info("Computing SVD using STANDARD algorithm")
+        logger.info("- Computing SVD using STANDARD algorithm")
         [U, S] = numpy.linalg.svd(X, full_matrices=False)[:2]
         # U = U[:, :nr_modes]
 
@@ -180,7 +185,7 @@ def create_bases(
     field_name,
     nr_elastic_modes,
     nr_inelastic_modes,
-    trajectory_filename,
+    cases_path,
     bases_fname,
     reuse_files,
     cutoff_tol,
@@ -197,15 +202,15 @@ def create_bases(
     t0 = time.time()
     # Snapshots splitted in elastic and inelastic groups
     if nr_elastic_modes > 0:
-        logger.info("Processing elastic snapshots")
-        X = read_snapshots(trajectory_filename, "ELASTIC", field_name)
+        logger.info("- Processing ELASTIC snapshots")
+        X = read_snapshots(cases_path, "ELASTIC", field_name)
         Ue = compute_svd(X, nr_elastic_modes)
         os.rename(
             "singular_values.dat", "sv_{}_elastic.dat".format(field_name),
         )
 
-        logger.info("Processing inelastic LOCAL MODES")
-        X = read_local_svd(trajectory_filename, field_name, cutoff_tol)
+        logger.info("- Processing INELASTIC modes")
+        X = read_local_svd(cases_path, field_name, cutoff_tol)
         X = remove_elastic_modes(X, Ue)
         Ui = compute_svd(X, nr_inelastic_modes)
         os.rename(
@@ -220,7 +225,7 @@ def create_bases(
             "Nr of elastic modes set to zero -> "
             "Not discriminating elastic/inelastic snapshots"
         )
-        X = read_snapshots(trajectory_filename, "INELASTIC", field_name)
+        X = read_snapshots(cases_path, "INELASTIC", field_name)
         U = compute_svd(X, nr_inelastic_modes)
         os.rename(
             "singular_values.dat", "sv_{}.dat".format(field_name),

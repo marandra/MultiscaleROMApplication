@@ -112,12 +112,13 @@ class Common:
         else:
             return self.rve_fname_pattern.format(m, p)
 
-    def skip_calculation(self, filename, flag_reuse):
-        filename = Path(filename)
-        if "*" in filename.name:
-            flag_exists = len(glob.glob(filename))
-        else:
-            flag_exists = filename.exists()
+    def skip_calculation(self, fname, flag_reuse):
+        """ 
+        Generates a list of files following filename pattern.
+        Length of list is used as flag (False if empty, True otherwise)
+        """
+        fpath = Path.cwd() / fname  # converts filename to absolute Path
+        flag_exists = len([f for f in fpath.parent.glob(fpath.name)])
         return flag_exists and flag_reuse
 
     def get_bases_fname(self, field):
