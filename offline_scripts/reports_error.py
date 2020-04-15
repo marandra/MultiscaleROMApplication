@@ -44,7 +44,7 @@ def read_time(t, ip, modes):
 
 def read_data(t, ip, modes):
     stress_ref = numpy.loadtxt(
-        "../training/validation/trajectory_{}/homogenized_stress.dat".format(t)
+        "../training/skip_trajectory_{}/homogenized_stress.dat".format(t)
     )
     errors = {}
     for m in modes:
@@ -65,7 +65,7 @@ def read_data(t, ip, modes):
 
 def read_rom(t, modes):
     stress_ref = numpy.loadtxt(
-        "../training/validation/trajectory_{}/homogenized_stress.dat".format(t)
+        "../training/skip_trajectory_{}/homogenized_stress.dat".format(t)
     )
     errors = []
     for m in modes:
@@ -105,17 +105,17 @@ if __name__ == "__main__":
     pprint.pprint(errors_rom)
     print()
 
-    # compute times
-    times, time_hf = read_time(trajectory, ip, modes)
-    pprint.pprint(times)
-    times.plot()
-    print()
+    ## compute times
+    # times, time_hf = read_time(trajectory, ip, modes)
+    # pprint.pprint(times)
+    # times.plot()
+    # print()
 
-    # compute speedup
-    speedup = pandas.DataFrame(time_hf / times)
-    pprint.pprint(speedup)
-    speedup.plot()
-    print()
+    ## compute speedup
+    # speedup = pandas.DataFrame(time_hf / times)
+    # pprint.pprint(speedup)
+    # speedup.plot()
+    # print()
 
     # line = "Time HF: {}s".format(time_hf)
     # print(line)
@@ -161,8 +161,8 @@ if __name__ == "__main__":
     fig.set_size_inches(params["fig_size"][0], params["fig_size"][1])
 
     for col in errors:
-        ax1.plot(errors.index, errors[col], label=col, marker="")
-        ax2.plot(errors.index, errors[col], label=col, marker="o")
+        ax1.plot(errors.index, errors[col], label="{} modes".format(col), marker="")
+        ax2.plot(errors.index, errors[col], label="{} modes".format(col), marker="o")
 
     for color, e in enumerate(errors_rom):
         ax3.plot(
@@ -174,8 +174,9 @@ if __name__ == "__main__":
             color="C{}".format(color),
         )
 
+    ax1.set_title("Error HRFE$^2$ - HF")
     ax1.legend(loc="upper right")
-    # ax1.set_ylabel("error HRFE2 - HF")
+    ax1.set_xticklabels("")
     ax1.xaxis.set_ticks(errors.index)
     ax1.set_xlim(params["xlimit"][0], params["xlimit"][1])
     ax1.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=0))
@@ -184,6 +185,7 @@ if __name__ == "__main__":
     ax2.set_xlim(params["xlimit"][0], params["xlimit"][1])
     ax2.set_ylim(0, params["ax2_ylimit"])
     ax2.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
+    ax2.set_xlabel("Number of integration points")
 
     ax3.yaxis.set_ticks(errors_rom.values)
     ax3.set_ylim(0, params["ax2_ylimit"])

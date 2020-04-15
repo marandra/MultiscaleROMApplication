@@ -1,113 +1,153 @@
-import KratosMultiphysics
+"""
+docstrings here
+"""
+
+import os
 import json
-from pathlib import Path, PurePath
+from pathlib import Path
 from offline_common import Common
 
 
-def create_properties_file(props_fname, training_path, traj_name, case_path):
-    props_path = Path(props_fname)
-    training_props_path = PurePath.joinpath(
-        training_path, Path("trajectory_{}".format(traj_name[1:][:-1])), props_path
-    )
-    with training_props_path.open() as fi:
-        props = json.load(fi)
-        strain_versor = props["processes"]["loads_process_list"][0]["Parameters"][
-            "initial_strain"
-        ]
-        ampl = props["processes"]["loads_process_list"][0]["Parameters"][
-            "lookuptable_mult"
-        ][-1]
-    with props_path.open() as fi:
-        props = json.load(fi)
-        # compute displacements u = E * x
-        s0, s1, s2, s3, s4, s5 = strain_versor
-        x0 = 1.0 * s0 * ampl
-        y0 = 0.5 * s3 * ampl
-        z0 = 0.5 * s5 * ampl
-        x1 = 0.5 * s3 * ampl
-        y1 = 1.0 * s1 * ampl
-        z1 = 0.5 * s4 * ampl
-        x2 = 0.5 * s5 * ampl
-        y2 = 0.5 * s4 * ampl
-        z2 = 1.0 * s2 * ampl
-        props["processes"]["list_boundary_processes"][1]["Parameters"]["value"] = [
-            "{}*t".format(x0),
-            "{}*t".format(x1),
-            "{}*t".format(x2),
-        ]
-        props["processes"]["list_boundary_processes"][2]["Parameters"]["value"] = [
-            "{}*t".format(y0),
-            "{}*t".format(y1),
-            "{}*t".format(y2),
-        ]
-        props["processes"]["list_boundary_processes"][3]["Parameters"]["value"] = [
-            "{}*t".format(z0),
-            "{}*t".format(z1),
-            "{}*t".format(z2),
-        ]
-    with PurePath.joinpath(case_path, props_path).open("w") as fo:
-        json.dump(props, fo, indent=4)
+def create_properties_file(m_prop, c_prop, t_prop, quiet=False):
+    """
+    TODO: add docstrings here
+    """
+    test_props = json.loads(t_prop.read_text())
+    strain_versor = test_props["processes"]["loads_process_list"][0]["Parameters"][
+        "initial_strain"
+    ]
+    ampl = test_props["processes"]["loads_process_list"][0]["Parameters"][
+        "lookuptable_mult"
+    ][-1]
+
+    model_props = json.loads(m_prop.read_text())
+    # compute displacements u = E * x
+    ss0, ss1, ss2, ss3, ss4, ss5 = strain_versor
+    x0 = 1.0 * ss0 * ampl
+    y0 = 0.5 * ss3 * ampl
+    z0 = 0.5 * ss5 * ampl
+    x1 = 0.5 * ss3 * ampl
+    y1 = 1.0 * ss1 * ampl
+    z1 = 0.5 * ss4 * ampl
+    x2 = 0.5 * ss5 * ampl
+    y2 = 0.5 * ss4 * ampl
+    z2 = 1.0 * ss2 * ampl
+    model_props["processes"]["list_boundary_processes"][1]["Parameters"]["value"] = [
+        "{}*t".format(x0),
+        "{}*t".format(x1),
+        "{}*t".format(x2),
+    ]
+    model_props["processes"]["list_boundary_processes"][2]["Parameters"]["value"] = [
+        "{}*t".format(y0),
+        "{}*t".format(y1),
+        "{}*t".format(y2),
+    ]
+    model_props["processes"]["list_boundary_processes"][3]["Parameters"]["value"] = [
+        "{}*t".format(z0),
+        "{}*t".format(z1),
+        "{}*t".format(z2),
+    ]
+
+    if quiet:
+        model_props["processes"]["my_processes"] = []
+        model_props["output_processes"] = {}
+
+    c_prop.write_text(json.dumps(model_props, indent=4))
+
     return
 
 
-def create_materials_file(materials_fname, offline_path, rve_name, case_path):
-    materials_path = Path(materials_fname)
-    rve_data_path = PurePath.joinpath(offline_path, Path("rve{}.json".format(rve_name)))
-    with materials_path.open() as fi:
-        materials = json.load(fi)
-        materials["properties"][0]["Material"]["constitutive_law"]["Parameters"][
-            "rve_data_filename"
-        ] = str(rve_data_path)
-    with open(PurePath.joinpath(case_path, materials_path), "w") as fo:
-        json.dump(materials, fo, indent=4)
-    return
+def create_case_dir(rve, training, offline):
 
+    """
+    Files and dirs structure:
 
-def copy_file(filename, case_path):
-    src = Path(filename)
-    dest = PurePath.joinpath(case_path, src)
+    rve: root_path/multiscale/trajectory_35/_30m_400ip/
+    source files: root_path/multiscale/MainKratos.py
+                                       macro_model.mdpa
+                                       ProjectParameters.json
+    """
+
+    # create dest dir
+    rve.mkdir(parents=True, exist_ok=True)
+
+    # adapt and copy materials file
+    src = rve.parent.parent / "macro_materials.json"
+    dest = rve / "macro_materials.json"
+    rve_data_path = offline / "rve{}.json".format(rve.name)
+    materials = json.loads(src.read_text())
+    materials["properties"][0]["Material"]["constitutive_law"]["Parameters"][
+        "rve_data_filename"
+    ] = str(rve_data_path.resolve())
+    dest.write_text(json.dumps(materials, indent=4))
+
+    # adapt and copy properties file
+    m_prop = rve.parent.parent / "ProjectParameters.json"  # template properties file
+    c_prop = rve / "ProjectParameters.json"  # destination case properties file
+    t_prop = (
+        training / rve.parent.name / "ProjectParameters.json"
+    )  # test case properties file, get strain
+    create_properties_file(m_prop, c_prop, t_prop)
+    c_prop = rve / "ProjectParameters_quiet.json"
+    create_properties_file(m_prop, c_prop, t_prop, quiet=True)
+
+    # copy MainKratos.py
+    src = rve.parent.parent / "MainKratos.py"
+    dest = rve / "MainKratos.py"
     dest.write_text(src.read_text())
+
+    # copy macro_model.mdpa
+    src = rve.parent.parent / "macro_model.mdpa"
+    dest = rve / "macro_model.mdpa"
+    dest.write_text(src.read_text())
+
     return
 
 
-def create_case_dir(traj_name, rve_name, training_path, offline_path):
-    case_path = Path("case" + traj_name + rve_name)
-    case_path.mkdir(exist_ok=True)
-    offline_path = PurePath.joinpath(Path(".."), offline_path)
-    # populate case dir
-    create_materials_file("macro_materials.json", offline_path, rve_name, case_path)
-    create_properties_file(
-        "ProjectParameters.json", training_path, traj_name, case_path
+def create_launch_script(case):
+    """
+    Writes temporary launch script for each case (run externally)
+    """
+
+    script_fname = "tmp_" + case.parent.name + case.name + ".bash"
+    script = """\
+export OMP_NUM_THREADS=1
+export PYTHONPATH={}
+export LD_LIBRARY_PATH={}
+cd {}
+/usr/bin/time -v -o time.dat python MainKratos.py > outMainKratos
+/usr/bin/time -v -o time_quiet.dat python MainKratos.py ProjectParameters_quiet.json > outMainKratos_quiet
+cd {}
+rm {}
+""".format(
+        os.environ["PYTHONPATH"],
+        os.environ["LD_LIBRARY_PATH"],
+        str(case),
+        str(case.parent.parent),
+        script_fname,
     )
-    copy_file("MainKratos.py", case_path)
-    copy_file("macro_model.mdpa", case_path)
-    return
+    (case.parent.parent / script_fname).write_text(script)
 
 
 #######################################
 # main
 #######################################
 
-
 if __name__ == "__main__":
 
-    with open("../configuration.json", "r") as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    # configuration
-    trajectories = Common().skip_cases
-    points = Common().ip_subsets
-    modes = Common().reduced_nr_modes
-    validation_path = Path("../training/validation")
-    offline_path = Path("../offline_data")
+    import sys
 
-    for t in trajectories:
-        for mp in modes:
-            m = mp.GetInt()
-            for pp in points:
-                p = pp.GetInt()
-                if p == -1:
-                    p = "ROM"
-                rve_name = "_{}m_{}ip".format(m, p)
-                traj_name = "_{}t".format(t)
-                print(rve_name)
-                create_case_dir(traj_name, rve_name, validation_path, offline_path)
+    if len(sys.argv) > 1:
+        co = Common(sys.argv[1])
+    else:
+        co = Common()
+
+    for c in co.context["skip_cases_from_training"]:
+        for m in co.context["rve_data_modes"]:
+            for p in co.ip_subsets:
+                rve_path = (
+                    co.multiscale_path / co.case_name(c) / "_{}m_{}ip".format(m, p)
+                ).resolve()
+                create_case_dir(rve_path, co.training_path, co.offline_path)
+                create_launch_script(rve_path)
+                print(rve_path.parent.name, rve_path.name)

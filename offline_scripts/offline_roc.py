@@ -1,16 +1,16 @@
+"""
+TODO: pending description here.
+"""
+import logging
 import numpy as np
 import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import (
     structural_mechanics_analysis,
 )
-import logging
-import offline_common
+
+# import offline_common
 from offline_common import Common
 
-
-"""
-TODO: pending description here.
-"""
 
 logging.basicConfig(
     format="[%(asctime)s] %(message)s", datefmt="%H:%M:%S", level=logging.DEBUG
@@ -182,8 +182,15 @@ def compute_rom_weights(ip_data):
 
 if __name__ == "__main__":
 
-    with open("../configuration.json", "r") as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    import sys
+
+    if len(sys.argv) > 1:
+        co = Common(sys.argv[1])
+    else:
+        co = Common()
+
+    parameters_path = co.root_path / "ProjectParameters.json"
+    parameters = KratosMultiphysics.Parameters(parameters_path.read_text())
     model = KratosMultiphysics.Model()
     simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(
         model, parameters
@@ -211,22 +218,22 @@ if __name__ == "__main__":
     #
     # compute ip set
     #
-    for p in Common().ip_subsets:
-        nr_roc_points = p.GetInt()
-        roc_filename = Common().roc_fname(nr_roc_points)
-        if Common().skip_calculation(roc_filename, Common().reuse_existing_files):
-            print("File {} exists. Skipping calculation".format(roc_filename))
+    for nr_p in co.ip_subsets:
+        roc_filename = co.roc_fname(nr_p)
+        if co.skip_calculation(roc_filename):
+            logger.info("File {} exists. Skipping calculation".format(roc_filename))
             continue
-        print("Generating {}".format(roc_filename))
-        # compute ROC list
-        if nr_roc_points != -1:  # HPROM case
-            energy_bases_fname = Common().get_bases_fname(Common().energy_name)
+        if "ROM" in str(nr_p):  # ROM case
+            roc_list = compute_rom_weights(ip_data)
+        else:  # HPROM case
+            logger.info("Generating {}".format(roc_filename))
+            # compute ROC list
+            energy_bases_fname = co.get_bases_fname(co.context["energy_name"])
             if energy_bases_fname is None:
                 logger.error("Missing energy bases file. Exiting.")
                 exit()
-            roc_list = compute_hprom_weights(ip_data, nr_roc_points, energy_bases_fname)
-        else:  # ROM case
-            roc_list = compute_rom_weights(ip_data)
+            roc_list = compute_hprom_weights(ip_data, nr_p, energy_bases_fname)
+
         with open(roc_filename, "w") as ofile:
             for list in roc_list:
                 ofile.write("{} {} {} {}\n".format(list[0], list[1], list[2], list[3]))

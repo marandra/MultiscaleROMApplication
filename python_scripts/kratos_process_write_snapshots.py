@@ -1,7 +1,9 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 import h5py
+from offline_common import Common
 import offline_bases
+from pathlib import Path
 
 
 def Factory(settings, model):
@@ -17,7 +19,8 @@ class WriteSnapshots(KratosMultiphysics.Process):
         {
             "model_part_name": "unset_model_part_name",
             "filename": "snapshots.hdf5",
-            "svd": true
+            "svd": true,
+            "config_path": "../../configuration.json"
         }
         """
         )
@@ -26,6 +29,7 @@ class WriteSnapshots(KratosMultiphysics.Process):
         self.model_part = model[settings["model_part_name"].GetString()]
         self.filename = settings["filename"].GetString()
         self.svd = settings["svd"].GetBool()
+        self.config = settings["config_path"].GetString()
 
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
@@ -125,10 +129,29 @@ class WriteSnapshots(KratosMultiphysics.Process):
         self.timestep_counter += 1
 
     def ExecuteFinalize(self):
+        co = Common(self.config)
         if self.svd:
             field = "STRAIN_FLUCTUANT"
-            offline_bases.generate_local_bases(".", field)
+            offline_bases.generate_local_bases(
+                Path.cwd(),
+                field,
+                co.context["snapshots_fname"],
+                co.local_bases_fname.format(field),
+                co.local_sv_fname.format(field),
+            )
             field = "ENERGY_FREE"
-            offline_bases.generate_local_bases(".", field)
+            offline_bases.generate_local_bases(
+                Path.cwd(),
+                field,
+                co.context["snapshots_fname"],
+                co.local_bases_fname.format(field),
+                co.local_sv_fname.format(field),
+            )
             field = "R_VALUE"
-            offline_bases.generate_local_bases(".", field)
+            offline_bases.generate_local_bases(
+                Path.cwd(),
+                field,
+                co.context["snapshots_fname"],
+                co.local_bases_fname.format(field),
+                co.local_sv_fname.format(field),
+            )

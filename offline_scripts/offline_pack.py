@@ -4,11 +4,17 @@ import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import (
     structural_mechanics_analysis,
 )
+import logging
 from offline_common import Common
 
 """
 TODO: pending description here.
 """
+
+logging.basicConfig(
+    format="[%(asctime)s] %(message)s", datefmt="%H:%M:%S", level=logging.DEBUG
+)
+logger = logging.getLogger(__name__)
 
 
 def write_json(filename, data_dict):
@@ -90,8 +96,15 @@ def create_rve_params_structure(
 
 if __name__ == "__main__":
 
-    with open("../configuration.json", "r") as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    import sys
+
+    if len(sys.argv) > 1:
+        co = Common(sys.argv[1])
+    else:
+        co = Common()
+
+    parameters_path = co.root_path / "ProjectParameters.json"
+    parameters = KratosMultiphysics.Parameters(parameters_path.read_text())
     model = KratosMultiphysics.Model()
     simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(
         model, parameters
@@ -99,22 +112,20 @@ if __name__ == "__main__":
     simulation.Initialize()
     modelpart = simulation._GetSolver().GetComputingModelPart()
 
-    materials_fname = Common().materials_fname
-    for p in Common().ip_subsets:
-        nr_points = p.GetInt()
-        roc_filename = Common().roc_fname(nr_points)
+    materials_fname = co.materials_fname
+    for p in co.ip_subsets:
+        roc_filename = co.roc_fname(p)
         ip_set = numpy.loadtxt(roc_filename)
-        for m in Common().reduced_nr_modes:
-            nr_modes = m.GetInt()
-            rve_fname = Common().rve_fname(nr_modes, nr_points)
-            if Common().skip_calculation(rve_fname, Common().reuse_existing_files):
-                print("File {} exists. Skipping calculation".format(rve_fname))
+        for m in co.context["rve_data_modes"]:
+            rve_fname = co.rve_fname(m, p)
+            if co.skip_calculation(rve_fname):
+                logger.info("File {} exists. Skipping calculation".format(rve_fname))
                 continue
-            print("Generating {}".format(rve_fname))
+            logger.info("Generating {}".format(rve_fname))
             rve_params = create_rve_params_structure(
-                Common().get_bases_fname(Common().strain_name),
+                co.get_bases_fname(co.context["strain_name"]),
                 materials_fname,
-                nr_modes,
+                m,
                 ip_set,
                 modelpart,
             )
