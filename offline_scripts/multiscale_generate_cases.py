@@ -4,7 +4,6 @@ docstrings here
 
 import os
 import json
-from pathlib import Path
 from offline_common import Common
 
 
@@ -53,8 +52,6 @@ def create_properties_file(m_prop, c_prop, t_prop, quiet=False):
         model_props["output_processes"] = {}
 
     c_prop.write_text(json.dumps(model_props, indent=4))
-
-    return
 
 
 def create_case_dir(rve, training, offline):
@@ -142,7 +139,7 @@ if __name__ == "__main__":
     else:
         co = Common()
 
-    for c in co.context["skip_cases_from_training"]:
+    for c in co.context["cases_test_dataset"]:
         for m in co.context["rve_data_modes"]:
             for p in co.ip_subsets:
                 rve_path = (

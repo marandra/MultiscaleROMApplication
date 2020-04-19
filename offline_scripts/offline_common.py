@@ -52,6 +52,13 @@ class Common:
     def __init__(self, config_fname="../configuration.json"):
         context_user = json.loads(Path(config_fname).read_text())["config_data"]
         context_defaults = {
+            # most frequently set
+            "cases_test_dataset": [0],
+            "rve_data_points": [100],
+            "rve_data_points_range": [100, 500, 100],
+            "rve_data_points_rom": True,
+            "rve_data_modes": [20],
+            #
             "energy_name": "ENERGY_FREE",
             "energy_elastic_modes": 21,
             "energy_inelastic_modes": -1,
@@ -65,19 +72,14 @@ class Common:
             "rvalue_inelastic_modes": 30,
             "rvalue_svd_cutoff": 1e-4,
             "reuse_existing_files": True,
-            "rve_data_points": [100],
-            "rve_data_points_range": [100, 600, 100],
-            "rve_data_points_rom": True,
-            "rve_data_modes": [20],
             # training files stuff
             "training_path": "training",
             "training_rve_materials_fname": "materials.json",
-            "case_path_pattern": "trajectory_{}",
+            "case_path_pattern": "case_{}",
             "snapshots_fname": "snapshots.hdf5",
             "training_strain_fname": "_training_strain_set.dat",
             # offline files stuff
             "offline_path": "offline_data",
-            "skip_cases_from_training": [],
             "bases_fname_pattern": "bases_{}_{}m.npy",
             "local_bases_fname_pattern": "bases_inelastic_local_{}.npy",
             "local_sv_fname_pattern": "sv_inelastic_local_{}.dat",
@@ -106,7 +108,6 @@ class Common:
         self.bases_fname = config["bases_fname_pattern"]
         self.local_bases_fname = config["local_bases_fname_pattern"]
         self.local_sv_fname = config["local_sv_fname_pattern"]
-        # self.skip_cases = config["skip_cases_from_training"]
 
         # bases generation
         self.svd_cutoff = {}
@@ -143,6 +144,21 @@ class Common:
             config["training_rve_materials_fname"]
         )
         self.rve_fname_pattern = config["rve_fname_pattern"]
+
+    # def get_cases_rve_paths(self, case_id):
+    #     """
+    #     Returns list of paths to 1ip multiscale cases for case: case_id
+    #     """
+    #     paths = []
+    #     for mode in self.context["rve_data_modes"]:
+    #         for point in self.ip_subsets:
+    #             paths.append(
+    #                 (
+    #                     self.multiscale_path
+    #                     / self.case_name(case_id)
+    #                     / "_{}m_{}ip".format(mode, point)
+    #                 ).resolve()
+    #             )
 
     def parse_training_strain_set(self):
         """

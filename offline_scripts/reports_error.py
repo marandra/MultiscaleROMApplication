@@ -1,13 +1,11 @@
-import pprint
-import aposteriori_error
-import numpy
-import pandas
-from pathlib import Path, PurePath
+#from pathlib import Path, PurePath
 import pprint
 import json
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import numpy
+import pandas
+import aposteriori_error
 
 
 def read_time(t, ip, modes):

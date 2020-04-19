@@ -1,7 +1,10 @@
+"""
+TODO add description here
+"""
 import argparse
-import numpy
 import logging
 import json
+import numpy
 
 
 def read_json(filename):

@@ -193,6 +193,7 @@ if __name__ == "__main__":
             strain_macro_tensor = strain_voigt_to_tensor(strain_macro)
             comp = numpy.dot(strain_macro_tensor, mesh.points.T)
             total_displacement = comp.T + displacement
+            total_displacement = comp.T
 
             logger.debug("Solving damage and stress")
             damage_list = []
