@@ -4,8 +4,7 @@ from __future__ import print_function, absolute_import, division
 # Application dependent names and paths
 import KratosMultiphysics as KM
 from KratosMultiscaleROMApplication import *
-application = KratosMultiscaleROMApplication()
-application_name = "KratosMultiscaleROMApplication"
-application_folder = "MultiscaleROMApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+application = KratosMultiscaleROMApplication()
+application_name = "MultiscaleROMApplication"
+KM._ImportApplication(application, application_name)
