@@ -7,29 +7,28 @@ def Factory(settings, Model):
 
 
 def homogenization_function(self):
-    stress_ref = self.model_part.Elements[1].GetValuesOnIntegrationPoints(
+    stress_ref = self.model_part.Elements[1].CalculateOnIntegrationPoints(
         self.stress, self.model_part.ProcessInfo
     )
     nr_comp = len(stress_ref[0])
     stress_accum = [0.0] * nr_comp
     strain_accum = [0.0] * nr_comp
-    tensor_accum = [0.0] * nr_comp * nr_comp
+    #tensor_accum = [0.0] * nr_comp * nr_comp
     volume = 0.0
 
     for e, elem in enumerate(self.model_part.Elements):
-        stress = elem.GetValuesOnIntegrationPoints(
+        stress = elem.CalculateOnIntegrationPoints(
             self.stress, self.model_part.ProcessInfo
         )
-        strain = elem.GetValuesOnIntegrationPoints(
+        strain = elem.CalculateOnIntegrationPoints(
             self.strain, self.model_part.ProcessInfo
         )
-        tensor = elem.GetValuesOnIntegrationPoints(
-            self.tensor, self.model_part.ProcessInfo
-        )
-        weights = elem.GetValuesOnIntegrationPoints(
+        #tensor = elem.CalculateOnIntegrationPoints(
+        #    self.tensor, self.model_part.ProcessInfo
+        #)
+        weights = elem.CalculateOnIntegrationPoints(
             km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo
         )
-        weights = [x[0] for x in weights]  # to unpack received list-inside-list
         for i, w in enumerate(weights):
             # used in HPROM case, to ignore GP
             if w == -1:
@@ -37,14 +36,15 @@ def homogenization_function(self):
             for j in range(nr_comp):
                 stress_accum[j] += stress[i][j] * w
                 strain_accum[j] += strain[i][j] * w
-            for j in range(nr_comp * nr_comp):
-                tensor_accum[j] += tensor[i][j] * w
+            #for j in range(nr_comp * nr_comp):
+            #    tensor_accum[j] += tensor[i][j] * w
             volume += w
     for i in range(nr_comp):
         stress_accum[i] /= volume
         strain_accum[i] /= volume
-        tensor_accum[i] /= volume
-    return stress_accum, strain_accum, tensor_accum
+        #tensor_accum[i] /= volume
+    #return stress_accum, strain_accum, tensor_accum
+    return stress_accum, strain_accum
 
 
 def write_strain_stress_header(filename):
@@ -108,7 +108,7 @@ class WriteElementsHomogenizedOutput(km.Process):
         self.filename = param["filename"].GetString()
         self.stress = km.CAUCHY_STRESS_VECTOR
         self.strain = km.GREEN_LAGRANGE_STRAIN_VECTOR
-        self.tensor = km.CONSTITUTIVE_MATRIX
+        #self.tensor = km.CONSTITUTIVE_MATRIX
 
     def ExecuteInitialize(self):
         write_strain_stress_header(self.filename)
@@ -131,7 +131,8 @@ class WriteElementsHomogenizedOutput(km.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        stress, strain, const_tensor = homogenization_function(self)
+        #stress, strain, const_tensor = homogenization_function(self)
+        stress, strain = homogenization_function(self)
         write_strain_stress(self.filename, strain, stress)
 
     def ExecuteFinalize(self):

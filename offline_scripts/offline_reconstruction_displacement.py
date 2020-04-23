@@ -65,7 +65,7 @@ if __name__ == "__main__":
     modelpart = simulation._GetSolver().GetComputingModelPart()
     for elem in modelpart.Elements:
         nr_comp = len(
-            elem.GetValuesOnIntegrationPoints(
+            elem.CalculateOnIntegrationPoints(
                 KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, modelpart.ProcessInfo
             )[0]
         )
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     for elem in modelpart.Elements:
         idx_vector.append(count)
         nr_ips = len(
-            elem.GetValuesOnIntegrationPoints(
+            elem.CalculateOnIntegrationPoints(
                 KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, modelpart.ProcessInfo
             )
         )

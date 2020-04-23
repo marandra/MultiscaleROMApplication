@@ -39,18 +39,18 @@ class WriteSnapshots(KratosMultiphysics.Process):
             if True in [x > 0.0 for x in flag]:
                 return True
 
-            flag = elem.GetValuesOnIntegrationPoints(
+            flag = elem.CalculateOnIntegrationPoints(
                 KratosMultiphysics.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN,
                 self.model_part.ProcessInfo,
             )
-            if True in [x > 0.0 for y in flag for x in y]:
+            if True in [x > 0.0 for x in flag]:
                 return True
 
     def write_strain(self, group):
         data_list = []
         strain_macro = self.model_part.ProcessInfo[KratosMultiphysics.INITIAL_STRAIN]
         for elem in self.model_part.Elements:
-            strain_vectors = elem.GetValuesOnIntegrationPoints(
+            strain_vectors = elem.CalculateOnIntegrationPoints(
                 KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR,
                 self.model_part.ProcessInfo,
             )
@@ -67,11 +67,11 @@ class WriteSnapshots(KratosMultiphysics.Process):
     def write_energy(self, group):
         data_list = []
         for elem in self.model_part.Elements:
-            strain_energy_values = elem.GetValuesOnIntegrationPoints(
+            strain_energy_values = elem.CalculateOnIntegrationPoints(
                 KratosMultiphysics.STRAIN_ENERGY, self.model_part.ProcessInfo
             )
             for strain_energy_ip in strain_energy_values:
-                data_list.append(strain_energy_ip[0])
+                data_list.append(strain_energy_ip)
         with h5py.File(self.filename, "a") as f:
             f.create_dataset(
                 "{}/ENERGY_FREE/{}".format(group, self.timestep_counter), data=data_list
@@ -80,7 +80,7 @@ class WriteSnapshots(KratosMultiphysics.Process):
     def write_rvalue(self, group):
         data_list = []
         for elem in self.model_part.Elements:
-            values = elem.GetValuesOnIntegrationPoints(
+            values = elem.CalculateOnIntegrationPoints(
                 KratosMultiphysics.INTERNAL_VARIABLES, self.model_part.ProcessInfo
             )
             for value_ip in values:

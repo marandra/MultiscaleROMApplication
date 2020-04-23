@@ -1,5 +1,12 @@
+"""[summary]
+
+:return: [description]
+:rtype: [type]
+"""
 import argparse
 import logging
+import math
+import json
 import numpy
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -8,8 +15,6 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 )
 import KratosMultiphysics.MultiscaleROMApplication
 import meshio
-import math
-import json
 
 
 def read_json(filename):
@@ -102,6 +107,7 @@ if __name__ == "__main__":
     simulation.Initialize()
 
     logger.info("Loading RVE node info")
+
     mesh = meshio.read(args.mdpa_file)
     rve_cells = []
     for cell_block in mesh.cells:
@@ -155,7 +161,7 @@ if __name__ == "__main__":
     for elem in modelpart.Elements:
         ip_elem_map[elem.Id] = count
         nr_ip = len(
-            elem.GetValuesOnIntegrationPoints(
+            elem.CalculateOnIntegrationPoints(
                 KratosMultiphysics.INTEGRATION_WEIGHT, modelpart.ProcessInfo
             )
         )
@@ -193,7 +199,6 @@ if __name__ == "__main__":
             strain_macro_tensor = strain_voigt_to_tensor(strain_macro)
             comp = numpy.dot(strain_macro_tensor, mesh.points.T)
             total_displacement = comp.T + displacement
-            total_displacement = comp.T
 
             logger.debug("Solving damage and stress")
             damage_list = []
