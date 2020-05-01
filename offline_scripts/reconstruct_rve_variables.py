@@ -245,8 +245,8 @@ if __name__ == "__main__":
             writer.write_data(
                 t,
                 point_data={
-                    "FLUCTUANT_DISPLACEMENT": numpy.reshape(displacement, (-1, 3)),
-                    "TOTAL_DISPLACEMENT": total_displacement,
+                    "DISPLACEMENT_FLUCT": numpy.reshape(displacement, (-1, 3)),
+                    "DISPLACEMENT": total_displacement,
                 },
                 cell_data={"DAMAGE": element_damage, "STRESS": stress_list},
             )
