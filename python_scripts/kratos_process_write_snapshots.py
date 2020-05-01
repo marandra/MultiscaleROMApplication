@@ -1,9 +1,9 @@
+from pathlib import Path
+import h5py
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
-import h5py
 from offline_common import Common
 import offline_bases
-from pathlib import Path
 
 
 def Factory(settings, model):
@@ -30,6 +30,8 @@ class WriteSnapshots(KratosMultiphysics.Process):
         self.filename = settings["filename"].GetString()
         self.svd = settings["svd"].GetBool()
         self.config = settings["config_path"].GetString()
+        self.timestep_counter = 1
+        self.inelastic_flag = False
 
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
@@ -46,7 +48,7 @@ class WriteSnapshots(KratosMultiphysics.Process):
             if True in [x > 0.0 for x in flag]:
                 return True
 
-    def write_strain(self, group):
+    def write_strain(self, group, filename, timestep):
         data_list = []
         strain_macro = self.model_part.ProcessInfo[KratosMultiphysics.INITIAL_STRAIN]
         for elem in self.model_part.Elements:
@@ -58,13 +60,12 @@ class WriteSnapshots(KratosMultiphysics.Process):
                 for i, strain_i in enumerate(strain_ip):
                     strain_fluctuant_i = strain_i - strain_macro[i]
                     data_list.append(strain_fluctuant_i)
-        with h5py.File(self.filename, "a") as f:
-            f.create_dataset(
-                "{}/STRAIN_FLUCTUANT/{}".format(group, self.timestep_counter),
-                data=data_list,
-            )
+        # offline_bases.write_strain_to_hdf5(group, filename, timestep, data_list)
+        offline_bases.write_field_to_hdf5(
+            filename, group, "STRAIN_FLUCTUANT", timestep, data_list
+        )
 
-    def write_energy(self, group):
+    def write_energy(self, group, filename, timestep):
         data_list = []
         for elem in self.model_part.Elements:
             strain_energy_values = elem.CalculateOnIntegrationPoints(
@@ -72,12 +73,12 @@ class WriteSnapshots(KratosMultiphysics.Process):
             )
             for strain_energy_ip in strain_energy_values:
                 data_list.append(strain_energy_ip)
-        with h5py.File(self.filename, "a") as f:
-            f.create_dataset(
-                "{}/ENERGY_FREE/{}".format(group, self.timestep_counter), data=data_list
-            )
+        # offline_bases.write_energy_to_hdf5(group, filename, timestep_counter, data_list)
+        offline_bases.write_field_to_hdf5(
+            filename, group, "ENERGY_FREE", timestep, data_list
+        )
 
-    def write_rvalue(self, group):
+    def write_rvalue(self, group, filename, timestep):
         data_list = []
         for elem in self.model_part.Elements:
             values = elem.CalculateOnIntegrationPoints(
@@ -85,19 +86,23 @@ class WriteSnapshots(KratosMultiphysics.Process):
             )
             for value_ip in values:
                 data_list.append(value_ip[0])
-        with h5py.File(self.filename, "a") as f:
-            f.create_dataset(
-                "{}/R_VALUE/{}".format(group, self.timestep_counter), data=data_list
-            )
+        # offline_bases.write_rvalue_to_hdf5(group, filename, timestep_counter, data_list)
+        offline_bases.write_field_to_hdf5(
+            filename, group, "R_VALUE", timestep, data_list
+        )
 
     ###########################################################
     ###########################################################
 
     def ExecuteInitialize(self):
-        self.timestep_counter = 1
-        self.inelastic_flag = False
         # Create new file
         h5py.File(self.filename, "w").close()
+
+        # Write global index array
+        # with h5py.File(self.filename, "a") as f:
+        #    f.create_dataset(
+        #        "DATA/GLOBAL_ELEMENT_INDEX", data=data_list
+        #    )
 
     def ExecuteInitializeSolutionStep(self):
         pass
@@ -117,14 +122,11 @@ class WriteSnapshots(KratosMultiphysics.Process):
 
         if not self.inelastic_flag:
             group = "ELASTIC"
-            self.write_strain(group)
-            self.write_energy(group)
-            self.write_rvalue(group)
         else:
             group = "INELASTIC"
-            self.write_strain(group)
-            self.write_energy(group)
-            self.write_rvalue(group)
+        self.write_strain(group, self.filename, self.timestep_counter)
+        self.write_energy(group, self.filename, self.timestep_counter)
+        self.write_rvalue(group, self.filename, self.timestep_counter)
 
         self.timestep_counter += 1
 

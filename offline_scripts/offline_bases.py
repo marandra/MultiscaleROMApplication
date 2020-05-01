@@ -27,6 +27,11 @@ logger.addHandler(fh)
 # logger.addHandler(ch)
 
 
+def write_field_to_hdf5(filename, group, field, timestep, data):
+    with h5py.File(filename, "a") as f:
+        f.create_dataset("{}/{}/{}".format(group, field, timestep), data=data)
+
+
 def _get_shape_of_snapshots_in_case(spath, group, field):
     """
     Receives path and filename of snapshots file
