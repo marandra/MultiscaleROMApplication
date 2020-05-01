@@ -51,7 +51,9 @@ class DisplacementReconstructionAnalysis(AnalysisStage):
 if __name__ == "__main__":
 
     # Read parametres for reconstruction
-    with open("../ProjectParameters_offline_reconstruction_displacement.json", "r") as parameter_file:
+    with open(
+        "../ProjectParameters_offline_reconstruction_displacement.json", "r"
+    ) as parameter_file:
         parameters_reconstr = KratosMultiphysics.Parameters(parameter_file.read())
 
     #  Generate auxiliar data structure

@@ -57,13 +57,15 @@ def plot_01():
     ax1.set_xticklabels("")
     ax1.xaxis.set_ticks(errors.index)
     ax1.set_xlim(0, 2600)
-    #ax1.set_xlim(param["xlimit"][0], param["xlimit"][1])
+    # ax1.set_xlim(param["xlimit"][0], param["xlimit"][1])
     ax1.set_ylim(0, param["ax1_ylimit"])
     ax1.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=0))
 
-    #ax2.xaxis.set_ticks(errors.index)
-    ax2.set_xticks(     [100, 200, 300, 400, 600, 800, 1000, 1200, 1400, 1800, 2200, 2600])
-    ax2.set_xticklabels([100, 200, 300, 400, 600, 800, 1000, 1200, 1400, 1800, 2200, 2600])
+    # ax2.xaxis.set_ticks(errors.index)
+    ax2.set_xticks([100, 200, 300, 400, 600, 800, 1000, 1200, 1400, 1800, 2200, 2600])
+    ax2.set_xticklabels(
+        [100, 200, 300, 400, 600, 800, 1000, 1200, 1400, 1800, 2200, 2600]
+    )
     ax2.set_xlim(0, 2600)
     ax2.set_ylim(0, param["ax2_ylimit"])
     ax2.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
@@ -71,7 +73,7 @@ def plot_01():
     ax2rom.set_ylim(0, param["ax2_ylimit"])
     ax2rom.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
 
-    #fig.subplots_adjust(hspace=0)
+    # fig.subplots_adjust(hspace=0)
 
     plt.savefig(
         param["fig_fname"] + ".pdf", dpi=1000, bbox_inches="tight",
@@ -144,9 +146,9 @@ def plot_02():
     ax2.set_xlim(param["xlimit"][0], param["xlimit"][1])
     ax2.set_ylim(0, param["ax2_ylimit"])
     ax2.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
-    #ax2rom.yaxis.set_ticks("")
+    # ax2rom.yaxis.set_ticks("")
     ax2rom.set_ylim(0, param["ax2_ylimit"])
-    #ax2rom.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
+    # ax2rom.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
 
     ax3.xaxis.set_ticks(errors.index)
     ax3.set_xticklabels([x for x in range(100, 2800, 200)])
