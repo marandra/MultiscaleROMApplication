@@ -77,16 +77,18 @@ class WriteRveReconstructionData(Kratos.Process):
             if elem.Id == self.element:
 
                 # Get fluctuant displacement
-                ip_data = elem.GetValuesOnIntegrationPoints(
+                ip_data = elem.CalculateOnIntegrationPoints(
                     MultiscaleROM.REDUCED_MODES_WEIGHTS, self.model_part.ProcessInfo
                 )
-                self.data["interpolation_parameters"] = ip_data[self.ip]
+                data = [x for x in ip_data[self.ip]]
+                self.data["interpolation_parameters"] = data
 
                 # Get macro strain
-                ip_data = elem.GetValuesOnIntegrationPoints(
+                ip_data = elem.CalculateOnIntegrationPoints(
                     Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo
                 )
-                self.data["macro_strain"] = ip_data[self.ip]
+                data = [x for x in ip_data[self.ip]]
+                self.data["macro_strain"] = data
 
                 # Get strain energy list
                 ip_data = elem.CalculateOnIntegrationPoints(
@@ -99,11 +101,11 @@ class WriteRveReconstructionData(Kratos.Process):
                 self.data["strain_energy"] = tmp_list
 
                 # Get r_value list
-                ip_data = elem.GetValuesOnIntegrationPoints(
+                ip_data = elem.CalculateOnIntegrationPoints(
                     Kratos.INTERNAL_VARIABLES, self.model_part.ProcessInfo
                 )
-                tmp_Vector = ip_data[self.ip]
-                self.data["r_value"] = tmp_Vector
+                data = [x for x in ip_data[self.ip]]
+                self.data["r_value"] = data
 
         append_to_json(self.filename, self.data)
 
