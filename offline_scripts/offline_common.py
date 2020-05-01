@@ -1,10 +1,18 @@
-"""Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+"""Offline pipeline.
 
--h --help    show this
--s --sorted  sorted output
--o FILE      specify output file [default: ./test.txt]
---quiet      print less text
---verbose    print more text
+Usage:
+    program.py [-h]
+    program.py [-c FILE] [COMMAND]
+
+Options:
+-h --help           Show this
+-c --config FILE    Specify configuration file [default: ../ProjectsParameters.json]
+                    The location of the configuration file is taken as root path
+
+Commands:
+    dump_config     Dump a configuration file with default values, overwritten by
+                    user values if option "-c FILE" is passed.
+    test            Write configuration values generated automatically.
 
 """
 
@@ -14,8 +22,8 @@
 
 import json
 from pathlib import Path
-
-# from docopt import docopt
+import fire
+from docopt import docopt
 
 
 def validate_context(default, user):
@@ -49,8 +57,12 @@ class Common:
     TODO add docstrings
     """
 
-    def __init__(self, config_fname="../configuration.json"):
-        context_user = json.loads(Path(config_fname).read_text())["config_data"]
+    def __init__(self, config_fname="../ProjectParameters.json"):
+        try:
+            context_user = json.loads(Path(config_fname).read_text())["config_data"]
+        except FileNotFoundError:
+            print("WARNING: No such configuration file: '{}'".format(config_fname))
+            context_user = {}
         context_defaults = {
             # most frequently set
             "cases_test_dataset": [0],
@@ -88,7 +100,6 @@ class Common:
             # multiscale files stuff
             "multiscale_path": "multiscale_1ip",
             # other files stuff
-            "configuration_fname": "configuration.json",
         }
         config = validate_context(context_defaults, context_user)
         self.context = config
@@ -160,6 +171,10 @@ class Common:
     #                 ).resolve()
     #             )
 
+    def dump_config(self, fname="ProjectParameters.json"):
+        Path(fname).write_text(json.dumps(self.context, indent=2))
+        print("Written configuration file {}. Move it to the root path.".format(fname))
+
     def parse_training_strain_set(self):
         """
         Returns list of strain vectors used for trainig, read from file defined in configuration
@@ -223,30 +238,33 @@ class Common:
 #####################################################################
 
 if __name__ == "__main__":
-    import pprint
+    arguments = docopt(__doc__, version="2.0")
+    # import pprint
+    # pprint.pprint(arguments)
 
-    # args = docopt(__doc__, argv=None, help=True, version="0.1", options_first=False)
-    # pprint.pprint(args)
-
-    import sys
-
-    if len(sys.argv) > 1:
-        C = Common(config_fname=sys.argv[1])
+    if "--config" in arguments:
+        C = Common(config_fname=arguments["--config"])
     else:
         C = Common()
 
-    print("Test:")
-    print(C.bases_fname)
-    print(C.local_bases_fname)
-    print(C.roc_fname("1"))
-    print(C.roc_fname("100"))
-    print(C.roc_fname("1000"))
-    print(C.roc_fname(1000))
-    print(C.roc_fname("ROM"))
-    print(C.rve_fname(20, "1"))
-    print(C.rve_fname(20, "100"))
-    print(C.rve_fname(200, "1000"))
-    print(C.rve_fname(200, 1000))
-    print(C.rve_fname("2000", "ROM"))
-    print(C.ip_subsets)
-    print(C.case_name(5))
+    # parse command line commands
+    if arguments["COMMAND"] is not None:
+        if "dump_config" in arguments["COMMAND"]:
+            C.dump_config()
+            exit()
+        if "test" in arguments["COMMAND"]:
+            print("Test:")
+            print(C.bases_fname)
+            print(C.local_bases_fname)
+            print(C.roc_fname("1"))
+            print(C.roc_fname("100"))
+            print(C.roc_fname("1000"))
+            print(C.roc_fname(1000))
+            print(C.roc_fname("ROM"))
+            print(C.rve_fname(20, "1"))
+            print(C.rve_fname(20, "100"))
+            print(C.rve_fname(200, "1000"))
+            print(C.rve_fname(200, 1000))
+            print(C.rve_fname("2000", "ROM"))
+            print(C.ip_subsets)
+            # print(C.case_name(5))
