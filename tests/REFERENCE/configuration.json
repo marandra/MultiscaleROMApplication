@@ -1,40 +1,11 @@
 {
     "config_data": {
-         "energy_inelastic_modes": 1300,
-         "strain_inelastic_modes": 100,
+	 "cases_test_dataset": [5, 99],
+	 "strain_svd_cutoff": 0.5,
          "rvalue_inelastic_modes": 50,
-         "rve_data_points": [100, 200, 400, 600, 800, 1000, 1200, -1],
-         "rve_data_modes": [10, 20, 30, 40, 50],
-         "reuse_existing_files": true,
-         "skip_cases": [35]
-    },
-    "problem_data": {
-        "problem_name": "High_Fidelity",
-        "parallel_type": "OpenMP",
-        "start_time": 0.0,
-        "end_time": 0.99,
-        "echo_level": 0
-    },
-    "solver_settings": {
-        "model_part_name": "Microstructure",
-        "domain_size": 3,
-        "echo_level": 0,
-        "time_stepping": {
-            "time_step": 1.0
-        },
-        "solver_type": "Static",
-        "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": "../training/model"
-        },
-        "material_import_settings": {
-            "materials_filename" : "../training/materials.json"
-        },
-        "linear_solver_settings": {
-            "solver_type": "amgcl",
-            "krylov_type": "cg",
-            "scaling": false,
-            "verbosity": 0
-        }
+         "rve_data_points": [300, 400],
+         "rve_data_points_range": [100, 250, 50],
+         "rve_data_points_rom": true,
+         "rve_data_modes": [20, 30]
     }
 }

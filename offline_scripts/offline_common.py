@@ -2,12 +2,12 @@
 
 Usage:
     program.py [-h]
-    program.py [-c FILE] [COMMAND]
+    program.py [-r PATH] [COMMAND]
 
 Options:
 -h --help           Show this
--c --config FILE    Specify configuration file [default: ../ProjectsParameters.json]
-                    The location of the configuration file is taken as root path
+-r --root PATH      Specify the RVE base directory location [default: .]
+                    This is where the configuration.json file must be located
 
 Commands:
     dump_config     Dump a configuration file with default values, overwritten by
@@ -16,14 +16,16 @@ Commands:
 
 """
 
+# TODO:
 # Check schema for input validation https://github.com/keleshev/schema
 # Check fire for exposing objects to CLI https://github.com/google/python-fire
 # Check docopt for args parsing https://github.com/docopt/docopt
 
 import json
 from pathlib import Path
-import fire
 from docopt import docopt
+
+# import fire
 
 
 def validate_context(default, user):
@@ -57,19 +59,21 @@ class Common:
     TODO add docstrings
     """
 
-    def __init__(self, config_fname="../ProjectParameters.json"):
+    def __init__(self, root_path=Path.cwd(), config_fname="configuration.json"):
         try:
-            context_user = json.loads(Path(config_fname).read_text())["config_data"]
+            context_user = json.loads((root_path / config_fname).read_text())[
+                "config_data"
+            ]
         except FileNotFoundError:
             print("WARNING: No such configuration file: '{}'".format(config_fname))
             context_user = {}
         context_defaults = {
             # most frequently set
             "cases_test_dataset": [0],
-            "rve_data_points": [100],
-            "rve_data_points_range": [100, 500, 100],
+            "rve_data_points": [300, 400],
+            "rve_data_points_range": [100, 250, 50],
             "rve_data_points_rom": True,
-            "rve_data_modes": [20],
+            "rve_data_modes": [20, 30],
             #
             "energy_name": "ENERGY_FREE",
             "energy_elastic_modes": 21,
@@ -139,7 +143,7 @@ class Common:
         self.svd_cutoff[config["rvalue_name"]] = config["rvalue_svd_cutoff"]
 
         # points
-        self.ip_subsets = config["rve_data_points"]
+        self.ip_subsets = [x for x in config["rve_data_points"]]
         for i in range(*config["rve_data_points_range"]):
             self.ip_subsets.append(i)
         self.ip_subsets.sort()
@@ -156,23 +160,8 @@ class Common:
         )
         self.rve_fname_pattern = config["rve_fname_pattern"]
 
-    # def get_cases_rve_paths(self, case_id):
-    #     """
-    #     Returns list of paths to 1ip multiscale cases for case: case_id
-    #     """
-    #     paths = []
-    #     for mode in self.context["rve_data_modes"]:
-    #         for point in self.ip_subsets:
-    #             paths.append(
-    #                 (
-    #                     self.multiscale_path
-    #                     / self.case_name(case_id)
-    #                     / "_{}m_{}ip".format(mode, point)
-    #                 ).resolve()
-    #             )
-
-    def dump_config(self, fname="ProjectParameters.json"):
-        Path(fname).write_text(json.dumps(self.context, indent=2))
+    def dump_config(self, fname="configuration.json"):
+        Path(fname).write_text(json.dumps({"config_data": self.context}, indent=2))
         print("Written configuration file {}. Move it to the root path.".format(fname))
 
     def parse_training_strain_set(self):
@@ -242,11 +231,11 @@ if __name__ == "__main__":
     # import pprint
     # pprint.pprint(arguments)
 
-    if "--config" in arguments:
-        C = Common(config_fname=arguments["--config"])
+    if "--root" in arguments:
+        C = Common(root_path=Path(arguments["--root"]))
     else:
         C = Common()
-
+    print(arguments)
     # parse command line commands
     if arguments["COMMAND"] is not None:
         if "dump_config" in arguments["COMMAND"]:

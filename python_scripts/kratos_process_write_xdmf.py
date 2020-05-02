@@ -3,8 +3,7 @@ Kratos process to write xdmf time series of model.
 IP values are averaged in cell (one value per cell)
 """
 import numpy
-import h5py
-import KratosMultiphysics
+import KratosMultiphysics as km
 import meshio
 
 
@@ -27,7 +26,7 @@ def Factory(settings, Model):
     return WriteXdmf(settings["Parameters"], Model)
 
 
-class WriteXdmf(KratosMultiphysics.Process):
+class WriteXdmf(km.Process):
     """Write timeseries xdmf
 
     Arguments:
@@ -35,9 +34,9 @@ class WriteXdmf(KratosMultiphysics.Process):
     """
 
     def __init__(self, settings, Model):
-        KratosMultiphysics.Process.__init__(self)
+        km.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters(
+        default_settings = km.Parameters(
             """
         {
             "model_part_name": "unset_model_part_name",
@@ -96,7 +95,7 @@ class WriteXdmf(KratosMultiphysics.Process):
         """
         _list = []
         for node in self.model_part.Nodes:
-            displ = node.GetSolutionStepValue(KratosMultiphysics.REACTION)
+            displ = node.GetSolutionStepValue(km.REACTION)
             _list.append([displ[0], displ[1], displ[2]])
         return numpy.array(_list)
 
@@ -109,7 +108,7 @@ class WriteXdmf(KratosMultiphysics.Process):
         """
         _list = []
         for node in self.model_part.Nodes:
-            displ = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            displ = node.GetSolutionStepValue(km.DISPLACEMENT)
             _list.append([displ[0], displ[1], displ[2]])
         return numpy.array(_list)
 
@@ -121,9 +120,9 @@ class WriteXdmf(KratosMultiphysics.Process):
             array -- nodal values,  formatted for meshio [[x0, y0, z0], [x1, y1, z1], [x2. y2, z2]]
         """
         _list = []
-        strain = self.model_part.ProcessInfo[KratosMultiphysics.INITIAL_STRAIN]
+        strain = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
         for node in self.model_part.Nodes:
-            displ = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            displ = node.GetSolutionStepValue(km.DISPLACEMENT)
             s_xx = strain[0]
             s_yy = strain[1]
             s_zz = strain[2]
@@ -139,32 +138,11 @@ class WriteXdmf(KratosMultiphysics.Process):
             _list.append([total_displ_x, total_displ_y, total_displ_z])
         return numpy.array(_list)
 
-    # def write_auxiliar_file(self, field, type_field):
-    #    if type_field == "CELL_DATA":
-    #        data = self.get_averaged_cell_data(field)
-    #    elif type_field == "POINT_DATA":
-    #        data = self.get_point_data(field)
-    #    with h5py.File("auxiliar_xdmf_process.h5", "a") as f:
-    #        f.create_dataset(
-    #            "{}/{}/{}".format(
-    #                self.model_part.ProcessInfo[KratosMultiphysics.STEP],
-    #                type_field,
-    #                field,
-    #            ),
-    #            data=data,
-    #        )
-
     def ExecuteInitialize(self):
-        h5py.File("auxiliar_xdmf_process.h5", "w").close()
+        pass
 
     def ExecuteFinalizeSolutionStep(self):
         pass
-        # self.write_auxiliar_file("DAMAGE", "CELL_DATA")
-        # self.write_auxiliar_file("ENERGY_FREE", "CELL_DATA")
-        # self.write_auxiliar_file("STRAIN_FLUCTUANT", "CELL_DATA")
-        # self.write_auxiliar_file("STRESS", "CELL_DATA")
-        # self.write_auxiliar_file("FLUCTUANT_DISPLACEMENT", "POINT_DATA")
-        # self.write_auxiliar_file("TOTAL_DISPLACEMENT", "POINT_DATA")
 
     def ExecuteFinalize(self):
         """
@@ -180,39 +158,16 @@ class WriteXdmf(KratosMultiphysics.Process):
             if "line6" in element_type:
                 cells.append(meshio.CellBlock("wedge", cell_block[1]))
         meshio.write_points_cells(self.xdmf_fname, mesh.points, cells)
-        # with meshio.xdmf.TimeSeriesWriter(self.xdmf_fname) as writer:
-        #    writer.write_points_cells(mesh.points, cells)
-        #    dsets = h5py.File("auxiliar_xdmf_process.h5", "r")
-        #    for time in dsets.keys():
-        #        cell_data = {}
-        #        point_data = {}
-        #        for field in dsets[time]["CELL_DATA"].keys():
-        #            cell_data[field] = dsets[time]["CELL_DATA"][field]
-        #        for field in dsets[time]["POINT_DATA"].keys():
-        #            point_data[field] = dsets[time]["POINT_DATA"][field]
-        #        writer.write_data(
-        #            int(time), point_data=point_data, cell_data=cell_data,
-        #        )
         with meshio.xdmf.TimeSeriesWriter(self.xdmf_fname) as writer:
             writer.write_points_cells(mesh.points, cells)
             displ_fluct = self.get_point_data_displacement_fluct()
             displ_total = self.get_point_data_displacement_total()
             reaction = self.get_point_data_reaction()
-            damage = self.get_averaged_cell_data_scalar(
-                KratosMultiphysics.DAMAGE_VARIABLE
-            )
-            energy = self.get_averaged_cell_data_scalar(
-                KratosMultiphysics.STRAIN_ENERGY
-            )
-            stress = self.get_averaged_cell_data_tensor(
-                KratosMultiphysics.CAUCHY_STRESS_VECTOR
-            )
-            strain = self.get_averaged_cell_data_tensor(
-                KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR
-            )
-            initial_strain = numpy.array(
-                self.model_part.ProcessInfo[KratosMultiphysics.INITIAL_STRAIN]
-            )
+            damage = self.get_averaged_cell_data_scalar(km.DAMAGE_VARIABLE)
+            energy = self.get_averaged_cell_data_scalar(km.STRAIN_ENERGY)
+            stress = self.get_averaged_cell_data_tensor(km.CAUCHY_STRESS_VECTOR)
+            strain = self.get_averaged_cell_data_tensor(km.GREEN_LAGRANGE_STRAIN_VECTOR)
+            initial_strain = numpy.array(self.model_part.ProcessInfo[km.INITIAL_STRAIN])
             strain_fluctuant = strain - initial_strain
 
             point_data = {
@@ -227,7 +182,7 @@ class WriteXdmf(KratosMultiphysics.Process):
                 "STRESS": stress,
             }
             writer.write_data(
-                self.model_part.ProcessInfo[KratosMultiphysics.STEP],
+                self.model_part.ProcessInfo[km.STEP],
                 point_data=point_data,
                 cell_data=cell_data,
             )
