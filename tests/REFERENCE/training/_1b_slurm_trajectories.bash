@@ -21,8 +21,9 @@
 
 export OMP_NUM_THREADS=1
 printf -v ID "%02d\n" $SLURM_ARRAY_TASK_ID
-TRAJECTORYPATH=$PWD/trajectory_$ID
+TRAJECTORYPATH=$PWD/case_$ID
 cd $TRAJECTORYPATH
+# TODO: update the command (output time.dat and time_quiet.dat)
 time python3 MainKratos.py
 cd ..
 mv slurm-$SLURM_ARRAY_JOB_ID\_$SLURM_ARRAY_TASK_ID.out $TRAJECTORYPATH
