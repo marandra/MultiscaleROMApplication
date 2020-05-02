@@ -41,10 +41,7 @@
             "verbosity": 1
         },
         "rotation_dofs": false,
-        "compute_reactions": true,
-        "auxiliary_variables_list": [
-            "LAGRANGE_DISPLACEMENT"
-        ]
+        "compute_reactions": true
     },
     "processes": {
         "my_processes": [
