@@ -77,7 +77,7 @@ class Bases(Common):
         return snapshots
 
     def read_snapshots(self, cases, group, field):
-        fname = "snapshots.hdf5"  # TODO get from config
+        fname = self.context["snapshots_fname"]
         paths = sorted([f / fname for f in cases])
 
         logger.debug("  - getting shape of snapshots to allocate array")
@@ -108,9 +108,9 @@ class Bases(Common):
         return arrays
 
     def read_local_svd(self, cases, field, cutoff_tol):
-        b_fname = "bases_inelastic_local_{}.npy".format(field)  # TODO get from config
-        sv_fname = "sv_inelastic_local_{}.dat".format(field)  # TODO get from config
-        paths = sorted([f for f in cases])
+        b_fname = self.context["local_bases_fname_pattern"].format(field)
+        sv_fname = self.context["local_sv_fname_pattern"].format(field)
+        paths = sorted([Path(f) for f in cases])
 
         logger.debug("  - getting shape of local bases to allocate array")
         rows = 0
@@ -127,7 +127,7 @@ class Bases(Common):
 
         logger.info("  - loading {} inelastic modes".format(cols))
         arrays = numpy.empty([rows, cols])
-        batch_size = int(len(paths) / 10 + 0.5)
+        batch_size = int(len(paths) / 10 + 1.0)
         counter = 1
         column = 0
         for path in paths:
@@ -135,6 +135,9 @@ class Bases(Common):
             if numpy.shape(a)[1] == 0:  # missing dataset
                 continue
             sv = numpy.loadtxt(path / sv_fname)
+            # This is a workaround. When size==1 sv=12.3, but we need assume sv=[12.3]
+            if  sv.size == 1:
+                sv = sv.reshape([1])
             idx = numpy.where(sv > cutoff_tol)[0]
             c = len(idx)
             arrays[:, column : column + c] = a[:, idx] * sv[idx]
@@ -190,7 +193,7 @@ class Bases(Common):
         bases_fname,
         cutoff_tol,
     ):
-        if co.skip_calculation(bases_fname.format(field_name, "*")):
+        if self.skip_calculation(bases_fname.format(field_name, "*")):
             logger.info(
                 "File {} exists. Skipping calculation".format(
                     bases_fname.format(field_name, "*")
@@ -203,16 +206,16 @@ class Bases(Common):
         # Snapshots splitted in elastic and inelastic groups
         if nr_elastic_modes > 0:
             logger.info("- Processing ELASTIC snapshots")
-            X = read_snapshots(cases_path, "ELASTIC", field_name)
-            Ue = compute_svd(X, nr_elastic_modes)
+            X = self.read_snapshots(cases_path, "ELASTIC", field_name)
+            Ue = self.compute_svd(X, nr_elastic_modes)
             os.rename(
                 "singular_values.dat", "sv_{}_elastic.dat".format(field_name),
             )
 
             logger.info("- Processing INELASTIC modes")
-            X = read_local_svd(cases_path, field_name, cutoff_tol)
-            X = remove_elastic_modes(X, Ue)
-            Ui = compute_svd(X, nr_inelastic_modes)
+            X = self.read_local_svd(cases_path, field_name, cutoff_tol)
+            X = self.remove_elastic_modes(X, Ue)
+            Ui = self.compute_svd(X, nr_inelastic_modes)
             os.rename(
                 "singular_values.dat", "sv_{}_inelastic.dat".format(field_name),
             )
@@ -225,8 +228,8 @@ class Bases(Common):
                 "Nr of elastic modes set to zero -> "
                 "Not discriminating elastic/inelastic snapshots"
             )
-            X = read_snapshots(cases_path, "INELASTIC", field_name)
-            U = compute_svd(X, nr_inelastic_modes)
+            X = self.read_snapshots(cases_path, "INELASTIC", field_name)
+            U = self.compute_svd(X, nr_inelastic_modes)
             os.rename(
                 "singular_values.dat", "sv_{}.dat".format(field_name),
             )
@@ -246,21 +249,21 @@ class Bases(Common):
 
     def generate_missing_local_bases(self, field, threads=1):
         logger.info("Looking for missing local bases {}".format(field))
-        cases_path = co.training_path.glob(co.context["case_path_pattern"].format("*"))
-        lb_fname = co.local_bases_fname.format(field)
-        sv_fname = co.local_sv_fname.format(field)
-        ss_fname = co.context["snapshots_fname"]
+        cases_path = self.training_path.glob(self.context["case_path_pattern"].format("*"))
+        lb_fname = self.local_bases_fname.format(field)
+        sv_fname = self.local_sv_fname.format(field)
+        ss_fname = self.context["snapshots_fname"]
         missing = []
         for case in cases_path:
             bases = case / lb_fname
-            if co.skip_calculation(bases):
+            if self.skip_calculation(bases):
                 continue
             missing.append(case)
         if not missing:
             return
         # There are missing bases files. Let's generate them.
         for case in missing:
-            generate_local_bases(case, field, ss_fname, lb_fname, sv_fname)
+            self.generate_local_bases(case, field, ss_fname, lb_fname, sv_fname)
 
         # Testing: version with Pool
         # with multiprocessing.Pool(processes=threads) as pool:
@@ -288,9 +291,9 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1:
-        co = Common(sys.argv[1])
+        bases = Bases(root_path=Path(sys.argv[1]))
     else:
-        co = Common()
+        exit("Missing root_path argument.")
 
     logger.info("Beginning bases calculation -----------------------")
 
@@ -299,9 +302,9 @@ if __name__ == "__main__":
     # TODO: add TRAINING set and TEST set as memebers of Common
     #
     training_set = []
-    for c in co.training_path.glob(co.context["case_path_pattern"].format("*")):
+    for c in bases.training_path.glob(bases.context["case_path_pattern"].format("*")):
         c_id = int(c.name.split("_")[1])
-        if c_id in co.context["cases_test_dataset"]:
+        if c_id in bases.context["cases_test_dataset"]:
             logger.info("Removing case {} from training dataset".format(c.name))
             continue
         training_set.append(c)
@@ -309,36 +312,36 @@ if __name__ == "__main__":
     #
     # generate missing local bases
     #
-    generate_missing_local_bases(co.context["energy_name"],)
-    generate_missing_local_bases(co.context["strain_name"],)
-    generate_missing_local_bases(co.context["rvalue_name"],)
+    bases.generate_missing_local_bases(bases.context["energy_name"],)
+    bases.generate_missing_local_bases(bases.context["strain_name"],)
+    bases.generate_missing_local_bases(bases.context["rvalue_name"],)
 
     #
     # compute bases
     #
-    create_bases(
-        co.context["energy_name"],
-        co.context["energy_elastic_modes"],
-        co.context["energy_inelastic_modes"],
+    bases.create_bases(
+        bases.context["energy_name"],
+        bases.context["energy_elastic_modes"],
+        bases.context["energy_inelastic_modes"],
         training_set,
-        co.bases_fname,
-        co.svd_cutoff[co.context["energy_name"]],
+        bases.bases_fname,
+        bases.svd_cutoff[bases.context["energy_name"]],
     )
-    create_bases(
-        co.context["strain_name"],
-        co.context["strain_elastic_modes"],
-        co.context["strain_inelastic_modes"],
+    bases.create_bases(
+        bases.context["strain_name"],
+        bases.context["strain_elastic_modes"],
+        bases.context["strain_inelastic_modes"],
         training_set,
-        co.bases_fname,
-        co.svd_cutoff[co.context["strain_name"]],
+        bases.bases_fname,
+        bases.svd_cutoff[bases.context["strain_name"]],
     )
-    create_bases(
-        co.context["rvalue_name"],
-        co.context["rvalue_elastic_modes"],
-        co.context["rvalue_inelastic_modes"],
+    bases.create_bases(
+        bases.context["rvalue_name"],
+        bases.context["rvalue_elastic_modes"],
+        bases.context["rvalue_inelastic_modes"],
         training_set,
-        co.bases_fname,
-        co.svd_cutoff[co.context["rvalue_name"]],
+        bases.bases_fname,
+        bases.svd_cutoff[bases.context["rvalue_name"]],
     )
 
     logger.info("Finished -----------------------------------------")

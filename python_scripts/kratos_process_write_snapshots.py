@@ -1,7 +1,7 @@
 from pathlib import Path
 import h5py
 import KratosMultiphysics as km
-import KratosMultiphysics.StructuralMechanicsApplication as km_sma
+import KratosMultiphysics.StructuralMechanicsApplication
 from offline_bases import Bases
 
 
@@ -32,7 +32,7 @@ class WriteSnapshots(km.Process):
                 return True
 
             flag = elem.CalculateOnIntegrationPoints(
-                km_sma.ACCUMULATED_PLASTIC_STRAIN, self.model_part.ProcessInfo,
+                KratosMultiphysics.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN, self.model_part.ProcessInfo,
             )
             if True in [x > 0.0 for x in flag]:
                 return True

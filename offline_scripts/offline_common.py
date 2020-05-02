@@ -114,7 +114,8 @@ class Common:
         # update default config with user config
 
         # file management
-        self.root_path = Path.cwd() / Path(config_fname).parent
+        #self.root_path = Path.cwd() / Path(config_fname).parent
+        self.root_path = root_path
         self.training_path = self.root_path / config["training_path"]
         self.offline_path = self.root_path / config["offline_path"]
         self.multiscale_path = self.root_path / config["multiscale_path"]

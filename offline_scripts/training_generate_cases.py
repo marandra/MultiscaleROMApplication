@@ -4,6 +4,7 @@ docstrings here
 
 import os
 import json
+from pathlib import Path
 from offline_common import Common
 
 
@@ -99,9 +100,9 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1:
-        co = Common(sys.argv[1])
+        co = Common(root_path=Path(sys.argv[1]))
     else:
-        co = Common()
+        exit("Missing root_path argument.")
 
     strain_set = co.parse_training_strain_set()
     for i, line in enumerate(strain_set):
