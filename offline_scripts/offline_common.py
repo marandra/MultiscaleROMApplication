@@ -92,7 +92,7 @@ class Common:
             "training_path": "training",
             "training_rve_materials_fname": "materials.json",
             "case_path_pattern": "case_{}",
-            "snapshots_fname": "snapshots.hdf5",
+            "snapshots_fname": "snapshots.h5",
             "training_strain_fname": "_training_strain_set.dat",
             # offline files stuff
             "offline_path": "offline_data",
@@ -236,7 +236,6 @@ if __name__ == "__main__":
         C = Common(root_path=Path(arguments["--root"]))
     else:
         C = Common()
-    print(arguments)
     # parse command line commands
     if arguments["COMMAND"] is not None:
         if "dump_config" in arguments["COMMAND"]:
