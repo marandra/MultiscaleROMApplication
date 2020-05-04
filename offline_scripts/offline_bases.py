@@ -324,7 +324,7 @@ if __name__ == "__main__":
         bases.context["energy_elastic_modes"],
         bases.context["energy_inelastic_modes"],
         training_set,
-        bases.bases_fname,
+        bases.context["bases_fname_pattern"],
         bases.svd_cutoff[bases.context["energy_name"]],
     )
     bases.create_bases(
@@ -332,7 +332,7 @@ if __name__ == "__main__":
         bases.context["strain_elastic_modes"],
         bases.context["strain_inelastic_modes"],
         training_set,
-        bases.bases_fname,
+        bases.context["bases_fname_pattern"],
         bases.svd_cutoff[bases.context["strain_name"]],
     )
     bases.create_bases(
@@ -340,7 +340,7 @@ if __name__ == "__main__":
         bases.context["rvalue_elastic_modes"],
         bases.context["rvalue_inelastic_modes"],
         training_set,
-        bases.bases_fname,
+        bases.context["bases_fname_pattern"],
         bases.svd_cutoff[bases.context["rvalue_name"]],
     )
 
