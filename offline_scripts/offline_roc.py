@@ -1,6 +1,7 @@
 """
 TODO: pending description here.
 """
+from pathlib import Path
 import logging
 import numpy as np
 import KratosMultiphysics
@@ -185,9 +186,9 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1:
-        co = Common(sys.argv[1])
+        co = Common(root_path=Path(sys.argv[1]))
     else:
-        co = Common()
+        exit("Missing root_path argument.")
 
     parameters_path = co.root_path / "ProjectParameters.json"
     parameters = KratosMultiphysics.Parameters(parameters_path.read_text())
@@ -205,11 +206,11 @@ if __name__ == "__main__":
     ip_lids = []
     elem_ids = []
     for elem in rve_modelpart.Elements:
-        iw_list = elem.GetValuesOnIntegrationPoints(
+        iw_list = elem.CalculateOnIntegrationPoints(
             KratosMultiphysics.INTEGRATION_WEIGHT, rve_modelpart.ProcessInfo
         )
         for ip_lid, ip_weight in enumerate(iw_list):
-            ip_weights.append(ip_weight[0])
+            ip_weights.append(ip_weight)
             ip_lids.append(ip_lid)
             elem_ids.append(elem.Id)
     ip_data = [ip_weights, ip_lids, elem_ids]

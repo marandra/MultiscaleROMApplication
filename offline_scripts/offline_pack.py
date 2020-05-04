@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 import numpy
 import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import (
@@ -99,9 +100,9 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1:
-        co = Common(sys.argv[1])
+        co = Common(root_path=Path(sys.argv[1]))
     else:
-        co = Common()
+        exit("Missing root_path argument.")
 
     parameters_path = co.root_path / "ProjectParameters.json"
     parameters = KratosMultiphysics.Parameters(parameters_path.read_text())
