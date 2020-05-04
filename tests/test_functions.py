@@ -12,7 +12,7 @@ sv_path = Path(b.context["local_sv_fname_pattern"].format("TEST"))
 def test_read_svd_01():
     """Test case when no cases are passed."""
     array = b.read_local_svd([], "TEST", 0.0001)
-    numpy.testing.assert_array_equal(array, numpy.empty([0, 0]))
+    numpy.testing.assert_allclose(array, numpy.empty([0, 0]))
 
 
 def test_read_svd_02():
@@ -26,7 +26,7 @@ def test_read_svd_02():
 
     # Actual test
     array = b.read_local_svd(["."], "TEST", 0.0001)
-    numpy.testing.assert_array_equal(array, out_array)
+    numpy.testing.assert_allclose(array, out_array)
 
     # Remove test data
     b_path.unlink()
@@ -50,7 +50,7 @@ def test_read_svd_03():
     )
     # Actual test
     array = b.read_local_svd([".", "."], "TEST", 0.0001)
-    numpy.testing.assert_array_equal(array, out_array)
+    numpy.testing.assert_allclose(array, out_array)
 
     # Remove test data
     b_path.unlink()
@@ -68,7 +68,7 @@ def test_read_svd_04():
 
     # Actual test
     array = b.read_local_svd(["."], "TEST", 1.5)
-    numpy.testing.assert_array_equal(array, out_array)
+    numpy.testing.assert_allclose(array, out_array)
 
     # Remove test data
     b_path.unlink()
@@ -85,7 +85,7 @@ def test_read_svd_05():
 
     # Actual test
     array = b.read_local_svd(["."], "TEST", 2.5)
-    numpy.testing.assert_array_equal(array, numpy.empty([4, 0]))
+    numpy.testing.assert_allclose(array, numpy.empty([4, 0]))
 
     # Remove test data
     b_path.unlink()
