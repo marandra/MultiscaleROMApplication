@@ -108,10 +108,25 @@ class Bases(Common):
         return arrays
 
     def read_local_svd(self, cases, field, cutoff_tol):
+        """Return array combining bases of training cases.
+
+        Return array combining bases precomputed (svd) on each training case.
+        Modes to be included must have a corresponding singular value greater than cutoff value.
+        Fuction tested.
+
+        Arguments:
+            cases {list of str or Path} -- list with locations where to look for bases
+            field {str} -- field name
+            cutoff_tol {float} -- singular value below which the corresponfing mode from base wnt be loaded
+
+        Returns:
+            numpy.arrary -- combined array with bases from the training cases that fit the cutoff criteria
+        """
         b_fname = self.context["local_bases_fname_pattern"].format(field)
         sv_fname = self.context["local_sv_fname_pattern"].format(field)
         paths = sorted([Path(f) for f in cases])
 
+        # First run: compute space of the final array
         logger.debug("  - getting shape of local bases to allocate array")
         rows = 0
         cols = 0
@@ -125,6 +140,7 @@ class Bases(Common):
             cols += c
             rows = numpy.shape(a)[0]
 
+        # Second run: load bases in array
         logger.info("  - loading {} inelastic modes".format(cols))
         arrays = numpy.empty([rows, cols])
         batch_size = int(len(paths) / 10 + 1.0)
@@ -135,8 +151,9 @@ class Bases(Common):
             if numpy.shape(a)[1] == 0:  # missing dataset
                 continue
             sv = numpy.loadtxt(path / sv_fname)
-            # This is a workaround. When size==1 sv=12.3, but we need assume sv=[12.3]
-            if  sv.size == 1:
+            # This is a workaround. When size==1 we are getting sv=12.3,
+            # instead of sv=[12.3] (that we expect)
+            if sv.size == 1:
                 sv = sv.reshape([1])
             idx = numpy.where(sv > cutoff_tol)[0]
             c = len(idx)
@@ -152,6 +169,17 @@ class Bases(Common):
         return arrays
 
     def remove_elastic_modes(self, X, Ue):
+        """Remove components in the base U from the vectors X.
+
+        Function tested.
+
+        Arguments:
+            X {numpy.array} -- vectors to remove a subespace from
+            Ue {numpy.array} -- subspace to remove
+
+        Returns:
+            numpy.array -- X without its proxection in Ue
+        """
         logger.info("Removing elastic componennt")
         t0 = time.time()
         for i in range(numpy.shape(X)[1]):
@@ -161,6 +189,18 @@ class Bases(Common):
         return X
 
     def compute_svd(self, X, nr_modes):
+        """Compute (truncated) SVD decomposition of X vectors.
+
+        Function tested.
+
+        Arguments:
+            X {numpy.arrar} -- Vectors to decompose
+            nr_modes {int} -- If >= 0, then a partial (truncated) decomposition os performed using randomized algorithm.
+                              If > 0, the a full decompisition is performed.
+
+        Returns:
+            numpy.array -- Bases. Writes file with singular values.
+        """
         t0 = time.time()
         if nr_modes > -1:
             logger.info("- Computing SVD using RANDOMIZED algorithm")
@@ -249,7 +289,9 @@ class Bases(Common):
 
     def generate_missing_local_bases(self, field, threads=1):
         logger.info("Looking for missing local bases {}".format(field))
-        cases_path = self.training_path.glob(self.context["case_path_pattern"].format("*"))
+        cases_path = self.training_path.glob(
+            self.context["case_path_pattern"].format("*")
+        )
         lb_fname = self.local_bases_fname.format(field)
         sv_fname = self.local_sv_fname.format(field)
         ss_fname = self.context["snapshots_fname"]
