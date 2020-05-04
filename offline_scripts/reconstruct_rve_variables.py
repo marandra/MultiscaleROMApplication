@@ -1,20 +1,42 @@
-"""[summary]
+"""Reconstruct nodal and elementary fields.
 
-:return: [description]
-:rtype: [type]
+Usage:
+    reconstruct.py [-h]
+    reconstruct ROOTPATH
+
+Options:
+-h --help  Show this
+
+Commands:
+parser.add_argument("mdpa_file", help="the .mdpa model used in training)")
+parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
+parser.add_argument("correlation_r_value", help="r_value correlation matrix (.npy)")
+parser.add_argument(
+    "runtime_data", help="multiscale runtime reconstruction data file (.json)"
+)
+parser.add_argument("rve_data", help="rve data file (.json)")
+parser.add_argument("strain_modes", help="strain modes")
+parser.add_argument(
+    "-v", "--verbose", action="store_true", help="set debug verbosity level"
+)
+args = parser.parse_args()
 """
+
 import argparse
+from pathlib import Path
 import logging
 import math
 import json
 import numpy
+import meshio
+from offline_common import Common
+
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import (
     StructuralMechanicsAnalysis,
 )
 import KratosMultiphysics.MultiscaleROMApplication
-import meshio
 
 
 def read_json(filename):
@@ -70,183 +92,287 @@ def strain_voigt_to_tensor(strain_vector):
     return strain_tensor
 
 
+def analize_runtime_data(data):
+    nr_timesteps = len(data["interpolation_parameters"])
+    nr_modes = len(data["interpolation_parameters"][0])
+    nr_points = len(data["strain_energy"][0]) - 1
+    logger.info(
+        "   - detected: {} steps, {} modes, {} points".format(
+            nr_timesteps, nr_modes, nr_points
+        )
+    )
+    return nr_timesteps, nr_modes, nr_points
+
+
+def init_kratos(aux_postproc_path):
+    """Load model and modelparts.
+
+    Returns:
+        dict -- for each element, location of beginnin in the global dof vector
+        dict -- for each element, number of integration points
+    """
+    parameters_dict = {
+        "problem_data": {
+            "problem_name": "High_Fidelity",
+            "parallel_type": "OpenMP",
+            "start_time": 0.0,
+            "end_time": 0.99,
+            "echo_level": 1,
+        },
+        "solver_settings": {
+            "model_part_name": "Microstructure",
+            "domain_size": 3,
+            "echo_level": 1,
+            "time_stepping": {},
+            "solver_type": "Static",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "{}/model".format(aux_postproc_path),
+            },
+            "material_import_settings": {
+                "materials_filename": "{}/materials.json".format(aux_postproc_path)
+            },
+        },
+    }
+
+    model = KratosMultiphysics.Model()
+    parameters = KratosMultiphysics.Parameters(json.dumps(parameters_dict))
+    simulation = StructuralMechanicsAnalysis(model, parameters)
+    simulation.Initialize()
+    modelpart = simulation._GetSolver().GetComputingModelPart()
+    return model, modelpart
+
+
+class Reconstruct(Common):
+    def __init__(self, postproc_data_path, **kargs):
+        super().__init__(**kargs)
+
+        self.postproc_data_path = postproc_data_path
+        self.model, self.modelpart = init_kratos(postproc_data_path)
+        self.nr_voigt_comps = 6
+
+    def element_map(self):
+        """Compute auxiliar vector with the index of an element in the global vector of dofs.
+    
+        Returns:
+            dict -- for each element, location of beginnin in the global dof vector
+            dict -- for each element, number of integration points
+        """
+        count = 0
+        elem_map = {}
+        nips = {}
+        for element in self.modelpart.Elements:
+            elem_map[element.Id] = count
+            nr_ip = len(
+                element.CalculateOnIntegrationPoints(
+                    KratosMultiphysics.INTEGRATION_WEIGHT, self.modelpart.ProcessInfo
+                )
+            )
+            nips[element.Id] = nr_ip
+            count += nr_ip * self.nr_voigt_comps
+        return elem_map, nips
+
+    def get_mesh(self, rve_model):
+        """Generete points and cells
+
+        Returns:
+            meshio.points -- points of the mesh
+            meshio.cells -- cells of the mesh
+        """
+        mesh = meshio.read(rve_model)
+        rve_cells = []
+        for cell_block in mesh.cells:
+            element_type = cell_block[0]
+            # if "hexa" in element_type or "wedge" in element_type:
+            if "line8" in element_type:
+                rve_cells.append(meshio.CellBlock("hexahedron", cell_block[1]))
+            if "line6" in element_type:
+                rve_cells.append(meshio.CellBlock("wedge", cell_block[1]))
+        return mesh.points, rve_cells
+
+    def get_material_properties(self, props):
+        material_properties = {}
+        material_element_list = {}
+        for m in props:
+            material_name = m["model_part_name"]
+            logger.debug("   - loading material {}".format(material_name))
+            material_properties[material_name] = {}
+            E = m["Material"]["Variables"]["YOUNG_MODULUS"]
+            nu = m["Material"]["Variables"]["POISSON_RATIO"]
+            yield_stress = m["Material"]["Variables"]["YIELD_STRESS"]
+            inf_yield_stress = m["Material"]["Variables"]["INFINITY_YIELD_STRESS"]
+            H0 = m["Material"]["Variables"]["HARDENING_MODULI_VECTOR"][0]
+            H1 = m["Material"]["Variables"]["HARDENING_MODULI_VECTOR"][1]
+            material_properties[material_name]["E"] = E
+            material_properties[material_name]["nu"] = nu
+            material_properties[material_name]["yield_stress"] = yield_stress
+            material_properties[material_name]["inf_yield_stress"] = inf_yield_stress
+            material_properties[material_name]["H0"] = H0
+            material_properties[material_name]["H1"] = H1
+            material_properties[material_name]["C"] = compute_elastic_tensor(E, nu)
+
+            material_element_list[material_name] = []
+            for elem in self.model[material_name].Elements:
+                material_element_list[material_name].append(elem.Id)
+        material_elem_map = {}
+        for k, v in material_element_list.items():
+            for idx in v:
+                material_elem_map[idx] = k
+        return material_properties, material_elem_map
+
+    def reconstruc(self, runtime_data_path):
+
+        # TODO: pack all of it in an h5 file
+
+        # Load required data
+        logger.debug("Loading runtime data {}".format(runtime_data_path))
+        data = json.loads(runtime_data_path.read_text())
+        nr_timesteps, nr_modes, nr_points = analize_runtime_data(data)
+
+        fnames = self.postproc_data_path.glob(
+            self.context["bases_fname_pattern"].format("STRAIN", "*")
+        )
+        fname = [x for x in fnames]
+        logger.debug("Loading strain bases {}".format(fname[0]))
+        strain_modes = numpy.load(fname[0])[:, :nr_modes]
+
+        fname = self.postproc_data_path / self.context[
+            "correl_matrix_strain_pattern"
+        ].format(nr_modes)
+        logger.debug("Loading strain correl {}".format(fname))
+        strain_correl = numpy.load(fname)
+
+        fname = self.postproc_data_path / self.context[
+            "correl_matrix_damage_pattern"
+        ].format(nr_modes)
+        logger.debug("Loading damage correl {}".format(fname))
+        r_value_correl = numpy.load(fname)
+
+        fname = self.postproc_data_path / self.context["training_rve_model_fname"]
+        logger.debug("Loading rve model {}".format(fname))
+        rve_points, rve_cells = self.get_mesh(fname)
+
+        fname = self.postproc_data_path / self.context["rve_fname_pattern"].format(
+            nr_modes, nr_points
+        )
+        logger.debug("Loading rve data {}".format(fname))
+        rve_data = json.loads(fname.read_text())
+
+        # Get data from rve_data
+        material_properties, material_elem_map = self.get_material_properties(
+            rve_data["material_parameters"]["properties"]
+        )
+        rve_interpolation_params = numpy.array(data["interpolation_parameters"])
+        rve_macro_strain = numpy.array(data["macro_strain"])
+
+        ip_elem_map, nr_of_ips = self.element_map()
+        filename = "rve_reconstructed.xdmf"
+        meshio.write_points_cells(filename, rve_points, rve_cells)
+        with meshio.xdmf.TimeSeriesWriter(filename) as writer:
+            writer.write_points_cells(rve_points, rve_cells)
+            for t in range(nr_timesteps):
+                logger.info("Timestep {}".format(t))
+
+                logger.debug("Solving fluctuant displacement")
+                displacement = numpy.dot(
+                    strain_correl[:, :nr_modes], rve_interpolation_params[t, :]
+                )
+                displacement = numpy.reshape(displacement, (-1, 3))
+
+                logger.debug("Solving total displacement")
+                strain_macro = rve_macro_strain[t, :]
+                strain_macro_tensor = strain_voigt_to_tensor(strain_macro)
+                comp = numpy.dot(strain_macro_tensor, rve_points.T)
+                total_displacement = comp.T + displacement
+
+                logger.debug("Solving damage and stress")
+                damage_list = []
+                r = numpy.dot(r_value_correl, data["r_value"][t])
+                r_in_elem = {}
+                for elem_id, nr_ips in nr_of_ips.items():
+                    r_in_elem[elem_id] = r[:nr_ips]
+                    r = r[nr_ips:]
+                strain_global = numpy.dot(strain_modes, rve_interpolation_params[t, :])
+                stress_list = []
+                for elem_id, nr_ips in nr_of_ips.items():
+                    C = material_properties[material_elem_map[elem_id]]["C"]
+                    E = material_properties[material_elem_map[elem_id]]["E"]
+                    nu = material_properties[material_elem_map[elem_id]]["nu"]
+                    yield_stress = material_properties[material_elem_map[elem_id]][
+                        "yield_stress"
+                    ]
+                    inf_yield_stress = material_properties[material_elem_map[elem_id]][
+                        "inf_yield_stress"
+                    ]
+                    H0 = material_properties[material_elem_map[elem_id]]["H0"]
+                    H1 = material_properties[material_elem_map[elem_id]]["H1"]
+                    r0 = yield_stress / math.sqrt(E)
+                    ip_0 = ip_elem_map[elem_id]
+                    damage = 0
+                    stress = [0, 0, 0, 0, 0, 0]
+                    for r in r_in_elem[elem_id]:
+                        if r < r0:
+                            r = r0
+                        d = 1 - q(r, E, yield_stress, inf_yield_stress, H0, H1) / r
+                        # stress
+                        strain = (
+                            strain_global[ip_0 : ip_0 + self.nr_voigt_comps]
+                            + strain_macro
+                        )
+                        stress_ip = (1 - d) * numpy.dot(C, strain)
+                        stress = stress + stress_ip / nr_ips
+                        damage += d / nr_ips
+                        ip_0 += self.nr_voigt_comps
+                    damage_list.append(damage)
+                    stress_list.append(stress)
+                element_damage = numpy.array(damage_list).reshape(
+                    (-1, 1)
+                )  # formatting for meshio
+
+                logger.debug("Writing timestep data")
+                writer.write_data(
+                    t,
+                    point_data={
+                        "DISPLACEMENT_FLUCT": numpy.reshape(displacement, (-1, 3)),
+                        "DISPLACEMENT": total_displacement,
+                    },
+                    cell_data={"DAMAGE": element_damage, "STRESS": stress_list},
+                )
+
+
 #######################################
 # Main
 #######################################
 
 # parse command line arguments
-parser = argparse.ArgumentParser(description="reconstructs fields")
-parser.add_argument("mdpa_file", help="the .mdpa model used in training)")
-parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
-parser.add_argument("correlation_r_value", help="r_value correlation matrix (.npy)")
-parser.add_argument(
-    "runtime_data", help="multiscale runtime reconstruction data file (.json)"
-)
-parser.add_argument("rve_data", help="rve data file (.json)")
-parser.add_argument("strain_modes", help="strain modes")
-parser.add_argument(
-    "-v", "--verbose", action="store_true", help="set debug verbosity level"
-)
-args = parser.parse_args()
+# parser = argparse.ArgumentParser(description="reconstructs fields")
+# parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
+# parser.add_argument("correlation_r_value", help="r_value correlation matrix (.npy)")
+# parser.add_argument(
+#    "runtime_data", help="multiscale runtime reconstruction data file (.json)"
+# )
+# parser.add_argument("rve_data", help="rve data file (.json)")
+# parser.add_argument("strain_modes", help="strain modes")
+# parser.add_argument(
+#    "-v", "--verbose", action="store_true", help="set debug verbosity level"
+# )
+# args = parser.parse_args()
 
 # configure logger
-verbosity_level = logging.INFO
-if args.verbose:
-    verbosity_level = logging.DEBUG
+# verbosity_level = logging.INFO
+# if args.verbose:
+#    verbosity_level = logging.DEBUG
+verbosity_level = logging.DEBUG
 logging.basicConfig(
     format="[%(asctime)s] %(message)s", datefmt="%H:%M:%S", level=verbosity_level
 )
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
+    import sys
 
-    model = KratosMultiphysics.Model()
-    with open("ProjectParameters.json", "r") as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    simulation = StructuralMechanicsAnalysis(model, parameters)
-    simulation.Initialize()
-
-    logger.info("Loading RVE node info")
-
-    mesh = meshio.read(args.mdpa_file)
-    rve_cells = []
-    for cell_block in mesh.cells:
-        element_type = cell_block[0]
-        # if "hexa" in element_type or "wedge" in element_type:
-        if "line8" in element_type:
-            rve_cells.append(meshio.CellBlock("hexahedron", cell_block[1]))
-        if "line6" in element_type:
-            rve_cells.append(meshio.CellBlock("wedge", cell_block[1]))
-
-    logger.info("Loading data")
-    strain_correl = numpy.load(args.correlation_strain)
-    r_value_correl = numpy.load(args.correlation_r_value)
-    data = read_json(args.runtime_data)
-
-    logger.info("Loading rve data")
-    rve_data = read_json(args.rve_data)
-    props = rve_data["material_parameters"]["properties"]
-    material_properties = {}
-    material_element_list = {}
-    for m in props:
-        material_name = m["model_part_name"]
-        material_properties[material_name] = {}
-        E = m["Material"]["Variables"]["YOUNG_MODULUS"]
-        nu = m["Material"]["Variables"]["POISSON_RATIO"]
-        yield_stress = m["Material"]["Variables"]["YIELD_STRESS"]
-        inf_yield_stress = m["Material"]["Variables"]["INFINITY_YIELD_STRESS"]
-        H0 = m["Material"]["Variables"]["HARDENING_MODULI_VECTOR"][0]
-        H1 = m["Material"]["Variables"]["HARDENING_MODULI_VECTOR"][1]
-        material_properties[material_name]["E"] = E
-        material_properties[material_name]["nu"] = nu
-        material_properties[material_name]["yield_stress"] = yield_stress
-        material_properties[material_name]["inf_yield_stress"] = inf_yield_stress
-        material_properties[material_name]["H0"] = H0
-        material_properties[material_name]["H1"] = H1
-        material_properties[material_name]["C"] = compute_elastic_tensor(E, nu)
-
-        material_element_list[material_name] = []
-        for elem in model[material_name].Elements:
-            material_element_list[material_name].append(elem.Id)
-    material_elem_map = {}
-    for k, v in material_element_list.items():
-        for idx in v:
-            material_elem_map[idx] = k
-
-    modelpart = simulation._GetSolver().GetComputingModelPart()
-    nr_comps = 6
-    count = 0
-    ip_elem_map = {}
-    nr_of_ips = {}
-    for elem in modelpart.Elements:
-        ip_elem_map[elem.Id] = count
-        nr_ip = len(
-            elem.CalculateOnIntegrationPoints(
-                KratosMultiphysics.INTEGRATION_WEIGHT, modelpart.ProcessInfo
-            )
-        )
-        nr_of_ips[elem.Id] = nr_ip
-        count += nr_ip * nr_comps
-
-    rve_interpolation_params = numpy.array(data["interpolation_parameters"])
-    logger.debug(rve_interpolation_params)
-    logger.debug(numpy.shape(rve_interpolation_params))
-    rve_macro_strain = numpy.array(data["macro_strain"])
-    logger.debug(rve_macro_strain)
-    logger.debug(numpy.shape(rve_macro_strain))
-
-    nr_timesteps = numpy.shape(rve_interpolation_params)[0]
-    nr_modes = numpy.shape(rve_interpolation_params)[1]
-    logger.debug("Number of timesteps detected: {}".format(nr_timesteps))
-    logger.debug("Number of modes detected: {}".format(nr_modes))
-    strain_modes = numpy.load(args.strain_modes)[:, :nr_modes]
-
-    filename = "rve_reconstructed.xdmf"
-    meshio.write_points_cells(filename, mesh.points, rve_cells)
-    with meshio.xdmf.TimeSeriesWriter(filename) as writer:
-        writer.write_points_cells(mesh.points, rve_cells)
-        for t in range(nr_timesteps):
-            logger.info("Timestep {}".format(t))
-
-            logger.debug("Solving fluctuant displacement")
-            displacement = numpy.dot(
-                strain_correl[:, :nr_modes], rve_interpolation_params[t, :]
-            )
-            displacement = numpy.reshape(displacement, (-1, 3))
-
-            logger.debug("Solving total displacement")
-            strain_macro = rve_macro_strain[t, :]
-            strain_macro_tensor = strain_voigt_to_tensor(strain_macro)
-            comp = numpy.dot(strain_macro_tensor, mesh.points.T)
-            total_displacement = comp.T + displacement
-
-            logger.debug("Solving damage and stress")
-            damage_list = []
-            r = numpy.dot(r_value_correl, data["r_value"][t])
-            r_in_elem = {}
-            for elem_id, nr_ips in nr_of_ips.items():
-                r_in_elem[elem_id] = r[:nr_ips]
-                r = r[nr_ips:]
-            strain_global = numpy.dot(strain_modes, rve_interpolation_params[t, :])
-            stress_list = []
-            for elem_id, nr_ips in nr_of_ips.items():
-                C = material_properties[material_elem_map[elem_id]]["C"]
-                E = material_properties[material_elem_map[elem_id]]["E"]
-                nu = material_properties[material_elem_map[elem_id]]["nu"]
-                yield_stress = material_properties[material_elem_map[elem_id]][
-                    "yield_stress"
-                ]
-                inf_yield_stress = material_properties[material_elem_map[elem_id]][
-                    "inf_yield_stress"
-                ]
-                H0 = material_properties[material_elem_map[elem_id]]["H0"]
-                H1 = material_properties[material_elem_map[elem_id]]["H1"]
-                r0 = yield_stress / math.sqrt(E)
-                ip_0 = ip_elem_map[elem_id]
-                damage = 0
-                stress = [0, 0, 0, 0, 0, 0]
-                for r in r_in_elem[elem_id]:
-                    if r < r0:
-                        r = r0
-                    d = 1 - q(r, E, yield_stress, inf_yield_stress, H0, H1) / r
-                    # stress
-                    strain = strain_global[ip_0 : ip_0 + nr_comps] + strain_macro
-                    stress_ip = (1 - d) * numpy.dot(C, strain)
-                    stress = stress + stress_ip / nr_ips
-                    damage += d / nr_ips
-                    ip_0 += nr_comps
-                damage_list.append(damage)
-                stress_list.append(stress)
-            element_damage = numpy.array(damage_list).reshape(
-                (-1, 1)
-            )  # formatting for meshio
-
-            logger.debug("Writing timestep data")
-            writer.write_data(
-                t,
-                point_data={
-                    "DISPLACEMENT_FLUCT": numpy.reshape(displacement, (-1, 3)),
-                    "DISPLACEMENT": total_displacement,
-                },
-                cell_data={"DAMAGE": element_damage, "STRESS": stress_list},
-            )
+    if len(sys.argv) > 1:
+        rec = Reconstruct(Path(sys.argv[3]), root_path=Path(sys.argv[1]))
+    else:
+        exit("Missing root_path argument.")
+    rec.reconstruc(Path(sys.argv[2]))
