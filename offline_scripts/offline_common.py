@@ -91,6 +91,7 @@ class Common:
             # training files stuff
             "training_path": "training",
             "training_rve_materials_fname": "materials.json",
+            "training_rve_model_fname": "model.mdpa",
             "case_path_pattern": "case_{}",
             "snapshots_fname": "snapshots.hdf5",
             "training_strain_fname": "_training_strain_set.dat",
@@ -101,6 +102,8 @@ class Common:
             "local_sv_fname_pattern": "sv_inelastic_local_{}.dat",
             "roc_fname_pattern": "roc_{}ip",
             "rve_fname_pattern": "rve_{}m_{}ip.json",
+            "correl_matrix_strain_pattern": "correlation_strain_{}.npy",
+            "correl_matrix_damage_pattern": "correlation_r_value_{}.npy",
             # multiscale files stuff
             "multiscale_path": "multiscale_1ip",
             # other files stuff
@@ -114,16 +117,15 @@ class Common:
         # update default config with user config
 
         # file management
-        #self.root_path = Path.cwd() / Path(config_fname).parent
         self.root_path = root_path
         self.training_path = self.root_path / config["training_path"]
         self.offline_path = self.root_path / config["offline_path"]
         self.multiscale_path = self.root_path / config["multiscale_path"]
 
-        self.reuse_existing_files = config["reuse_existing_files"]
-        self.bases_fname = config["bases_fname_pattern"]
-        self.local_bases_fname = config["local_bases_fname_pattern"]
-        self.local_sv_fname = config["local_sv_fname_pattern"]
+        #self.reuse_existing_files = config["reuse_existing_files"]
+        #self.bases_fname = config["bases_fname_pattern"]
+        #self.local_bases_fname = config["local_bases_fname_pattern"]
+        #self.local_sv_fname = config["local_sv_fname_pattern"]
 
         # bases generation
         self.svd_cutoff = {}
@@ -210,7 +212,7 @@ class Common:
         """
         docstrings here
         """
-        filename = self.bases_fname.format(field, "*")
+        filename = self.context["bases_fname_pattern"].format(field, "*")
         fpath = self.offline_path / filename
         files = [f for f in fpath.parent.glob(fpath.name)]
         if len(files) == 0:
@@ -244,8 +246,6 @@ if __name__ == "__main__":
             exit()
         if "test" in arguments["COMMAND"]:
             print("Test:")
-            print(C.bases_fname)
-            print(C.local_bases_fname)
             print(C.roc_fname("1"))
             print(C.roc_fname("100"))
             print(C.roc_fname("1000"))
