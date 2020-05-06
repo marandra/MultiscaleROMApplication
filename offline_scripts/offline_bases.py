@@ -112,7 +112,6 @@ class Bases(Common):
 
         Return array combining bases precomputed (svd) on each training case.
         Modes to be included must have a corresponding singular value greater than cutoff value.
-        Fuction tested.
 
         Arguments:
             cases {list of str or Path} -- list with locations where to look for bases
@@ -122,6 +121,7 @@ class Bases(Common):
         Returns:
             numpy.arrary -- combined array with bases from the training cases that fit the cutoff criteria
         """
+        # TODO: Add test for feature ignore missing local SVD.
         b_fname = self.context["local_bases_fname_pattern"].format(field)
         sv_fname = self.context["local_sv_fname_pattern"].format(field)
         paths = sorted([Path(f) for f in cases])
@@ -131,6 +131,8 @@ class Bases(Common):
         rows = 0
         cols = 0
         for path in paths:
+            if not (path / b_fname).exists():  # in case there are no inelastic snapshots, local bases are not generated and no local bases file present
+                continue
             a = numpy.load(str(path / b_fname), mmap_mode="r")
             if numpy.shape(a)[1] == 0:  # missing dataset
                 continue
@@ -147,6 +149,8 @@ class Bases(Common):
         counter = 1
         column = 0
         for path in paths:
+            if not (path / b_fname).exists():  # in case there are no inelastic snapshots, local bases are not generated and no local bases file present
+                continue
             a = numpy.load(str(path / b_fname), mmap_mode="r")
             if numpy.shape(a)[1] == 0:  # missing dataset
                 continue
@@ -292,8 +296,8 @@ class Bases(Common):
         cases_path = self.training_path.glob(
             self.context["case_path_pattern"].format("*")
         )
-        lb_fname = self.local_bases_fname.format(field)
-        sv_fname = self.local_sv_fname.format(field)
+        lb_fname = self.context["local_bases_fname_pattern"].format(field)
+        sv_fname = self.context["local_sv_fname_pattern"].format(field)
         ss_fname = self.context["snapshots_fname"]
         missing = []
         for case in cases_path:
@@ -305,7 +309,11 @@ class Bases(Common):
             return
         # There are missing bases files. Let's generate them.
         for case in missing:
-            self.generate_local_bases(case, field, ss_fname, lb_fname, sv_fname)
+            try:
+                self.generate_local_bases(case, field, ss_fname, lb_fname, sv_fname)
+            except:
+                logger.info("  - skipping case: not inelastic snapshots present")
+                continue
 
         # Testing: version with Pool
         # with multiprocessing.Pool(processes=threads) as pool:
