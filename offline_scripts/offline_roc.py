@@ -2,6 +2,7 @@
 TODO: pending description here.
 """
 from pathlib import Path
+import json
 import logging
 import numpy as np
 import KratosMultiphysics
@@ -190,8 +191,31 @@ if __name__ == "__main__":
     else:
         exit("Missing root_path argument.")
 
-    parameters_path = co.root_path / "ProjectParameters.json"
-    parameters = KratosMultiphysics.Parameters(parameters_path.read_text())
+    parameters_dict = {
+        "problem_data": {
+            "problem_name": "High_Fidelity",
+            "parallel_type": "OpenMP",
+            "start_time": 0.0,
+            "end_time": 0.99,
+            "echo_level": 1,
+        },
+        "solver_settings": {
+            "model_part_name": "Microstructure",
+            "domain_size": 3,
+            "echo_level": 1,
+            "time_stepping": {},
+            "solver_type": "Static",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "{}/model".format(co.training_path),
+            },
+            "material_import_settings": {
+                "materials_filename": "{}/materials.json".format(co.training_path)
+            },
+        },
+    }
+
+    parameters = KratosMultiphysics.Parameters(json.dumps(parameters_dict))
     model = KratosMultiphysics.Model()
     simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(
         model, parameters
