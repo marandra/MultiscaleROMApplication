@@ -78,7 +78,7 @@ def plot_01():
     plt.savefig(
         param["fig_fname"] + ".pdf", dpi=1000, bbox_inches="tight",
     )
-    plt.show()
+    #plt.show()
 
 
 def plot_02():
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1:
-        DATA = Analysis(config_fname=sys.argv[1])
+        DATA = Analysis(root_path=Path(sys.argv[1]))
     else:
         DATA = Analysis()
     ## compute times
