@@ -113,7 +113,7 @@ export OMP_NUM_THREADS=1
 export PYTHONPATH={}
 export LD_LIBRARY_PATH={}
 cd {}
-/usr/bin/time -v -o time.dat python MainKratos.py > outMainKratos
+/usr/bin/time -v -o time.dat python MainKratos.py ProjectParameters.json > outMainKratos
 /usr/bin/time -v -o time_quiet.dat python MainKratos.py ProjectParameters_quiet.json > outMainKratos_quiet
 cd {}
 rm {}
