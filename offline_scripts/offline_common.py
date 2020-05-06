@@ -70,8 +70,8 @@ class Common:
         context_defaults = {
             # most frequently set
             "cases_test_dataset": [0],
-            "rve_data_points": [300, 400],
-            "rve_data_points_range": [100, 250, 50],
+            "rve_data_points": [250, 300],
+            "rve_data_points_range_list": [[100, 250, 50], [400, 600, 100]],
             "rve_data_points_rom": True,
             "rve_data_modes": [20, 30],
             #
@@ -147,8 +147,9 @@ class Common:
 
         # points
         self.ip_subsets = [x for x in config["rve_data_points"]]
-        for i in range(*config["rve_data_points_range"]):
-            self.ip_subsets.append(i)
+        for r in config["rve_data_points_range_list"]:  # unpack list of "ranges"
+            for i in range(*r):
+                self.ip_subsets.append(i)
         self.ip_subsets.sort()
         if config["rve_data_points_rom"]:
             self.ip_subsets.append("ROM")
@@ -256,4 +257,3 @@ if __name__ == "__main__":
             print(C.rve_fname(200, 1000))
             print(C.rve_fname("2000", "ROM"))
             print(C.ip_subsets)
-            # print(C.case_name(5))
