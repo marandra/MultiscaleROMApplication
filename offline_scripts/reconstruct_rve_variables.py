@@ -2,35 +2,27 @@
 
 Usage:
     reconstruct.py [-h]
-    reconstruct ROOTPATH
+    reconstruct.py [-v | -q] <root> <runtime_data> <resources>
 
 Options:
--h --help  Show this
+-h --help     Show this
+-v --verbose  Debug output
+-q --quiet    Minimal output
 
-Commands:
-parser.add_argument("mdpa_file", help="the .mdpa model used in training)")
-parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
-parser.add_argument("correlation_r_value", help="r_value correlation matrix (.npy)")
-parser.add_argument(
-    "runtime_data", help="multiscale runtime reconstruction data file (.json)"
-)
-parser.add_argument("rve_data", help="rve data file (.json)")
-parser.add_argument("strain_modes", help="strain modes")
-parser.add_argument(
-    "-v", "--verbose", action="store_true", help="set debug verbosity level"
-)
-args = parser.parse_args()
+Arguments:
+root              Root path of the project
+runtime_data      Generated run-time data file
+resources         Location of auxiliar postprocess data
 """
 
-import argparse
 from pathlib import Path
 import logging
 import math
 import json
 import numpy
+from docopt import docopt
 import meshio
 from offline_common import Common
-
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import (
@@ -38,11 +30,6 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 )
 import KratosMultiphysics.MultiscaleROMApplication
 
-
-def read_json(filename):
-    with open(filename) as f:
-        data_dict = json.load(f)
-    return data_dict
 
 
 def q(r, E, yield_stress, inf_yield_stress, H0, H1):
@@ -59,24 +46,24 @@ def q(r, E, yield_stress, inf_yield_stress, H0, H1):
 
 
 def compute_elastic_tensor(E, NU):
-    c1 = E / ((1 + NU) * (1 - 2 * NU))
-    c2 = c1 * (1 - NU)
-    c3 = c1 * NU
-    c4 = c1 * 0.5 * (1 - 2 * NU)
-    ConstitutiveMatrix = numpy.zeros((6, 6))
-    ConstitutiveMatrix[0, 0] = c2
-    ConstitutiveMatrix[0, 1] = c3
-    ConstitutiveMatrix[0, 2] = c3
-    ConstitutiveMatrix[1, 0] = c3
-    ConstitutiveMatrix[1, 1] = c2
-    ConstitutiveMatrix[1, 2] = c3
-    ConstitutiveMatrix[2, 0] = c3
-    ConstitutiveMatrix[2, 1] = c3
-    ConstitutiveMatrix[2, 2] = c2
-    ConstitutiveMatrix[3, 3] = c4
-    ConstitutiveMatrix[4, 4] = c4
-    ConstitutiveMatrix[5, 5] = c4
-    return ConstitutiveMatrix
+    c_1 = E / ((1 + NU) * (1 - 2 * NU))
+    c_2 = c_1 * (1 - NU)
+    c_3 = c_1 * NU
+    c_4 = c_1 * 0.5 * (1 - 2 * NU)
+    elastic = numpy.zeros((6, 6))
+    elastic[0, 0] = c_2
+    elastic[0, 1] = c_3
+    elastic[0, 2] = c_3
+    elastic[1, 0] = c_3
+    elastic[1, 1] = c_2
+    elastic[1, 2] = c_3
+    elastic[2, 0] = c_3
+    elastic[2, 1] = c_3
+    elastic[2, 2] = c_2
+    elastic[3, 3] = c_4
+    elastic[4, 4] = c_4
+    elastic[5, 5] = c_4
+    return elastic
 
 
 def strain_voigt_to_tensor(strain_vector):
@@ -144,11 +131,11 @@ def init_kratos(aux_postproc_path):
 
 
 class Reconstruct(Common):
-    def __init__(self, postproc_data_path, **kargs):
+    def __init__(self, resources_path, **kargs):
         super().__init__(**kargs)
 
-        self.postproc_data_path = postproc_data_path
-        self.model, self.modelpart = init_kratos(postproc_data_path)
+        self.resources_path = resources_path
+        self.model, self.modelpart = init_kratos(resources_path)
         self.nr_voigt_comps = 6
 
     def element_map(self):
@@ -229,30 +216,30 @@ class Reconstruct(Common):
         data = json.loads(runtime_data_path.read_text())
         nr_timesteps, nr_modes, nr_points = analize_runtime_data(data)
 
-        fnames = self.postproc_data_path.glob(
+        fnames = self.resources_path.glob(
             self.context["bases_fname_pattern"].format("STRAIN", "*")
         )
         fname = [x for x in fnames]
         logger.debug("Loading strain bases {}".format(fname[0]))
         strain_modes = numpy.load(fname[0])[:, :nr_modes]
 
-        fname = self.postproc_data_path / self.context[
+        fname = self.resources_path / self.context[
             "correl_matrix_strain_pattern"
         ].format(nr_modes)
         logger.debug("Loading strain correl {}".format(fname))
         strain_correl = numpy.load(fname)
 
-        fname = self.postproc_data_path / self.context[
+        fname = self.resources_path / self.context[
             "correl_matrix_damage_pattern"
         ].format(nr_modes)
         logger.debug("Loading damage correl {}".format(fname))
         r_value_correl = numpy.load(fname)
 
-        fname = self.postproc_data_path / self.context["training_rve_model_fname"]
+        fname = self.resources_path / self.context["training_rve_model_fname"]
         logger.debug("Loading rve model {}".format(fname))
         rve_points, rve_cells = self.get_mesh(fname)
 
-        fname = self.postproc_data_path / self.context["rve_fname_pattern"].format(
+        fname = self.resources_path / self.context["rve_fname_pattern"].format(
             nr_modes, nr_points
         )
         logger.debug("Loading rve data {}".format(fname))
@@ -344,20 +331,6 @@ class Reconstruct(Common):
 # Main
 #######################################
 
-# parse command line arguments
-# parser = argparse.ArgumentParser(description="reconstructs fields")
-# parser.add_argument("correlation_strain", help="strain correlation matrix (.npy)")
-# parser.add_argument("correlation_r_value", help="r_value correlation matrix (.npy)")
-# parser.add_argument(
-#    "runtime_data", help="multiscale runtime reconstruction data file (.json)"
-# )
-# parser.add_argument("rve_data", help="rve data file (.json)")
-# parser.add_argument("strain_modes", help="strain modes")
-# parser.add_argument(
-#    "-v", "--verbose", action="store_true", help="set debug verbosity level"
-# )
-# args = parser.parse_args()
-
 # configure logger
 # verbosity_level = logging.INFO
 # if args.verbose:
@@ -371,8 +344,7 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) > 1:
-        rec = Reconstruct(Path(sys.argv[3]), root_path=Path(sys.argv[1]))
-    else:
-        exit("Missing root_path argument.")
-    rec.reconstruc(Path(sys.argv[2]))
+    ARGS = docopt(__doc__)
+
+    RECONST = Reconstruct(Path(ARGS["<resources>"]), root_path=Path(ARGS["<root>"]))
+    RECONST.reconstruc(Path(ARGS["<runtime_data>"]))

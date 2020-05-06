@@ -31,7 +31,6 @@ def load_rve_data(rve_data):
 
 
 def load_energy_modes(modes_filename, reduced_ip_set, nr_modes):
-    # modes = io_utilities.read_numpy_file(modes_filename, "binary")[:, :nr_modes]
     modes = numpy.load(modes_filename)[:, :nr_modes]
     reduced_modes = modes[reduced_ip_set, :]
     logger.info(
@@ -103,7 +102,6 @@ if __name__ == "__main__":
         description="Computes data necessary for later reconstruction of the damage"
     )
     parser.add_argument("rve_data", help="rve data filename")
-    # parser.add_argument('damage_modes',     help="damage_modes_filename (binary .npy)")
     parser.add_argument("r_value_bases", help="r_value bases filename")
     parser.add_argument("nr_modes", help="nr of modes")
     parser.add_argument(

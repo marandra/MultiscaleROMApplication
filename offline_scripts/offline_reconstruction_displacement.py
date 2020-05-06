@@ -2,7 +2,6 @@
 description here
 """
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.MultiscaleROMApplication
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import (
@@ -51,9 +50,7 @@ class DisplacementReconstructionAnalysis(AnalysisStage):
 if __name__ == "__main__":
 
     # Read parametres for reconstruction
-    with open(
-        "../ProjectParameters_offline_reconstruction_displacement.json", "r"
-    ) as parameter_file:
+    with open("../ProjectParameters_reconstruction_displ.json", "r") as parameter_file:
         parameters_reconstr = KratosMultiphysics.Parameters(parameter_file.read())
 
     #  Generate auxiliar data structure
