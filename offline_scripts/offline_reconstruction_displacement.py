@@ -1,6 +1,8 @@
 """
 description here
 """
+from  pathlib import Path
+import json
 import KratosMultiphysics
 import KratosMultiphysics.MultiscaleROMApplication
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -10,6 +12,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solv
 from KratosMultiphysics.StructuralMechanicsApplication import (
     structural_mechanics_analysis,
 )
+from offline_common import Common
 
 
 class DisplacementReconstructionSolver(MechanicalSolver):
@@ -48,14 +51,42 @@ class DisplacementReconstructionAnalysis(AnalysisStage):
 ###############################################################
 
 if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) > 1:
+        co = Common(root_path=Path(sys.argv[1]))
+    else:
+        exit("Missing root_path argument.")
 
     # Read parametres for reconstruction
-    with open("../ProjectParameters_reconstruction_displ.json", "r") as parameter_file:
+    with open("../ProjectParameters_correlation.json", "r") as parameter_file:
         parameters_reconstr = KratosMultiphysics.Parameters(parameter_file.read())
 
     #  Generate auxiliar data structure
-    with open("../ProjectParameters.json", "r") as parameter_file:
-        parameters_aux = KratosMultiphysics.Parameters(parameter_file.read())
+    parameters_dict = {
+        "problem_data": {
+        "problem_name": "High_Fidelity",
+        "parallel_type": "OpenMP",
+        "start_time": 0.0,
+        "end_time": 0.99,
+        "echo_level": 1,
+    },
+    "solver_settings": {
+        "model_part_name": "Microstructure",
+        "domain_size": 3,
+        "echo_level": 1,
+        "time_stepping": {},
+        "solver_type": "Static",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "{}/model".format(co.training_path),
+        },
+        "material_import_settings": {
+            "materials_filename": "{}/materials.json".format(co.training_path)
+        },
+    },
+    }
+    parameters_aux = KratosMultiphysics.Parameters(json.dumps(parameters_dict))
     model = KratosMultiphysics.Model()
     simulation = structural_mechanics_analysis.StructuralMechanicsAnalysis(
         model, parameters_aux
