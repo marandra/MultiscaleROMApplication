@@ -4,6 +4,7 @@
 #include "multiscale_rom_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/read_materials_utility.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -26,6 +27,10 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         "Parameters" : {
             "rve_data_filename": "undefined_rve_data_file",
             "modified_material": [],
+            "rotation": {
+                "axis": [0, 0, 0],
+                "angle_radians": 0.0
+            },
             "convergence_criterion": "residual_criterion",
             "residual_relative_tolerance": 1e-4,
             "residual_absolute_tolerance": 1e-9,
@@ -43,6 +48,18 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     mAbsoluteTolerance = Params["Parameters"]["residual_absolute_tolerance"].GetDouble();
     mMaxIteration = Params["Parameters"]["max_iteration"].GetInt();
     mVerbose = Params["Parameters"]["verbose"].GetInt();
+
+    // Read rotation
+    const double ax = Params["Parameters"]["rotation"]["axis"][0].GetDouble();
+    const double ay = Params["Parameters"]["rotation"]["axis"][1].GetDouble();
+    const double az  = Params["Parameters"]["rotation"]["axis"][2].GetDouble();
+    const double angle = Params["Parameters"]["rotation"]["angle_radians"].GetDouble();
+    mQ = Quaternion<double>::FromAxisAngle(ax, ay, az, angle);
+    mQ.normalize();
+    KRATOS_INFO("RVELaw") << "RVE rotation: " << angle
+        << " rad on [" << ax << ", " << ay << ", " << az << "]"
+        << " (q = " << mQ.W() << " + " << mQ.X() << "i + " << mQ.Y() << "j + " << mQ.Z() << "k)"
+        << std::endl;
 
     // Read material parameters:
     // material parameters are read from rve data file
@@ -135,7 +152,9 @@ RVELaw::RVELaw(PropertiesMap pProperties,
                double abs_tol,
                double rel_tol,
                int max_iter,
-               int verbose)
+               int verbose,
+               Quaternion<double> q_rotation
+               )
     : mProperties_map(pProperties),
       mB_vec(B_list),
       mIW_vec(IW_list),
@@ -144,7 +163,8 @@ RVELaw::RVELaw(PropertiesMap pProperties,
       mAbsoluteTolerance(abs_tol),
       mRelativeTolerance(rel_tol),
       mMaxIteration(max_iter),
-      mVerbose(verbose)
+      mVerbose(verbose),
+      mQ(q_rotation)
 {
     const std::size_t nr_modes = mB_vec[0].size2();
     // preserve = false -> new elements (all of them in this case) not initialized
@@ -174,7 +194,9 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const
 {
     return Kratos::make_shared<RVELaw>(mProperties_map, mB_vec, mIW_vec,
                                        mCL_vec, mPropId_vec, mAbsoluteTolerance,
-                                       mRelativeTolerance, mMaxIteration, mVerbose);
+                                       mRelativeTolerance, mMaxIteration, mVerbose,
+                                       mQ
+                                       );
 }
 
 /***********************************************************************************/
@@ -409,8 +431,53 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     const std::size_t nr_points = mB_vec.size();
     const std::size_t nr_modes = mB_vec[0].size2();
     const std::size_t nr_comps = GetStrainSize();
-    const Vector& strain_macro = rValues.GetStrainVector(); // input
     const ProcessInfo& process_info = rValues.GetProcessInfo();
+    Vector& strain_macro = rValues.GetStrainVector(); // input
+
+    // Apply RVE rotation to second order tensor
+    // We assume 3 and 3x3 components
+    BoundedMatrix<double, 3, 3> aux_matrix;
+    aux_matrix = MathUtils<double>::StrainVectorToTensor(strain_macro);
+
+    // Test: compare rotations by quaternion and rotation matrix
+    //BoundedMatrix<double, 3, 3> check_matrix;
+    //BoundedMatrix<double, 3, 3> rot_matrix;
+    //mQ.ToRotationMatrix(rot_matrix);
+    //MathUtils<double>::BDBtProductOperation(check_matrix, aux_matrix, rot_matrix);
+    //Vector check_vector(6);
+    //check_vector = MathUtils<double>::StrainTensorToVector(check_matrix);
+    //KRATOS_WATCH(check_vector);
+    // End test
+
+    // First, rotate columns
+    for (std::size_t j = 0; j < 3; j++)
+    {
+        Vector aux_vector(3);
+        for (std::size_t i = 0; i < 3; i++)
+        {
+            aux_vector[i] = aux_matrix(i, j);
+        }
+        mQ.RotateVector3(aux_vector);
+        for (std::size_t i = 0; i < 3; i++)
+        {
+            aux_matrix(i, j) = aux_vector[i];
+        }
+    }    
+    // Second, rotate rows
+    for (std::size_t i = 0; i < 3; i++)
+    {
+        Vector aux_vector(3);
+        for (std::size_t j = 0; j < 3; j++)
+        {
+            aux_vector[j] = aux_matrix(i, j);
+        }
+        mQ.RotateVector3(aux_vector);
+        for (std::size_t j = 0; j < 3; j++)
+        {
+            aux_matrix(i, j) = aux_vector[j];
+        }
+    }    
+    strain_macro = MathUtils<double>::StrainTensorToVector(aux_matrix);
 
     Vector& homog_stress = rValues.GetStressVector(); // output
     homog_stress.clear();
@@ -494,6 +561,77 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
     homog_C = homog_C_taylor + homog_C_fluct;
     homog_C /= vol_rve;
+
+    //////////////////////////////////
+    // Apply inverse RVE rotation
+    Quaternion<double> iq = mQ.conjugate();
+    aux_matrix = MathUtils<double>::StressVectorToTensor(homog_stress);
+
+    // Test: compare rotations by quaternion and rotation matrix
+    //BoundedMatrix<double, 3, 3> check_matrix;
+    //BoundedMatrix<double, 3, 3> rot_matrix;
+    //iq.ToRotationMatrix(rot_matrix);
+    //MathUtils<double>::BDBtProductOperation(check_matrix, aux_matrix, rot_matrix);
+    //Vector check_vector(6);
+    //check_vector = MathUtils<double>::StressTensorToVector(check_matrix);
+    //KRATOS_WATCH(check_vector);
+    // End test
+
+    // First, rotate columns
+    for (std::size_t j = 0; j < 3; j++)
+    {
+        Vector aux_vector(3);
+        for (std::size_t i = 0; i < 3; i++)
+        {
+            aux_vector[i] = aux_matrix(i, j);
+        }
+        iq.RotateVector3(aux_vector);
+        for (std::size_t i = 0; i < 3; i++)
+        {
+            aux_matrix(i, j) = aux_vector[i];
+        }
+    }    
+    // Second, rotate rows
+    for (std::size_t i = 0; i < 3; i++)
+    {
+        Vector aux_vector(3);
+        for (std::size_t j = 0; j < 3; j++)
+        {
+            aux_vector[j] = aux_matrix(i, j);
+        }
+        iq.RotateVector3(aux_vector);
+        for (std::size_t j = 0; j < 3; j++)
+        {
+            aux_matrix(i, j) = aux_vector[j];
+        }
+    }    
+    homog_stress = MathUtils<double>::StressTensorToVector(aux_matrix);
+
+    // Rotate C
+    BoundedMatrix<double, 3, 3> Rq;
+    BoundedMatrix<double, 6, 6> aux_C;
+    BoundedMatrix<double, 6, 6> Rm;
+    iq.ToRotationMatrix(Rq);
+    const double l1 = sqrt(Rq(0,0)); const double l2 = sqrt(Rq(0,1)); const double l3 = sqrt(Rq(0,2));
+    const double m1 = sqrt(Rq(1,0)); const double m2 = sqrt(Rq(1,1)); const double m3 = sqrt(Rq(1,2));
+    const double n1 = sqrt(Rq(2,0)); const double n2 = sqrt(Rq(2,1)); const double n3 = sqrt(Rq(2,2));
+    // Rotation matrix
+    //R[0,0]=l1*l1; R[0,1]=l2*l2; R[0,2]=l3*l3; R[0,3]=2*l2*l3;       R[0,4]=2*l1*l3;       R[0,5]=2*l1*l2;
+    //R[1,0]=m1*m1; R[1,1]=m2*m2; R[1,2]=m3*m3; R[1,3]=2*m2*m3;       R[1,4]=2*m1*m3;       R[1,5]=2*m1*m2;
+    //R[2,0]=n1*n1; R[2,1]=n2*n2; R[2,2]=n3*n3; R[2,3]=2*n2*n3;       R[2,4]=2*n1*n3;       R[2,5]=2*n1*n2;
+    //R[3,0]=m1*n1; R[3,1]=m2*n2; R[3,2]=m3*n3; R[3,3]=(m2*n3+m3*n2); R[3,4]=(m1*n3+m3*n1); R[3,5]=(m1*n2+m2*n1);
+    //R[4,0]=l1*n1; R[4,1]=l2*n2; R[4,2]=l3*n3; R[4,3]=(l2*n3+l3*n2); R[4,4]=(l1*n3+l3*n1); R[4,5]=(l1*n2+l2*n1);
+    //R[0,0]=l1*m1; R[5,1]=l2*m2; R[5,2]=l3*m3; R[5,3]=(l2*m3+l3*m2); R[5,4]=(l1*m3+l3*m1); R[5,5]=(l1*m2+l2*m1);
+    // Modified rotation matrix (voigt)
+    Rm(0,0)=l1*l1;   Rm(0,1)=l2*l2;   Rm(0,2)=l3*l3;   Rm(0,3)=l2*l3;         Rm(0,4)=l1*l3;         Rm(0,5)=l1*l2;
+    Rm(1,0)=m1*m1;   Rm(1,1)=m2*m2;   Rm(1,2)=m3*m3;   Rm(1,3)=m2*m3;         Rm(1,4)=m1*m3;         Rm(1,5)=m1*m2;
+    Rm(2,0)=n1*n1;   Rm(2,1)=n2*n2;   Rm(2,2)=n3*n3;   Rm(2,3)=n2*n3;         Rm(2,4)=n1*n3;         Rm(2,5)=n1*n2;
+    Rm(3,0)=2*m1*n1; Rm(3,1)=2*m2*n2; Rm(3,2)=2*m3*n3; Rm(3,3)=(m2*n3+m3*n2); Rm(3,4)=(m1*n3+m3*n1); Rm(3,5)=(m1*n2+m2*n1);
+    Rm(4,0)=2*l1*n1; Rm(4,1)=2*l2*n2; Rm(4,2)=2*l3*n3; Rm(4,3)=(l2*n3+l3*n2); Rm(4,4)=(l1*n3+l3*n1); Rm(4,5)=(l1*n2+l2*n1);
+    Rm(0,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
+    MathUtils<double>::BDBtProductOperation(aux_C, homog_C, Rm);
+    homog_C = aux_C;
+    //////////////////////////////////
 }
 
 /***********************************************************************************/

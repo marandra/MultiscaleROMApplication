@@ -61,7 +61,9 @@ public:
            std::vector<double> IW_list,
            std::vector<ConstitutiveLaw::Pointer> CL_list,
            std::vector<int> prop_id_list,
-           double abs_tol, double rel_tol, int max_iter, int verbose);
+           double abs_tol, double rel_tol, int max_iter, int verbose,
+           Quaternion<double> q_rotation
+           );
 
     /**
      * @brief Copy constructor
@@ -200,6 +202,7 @@ private:
     double mRelativeTolerance;
     std::size_t mMaxIteration;
     int mVerbose;
+    Quaternion<double> mQ;
 
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
 
