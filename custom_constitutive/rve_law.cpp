@@ -60,34 +60,34 @@ RVELaw::RVELaw(Kratos::Parameters Params)
         << " rad on [" << ax << ", " << ay << ", " << az << "]"
         << " (q = " << mQ.W() << " + " << mQ.X() << "i + " << mQ.Y() << "j + " << mQ.Z() << "k)"
         << std::endl;
-    BoundedMatrix<double, 3, 3> Rq;
-    BoundedMatrix<double, 6, 6> Rm;
-    mQ.ToRotationMatrix(Rq);
-    const double l1 = Rq(0,0);
-    const double l2 = Rq(0,1);
-    const double l3 = Rq(0,2);
-    const double m1 = Rq(1,0);
-    const double m2 = Rq(1,1);
-    const double m3 = Rq(1,2);
-    const double n1 = Rq(2,0); 
-    const double n2 = Rq(2,1);
-    const double n3 = Rq(2,2);
-    // Rotation matrix
+    //BoundedMatrix<double, 3, 3> Rq;
+    //BoundedMatrix<double, 6, 6> Rm;
+    //mQ.ToRotationMatrix(Rq);
+    //const double l1 = Rq(0,0);
+    //const double l2 = Rq(0,1);
+    //const double l3 = Rq(0,2);
+    //const double m1 = Rq(1,0);
+    //const double m2 = Rq(1,1);
+    //const double m3 = Rq(1,2);
+    //const double n1 = Rq(2,0); 
+    //const double n2 = Rq(2,1);
+    //const double n3 = Rq(2,2);
+    // Rotation matrix (stress)
     //R[0,0]=l1*l1; R[0,1]=l2*l2; R[0,2]=l3*l3; R[0,3]=2*l2*l3;       R[0,4]=2*l1*l3;       R[0,5]=2*l1*l2;
     //R[1,0]=m1*m1; R[1,1]=m2*m2; R[1,2]=m3*m3; R[1,3]=2*m2*m3;       R[1,4]=2*m1*m3;       R[1,5]=2*m1*m2;
     //R[2,0]=n1*n1; R[2,1]=n2*n2; R[2,2]=n3*n3; R[2,3]=2*n2*n3;       R[2,4]=2*n1*n3;       R[2,5]=2*n1*n2;
     //R[3,0]=m1*n1; R[3,1]=m2*n2; R[3,2]=m3*n3; R[3,3]=(m2*n3+m3*n2); R[3,4]=(m1*n3+m3*n1); R[3,5]=(m1*n2+m2*n1);
     //R[4,0]=l1*n1; R[4,1]=l2*n2; R[4,2]=l3*n3; R[4,3]=(l2*n3+l3*n2); R[4,4]=(l1*n3+l3*n1); R[4,5]=(l1*n2+l2*n1);
     //R[5,0]=l1*m1; R[5,1]=l2*m2; R[5,2]=l3*m3; R[5,3]=(l2*m3+l3*m2); R[5,4]=(l1*m3+l3*m1); R[5,5]=(l1*m2+l2*m1);
-    // Modified rotation matrix (voigt)
-    Rm(0,0)=l1*l1;   Rm(0,1)=l2*l2;   Rm(0,2)=l3*l3;   Rm(0,3)=l2*l3;         Rm(0,4)=l1*l3;         Rm(0,5)=l1*l2;
-    Rm(1,0)=m1*m1;   Rm(1,1)=m2*m2;   Rm(1,2)=m3*m3;   Rm(1,3)=m2*m3;         Rm(1,4)=m1*m3;         Rm(1,5)=m1*m2;
-    Rm(2,0)=n1*n1;   Rm(2,1)=n2*n2;   Rm(2,2)=n3*n3;   Rm(2,3)=n2*n3;         Rm(2,4)=n1*n3;         Rm(2,5)=n1*n2;
-    Rm(3,0)=2*m1*n1; Rm(3,1)=2*m2*n2; Rm(3,2)=2*m3*n3; Rm(3,3)=(m2*n3+m3*n2); Rm(3,4)=(m1*n3+m3*n1); Rm(3,5)=(m1*n2+m2*n1);
-    Rm(4,0)=2*l1*n1; Rm(4,1)=2*l2*n2; Rm(4,2)=2*l3*n3; Rm(4,3)=(l2*n3+l3*n2); Rm(4,4)=(l1*n3+l3*n1); Rm(4,5)=(l1*n2+l2*n1);
-    Rm(5,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
-    KRATOS_INFO("RVELaw") << "RVE rotation matrix second: " << Rq << std::endl;
-    KRATOS_INFO("RVELaw") << "RVE rotation matrix fourth: " << Rm << std::endl;
+    // Modified rotation matrix (strain)
+    //Rm(0,0)=l1*l1;   Rm(0,1)=l2*l2;   Rm(0,2)=l3*l3;   Rm(0,3)=l2*l3;         Rm(0,4)=l1*l3;         Rm(0,5)=l1*l2;
+    //Rm(1,0)=m1*m1;   Rm(1,1)=m2*m2;   Rm(1,2)=m3*m3;   Rm(1,3)=m2*m3;         Rm(1,4)=m1*m3;         Rm(1,5)=m1*m2;
+    //Rm(2,0)=n1*n1;   Rm(2,1)=n2*n2;   Rm(2,2)=n3*n3;   Rm(2,3)=n2*n3;         Rm(2,4)=n1*n3;         Rm(2,5)=n1*n2;
+    //Rm(3,0)=2*m1*n1; Rm(3,1)=2*m2*n2; Rm(3,2)=2*m3*n3; Rm(3,3)=(m2*n3+m3*n2); Rm(3,4)=(m1*n3+m3*n1); Rm(3,5)=(m1*n2+m2*n1);
+    //Rm(4,0)=2*l1*n1; Rm(4,1)=2*l2*n2; Rm(4,2)=2*l3*n3; Rm(4,3)=(l2*n3+l3*n2); Rm(4,4)=(l1*n3+l3*n1); Rm(4,5)=(l1*n2+l2*n1);
+    //Rm(5,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
+    //KRATOS_INFO("RVELaw") << "RVE rotation matrix second: " << Rq << std::endl;
+    //KRATOS_INFO("RVELaw") << "RVE rotation matrix fourth: " << Rm << std::endl;
 
     // Read material parameters:
     // material parameters are read from rve data file
@@ -543,35 +543,40 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
     homog_stress = MathUtils<double>::StressTensorToVector(aux_matrix);
 
     // Rotate C
-    BoundedMatrix<double, 3, 3> Rq;
+    BoundedMatrix<double, 3, 3> iQ;
+    BoundedMatrix<double, 3, 3> Q;
     BoundedMatrix<double, 6, 6> aux_C;
+    BoundedMatrix<double, 6, 6> iR;
     BoundedMatrix<double, 6, 6> Rm;
-    iq.ToRotationMatrix(Rq);
-    const double l1 = Rq(0,0);
-    const double l2 = Rq(0,1);
-    const double l3 = Rq(0,2);
-    const double m1 = Rq(1,0);
-    const double m2 = Rq(1,1);
-    const double m3 = Rq(1,2);
-    const double n1 = Rq(2,0); 
-    const double n2 = Rq(2,1);
-    const double n3 = Rq(2,2);
-    // Rotation matrix
-    //R[0,0]=l1*l1; R[0,1]=l2*l2; R[0,2]=l3*l3; R[0,3]=2*l2*l3;       R[0,4]=2*l1*l3;       R[0,5]=2*l1*l2;
-    //R[1,0]=m1*m1; R[1,1]=m2*m2; R[1,2]=m3*m3; R[1,3]=2*m2*m3;       R[1,4]=2*m1*m3;       R[1,5]=2*m1*m2;
-    //R[2,0]=n1*n1; R[2,1]=n2*n2; R[2,2]=n3*n3; R[2,3]=2*n2*n3;       R[2,4]=2*n1*n3;       R[2,5]=2*n1*n2;
-    //R[3,0]=m1*n1; R[3,1]=m2*n2; R[3,2]=m3*n3; R[3,3]=(m2*n3+m3*n2); R[3,4]=(m1*n3+m3*n1); R[3,5]=(m1*n2+m2*n1);
-    //R[4,0]=l1*n1; R[4,1]=l2*n2; R[4,2]=l3*n3; R[4,3]=(l2*n3+l3*n2); R[4,4]=(l1*n3+l3*n1); R[4,5]=(l1*n2+l2*n1);
-    //R[0,0]=l1*m1; R[5,1]=l2*m2; R[5,2]=l3*m3; R[5,3]=(l2*m3+l3*m2); R[5,4]=(l1*m3+l3*m1); R[5,5]=(l1*m2+l2*m1);
-    // Modified rotation matrix (voigt)
+    double l1, l2, l3, m1, m2, m3, n1, n2, n3;
+    
+    // inverse Rotation matrix (stress)
+    mQ.conjugate().ToRotationMatrix(iQ);
+    l1 = iQ(0,0); l2 = iQ(0,1); l3 = iQ(0,2);
+    m1 = iQ(1,0); m2 = iQ(1,1); m3 = iQ(1,2);
+    n1 = iQ(2,0); n2 = iQ(2,1); n3 = iQ(2,2);
+    iR(0,0)=l1*l1; iR(0,1)=l2*l2; iR(0,2)=l3*l3; iR(0,3)=2*l2*l3;       iR(0,4)=2*l1*l3;       iR(0,5)=2*l1*l2;
+    iR(1,0)=m1*m1; iR(1,1)=m2*m2; iR(1,2)=m3*m3; iR(1,3)=2*m2*m3;       iR(1,4)=2*m1*m3;       iR(1,5)=2*m1*m2;
+    iR(2,0)=n1*n1; iR(2,1)=n2*n2; iR(2,2)=n3*n3; iR(2,3)=2*n2*n3;       iR(2,4)=2*n1*n3;       iR(2,5)=2*n1*n2;
+    iR(3,0)=m1*n1; iR(3,1)=m2*n2; iR(3,2)=m3*n3; iR(3,3)=(m2*n3+m3*n2); iR(3,4)=(m1*n3+m3*n1); iR(3,5)=(m1*n2+m2*n1);
+    iR(4,0)=l1*n1; iR(4,1)=l2*n2; iR(4,2)=l3*n3; iR(4,3)=(l2*n3+l3*n2); iR(4,4)=(l1*n3+l3*n1); iR(4,5)=(l1*n2+l2*n1);
+    iR(5,0)=l1*m1; iR(5,1)=l2*m2; iR(5,2)=l3*m3; iR(5,3)=(l2*m3+l3*m2); iR(5,4)=(l1*m3+l3*m1); iR(5,5)=(l1*m2+l2*m1);
+
+    // modified rotation matrix (strain voigt)
+    mQ.ToRotationMatrix(Q);
+    l1 = Q(0,0); l2 = Q(0,1); l3 = Q(0,2);
+    m1 = Q(1,0); m2 = Q(1,1); m3 = Q(1,2);
+    n1 = Q(2,0); n2 = Q(2,1); n3 = Q(2,2);
     Rm(0,0)=l1*l1;   Rm(0,1)=l2*l2;   Rm(0,2)=l3*l3;   Rm(0,3)=l2*l3;         Rm(0,4)=l1*l3;         Rm(0,5)=l1*l2;
     Rm(1,0)=m1*m1;   Rm(1,1)=m2*m2;   Rm(1,2)=m3*m3;   Rm(1,3)=m2*m3;         Rm(1,4)=m1*m3;         Rm(1,5)=m1*m2;
     Rm(2,0)=n1*n1;   Rm(2,1)=n2*n2;   Rm(2,2)=n3*n3;   Rm(2,3)=n2*n3;         Rm(2,4)=n1*n3;         Rm(2,5)=n1*n2;
     Rm(3,0)=2*m1*n1; Rm(3,1)=2*m2*n2; Rm(3,2)=2*m3*n3; Rm(3,3)=(m2*n3+m3*n2); Rm(3,4)=(m1*n3+m3*n1); Rm(3,5)=(m1*n2+m2*n1);
     Rm(4,0)=2*l1*n1; Rm(4,1)=2*l2*n2; Rm(4,2)=2*l3*n3; Rm(4,3)=(l2*n3+l3*n2); Rm(4,4)=(l1*n3+l3*n1); Rm(4,5)=(l1*n2+l2*n1);
-    Rm(0,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
-    MathUtils<double>::BDBtProductOperation(aux_C, homog_C, Rm);
-    homog_C = aux_C;
+    Rm(5,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
+
+    noalias(aux_C) = prod(homog_C, Rm);
+    noalias(homog_C) = prod(iR, aux_C);
+
     // End rotation
     //////////////////////////////////
 }
@@ -767,37 +772,41 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     homog_stress = MathUtils<double>::StressTensorToVector(aux_matrix);
 
     // Rotate C
-    BoundedMatrix<double, 3, 3> Rq;
+    BoundedMatrix<double, 3, 3> iQ;
+    BoundedMatrix<double, 3, 3> Q;
     BoundedMatrix<double, 6, 6> aux_C;
+    BoundedMatrix<double, 6, 6> iR;
     BoundedMatrix<double, 6, 6> Rm;
-    iq.ToRotationMatrix(Rq);
-    const double l1 = Rq(0,0);
-    const double l2 = Rq(0,1);
-    const double l3 = Rq(0,2);
-    const double m1 = Rq(1,0);
-    const double m2 = Rq(1,1);
-    const double m3 = Rq(1,2);
-    const double n1 = Rq(2,0); 
-    const double n2 = Rq(2,1);
-    const double n3 = Rq(2,2);
-    // Rotation matrix
-    //R[0,0]=l1*l1; R[0,1]=l2*l2; R[0,2]=l3*l3; R[0,3]=2*l2*l3;       R[0,4]=2*l1*l3;       R[0,5]=2*l1*l2;
-    //R[1,0]=m1*m1; R[1,1]=m2*m2; R[1,2]=m3*m3; R[1,3]=2*m2*m3;       R[1,4]=2*m1*m3;       R[1,5]=2*m1*m2;
-    //R[2,0]=n1*n1; R[2,1]=n2*n2; R[2,2]=n3*n3; R[2,3]=2*n2*n3;       R[2,4]=2*n1*n3;       R[2,5]=2*n1*n2;
-    //R[3,0]=m1*n1; R[3,1]=m2*n2; R[3,2]=m3*n3; R[3,3]=(m2*n3+m3*n2); R[3,4]=(m1*n3+m3*n1); R[3,5]=(m1*n2+m2*n1);
-    //R[4,0]=l1*n1; R[4,1]=l2*n2; R[4,2]=l3*n3; R[4,3]=(l2*n3+l3*n2); R[4,4]=(l1*n3+l3*n1); R[4,5]=(l1*n2+l2*n1);
-    //R[5,0]=l1*m1; R[5,1]=l2*m2; R[5,2]=l3*m3; R[5,3]=(l2*m3+l3*m2); R[5,4]=(l1*m3+l3*m1); R[5,5]=(l1*m2+l2*m1);
-    // Modified rotation matrix (voigt)
+    double l1, l2, l3, m1, m2, m3, n1, n2, n3;
+    
+    // inverse Rotation matrix (stress)
+    mQ.conjugate().ToRotationMatrix(iQ);
+    l1 = iQ(0,0); l2 = iQ(0,1); l3 = iQ(0,2);
+    m1 = iQ(1,0); m2 = iQ(1,1); m3 = iQ(1,2);
+    n1 = iQ(2,0); n2 = iQ(2,1); n3 = iQ(2,2);
+    iR(0,0)=l1*l1; iR(0,1)=l2*l2; iR(0,2)=l3*l3; iR(0,3)=2*l2*l3;       iR(0,4)=2*l1*l3;       iR(0,5)=2*l1*l2;
+    iR(1,0)=m1*m1; iR(1,1)=m2*m2; iR(1,2)=m3*m3; iR(1,3)=2*m2*m3;       iR(1,4)=2*m1*m3;       iR(1,5)=2*m1*m2;
+    iR(2,0)=n1*n1; iR(2,1)=n2*n2; iR(2,2)=n3*n3; iR(2,3)=2*n2*n3;       iR(2,4)=2*n1*n3;       iR(2,5)=2*n1*n2;
+    iR(3,0)=m1*n1; iR(3,1)=m2*n2; iR(3,2)=m3*n3; iR(3,3)=(m2*n3+m3*n2); iR(3,4)=(m1*n3+m3*n1); iR(3,5)=(m1*n2+m2*n1);
+    iR(4,0)=l1*n1; iR(4,1)=l2*n2; iR(4,2)=l3*n3; iR(4,3)=(l2*n3+l3*n2); iR(4,4)=(l1*n3+l3*n1); iR(4,5)=(l1*n2+l2*n1);
+    iR(5,0)=l1*m1; iR(5,1)=l2*m2; iR(5,2)=l3*m3; iR(5,3)=(l2*m3+l3*m2); iR(5,4)=(l1*m3+l3*m1); iR(5,5)=(l1*m2+l2*m1);
+
+    // modified rotation matrix (strain voigt)
+    mQ.ToRotationMatrix(Q);
+    l1 = Q(0,0); l2 = Q(0,1); l3 = Q(0,2);
+    m1 = Q(1,0); m2 = Q(1,1); m3 = Q(1,2);
+    n1 = Q(2,0); n2 = Q(2,1); n3 = Q(2,2);
     Rm(0,0)=l1*l1;   Rm(0,1)=l2*l2;   Rm(0,2)=l3*l3;   Rm(0,3)=l2*l3;         Rm(0,4)=l1*l3;         Rm(0,5)=l1*l2;
     Rm(1,0)=m1*m1;   Rm(1,1)=m2*m2;   Rm(1,2)=m3*m3;   Rm(1,3)=m2*m3;         Rm(1,4)=m1*m3;         Rm(1,5)=m1*m2;
     Rm(2,0)=n1*n1;   Rm(2,1)=n2*n2;   Rm(2,2)=n3*n3;   Rm(2,3)=n2*n3;         Rm(2,4)=n1*n3;         Rm(2,5)=n1*n2;
     Rm(3,0)=2*m1*n1; Rm(3,1)=2*m2*n2; Rm(3,2)=2*m3*n3; Rm(3,3)=(m2*n3+m3*n2); Rm(3,4)=(m1*n3+m3*n1); Rm(3,5)=(m1*n2+m2*n1);
     Rm(4,0)=2*l1*n1; Rm(4,1)=2*l2*n2; Rm(4,2)=2*l3*n3; Rm(4,3)=(l2*n3+l3*n2); Rm(4,4)=(l1*n3+l3*n1); Rm(4,5)=(l1*n2+l2*n1);
     Rm(5,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
-    MathUtils<double>::BDBtProductOperation(aux_C, homog_C, Rm);
+
+    noalias(aux_C) = prod(homog_C, Rm);
+    noalias(homog_C) = prod(iR, aux_C);
     //KRATOS_WATCH("DEBUG antes ***")
     //KRATOS_WATCH(homog_C)
-    homog_C = aux_C;
     //KRATOS_WATCH(homog_C)
     //KRATOS_WATCH("DEBUG despues ***")
     // End rotation
