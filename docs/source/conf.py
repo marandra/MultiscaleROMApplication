@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 project = 'HPRFE2'
 copyright = '2020, Marcelo'
-author = 'Marcelo'
+author = 'Marcelo Raschi'
 
 # The full version, including alpha/beta/rc tags
 release = '0.8.0'

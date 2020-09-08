@@ -7,7 +7,6 @@ HPRFE2 project consists of two parts: a set of utilities for bases generation an
    :maxdepth: 2
    :caption: Contents:
 
-
 Quick start
 ===========
 
@@ -26,12 +25,29 @@ Create root directory for our material::
   >>> mkdir COMPOSITE_01
   >>> cd COMPOSITE_01
 
-Generate (and eventually edit) an initial configuration file::
+The next step generates an initial configuration file.
+Also, it creates a base directory structure and copies template case files
+from a specified location. For this tutorial, we will use the template files
+bundled with the installation files in the ``sample`` directory of this project::
 
-  >>> python offline_common.py --init
+  >>> pwd
+  COMPOSITE_01
+  >>> python hpr.py init .../hprfe2_project/sample/template_case
+  Written configuration file configuration.json.
+  Created sampling directory sampling
+  Template files copied to sampling directory
   >>> ls
-  configuration.json
-  >>>
+  configuration.json sampling
+  >>> ls sampling
+  MainKratos.py   model.mdpa              ProjectParameters_quiet.json
+  materials.json  ProjectParameters.json  _training_strain_set.dat
+
+The script also created a ``sampling`` directory and populate it with our
+Kratos case, which includes ``MainKratos.py``, ``model.mdpa`` (unit cell
+discretization), ``materials.json`` (COMPOSITE_01 constituve model and
+material parameters), ``ProjectParameters.json`` (case configuration
+for Kratos), and ``_training_strain_set.dat`` with the list of strains for the
+sampling process.
 
 The configuration file contains the at least following needed parameters:
 
@@ -49,72 +65,87 @@ The configuration file contains the at least following needed parameters:
       }
     }
 
-At this point, we need a Kratos case already set up and working, which includes ``MainKratos.py``, ``model.mdpa`` (unit cell discretization), ``materials.json`` (COMPOSITE_01 constituve model and material parameters), and ``ProjectParameters.json`` (case configuration for Kratos).
-For this tutorial we will use a test Kratos case bundled with the installation.
-
-Create a ``training`` directory and populate it with our Kratos case::
-
-  >>> pwd
-  COMPOSITE_01
-  >>> mkdir training
-  >>> cd training
-  >>> cp HPRFE2/test/template/* .
 
 In the following step, we generate the sampling directories::
 
-  >>> python3 offline_bases generate
-  created sample_01
-  created sample_02
-  created sample_03
-  created sample_04
-  ...
+  >>> python hpr.py deploy
+  case_0 [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  case_1 [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+  case_2 [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+  case_3 [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+  case_4 [0.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+  case_5 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+  case_6 [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+  case_7 [1.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+  case_8 [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
-This process create the file structure for each trajectory, and populates them with the Kratos case.
-The only difference between them is the strain tensor value (in ``ProjectParameters.json``), which is taken from the file ``_training_strain_set.dat``.
+This process create the file structure for each trajectory,
+and populates them with the Kratos case.
+The only difference between them is the strain tensor value in their respective
+``ProjectParameters.json`` files.
 
-At this point, we should have the following file structure (here showing only ``case_00``, as it is the same for the other directories)::
+At this point, we should have the following file structure (here showing only ``case_0``, as it is the same for the other directories)::
 
-  PORTO_08
+  COMPOSITE_01
   ├── configuration.json
   └── training
-      ├── case_00
+      ├── case_0
       │   ├── MainKratos.py
       │   ├── materials.json
       │   ├── model.mdpa
       │   └── ProjectParameters.json
-      ├── case_01
-      ├── case_02
-      ├── case_03
-      ├── case_04
-      ├── case_05
-      ├── case_06
-      ├── case_07
-      ├── case_08
+      ├── case_0
+      ├── case_1
+      ├── case_2
+      ├── case_3
+      ├── case_4
+      ├── case_5
+      ├── case_6
+      ├── case_7
+      ├── case_8
       ├── MainKratos.py
       ├── materials.json
       ├── model.mdpa
       ├── ProjectParameters.json
-      ├── _training_strain_set.dat
-      └── _training_strain_sets
+      └── _training_strain_set.dat
+
+(only the files relevant to this turorial are shown, there are more auxiliar
+files in this directories for more complex use.)
 
 We must now run every case.
 In this tutorial, we just enter to each directory and run Kratos::
 
-  >>> cd case_00
+  >>> pwd
+  COMPOSITE_01
+  >>> cd sampling
+  >>> cd case_0
   >>> python3 MainKratos.py
   >>> cd ..
+  >>> cd case_1
+  >>> python3 MainKratos.py
+  >>> cd ..
+  ...
 
 but in real-life cases we should have our own script for managing the jobs (more on this later).
 
 Basis generation
 ----------------
+.. note::
+    Add configuration option here.
 
-- Create bases directory
-- Generate bases 
-- Generate datasets
+Aca una muestra de codigo::
+
+  >>> python hola.py
+  Hola.
+  >>> ls
+  lsout
+
+Datasets generation
+-------------------
 
 
 .. _install:
+
 Install
 =======
 
@@ -164,7 +195,7 @@ Usage
 =====
 
 Development
-==========
+===========
 
 .. automodule:: hprfe2
 
@@ -176,18 +207,6 @@ This is something I want to say that is not in the docstring.
 
 .. automodule:: hprfe2.useful_1
    :members:
-
-useful #2 -- explicit members
-=============================
-
-This is something I want to say that is not in the docstring.
-
-.. automodule:: hprfe2.useful_2
-   :members: public_fn_with_sphinxy_docstring, _private_fn_with_docstring
-
-.. autoclass:: MyPublicClass
-   :members: get_foobar, _get_baz
-
 
 
 Indices and tables
