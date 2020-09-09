@@ -105,22 +105,22 @@ class WriteSnapshots(km.Process):
             Path.cwd(),
             field,
             fname,
-            self.bases.local_bases_fname.format(field),
-            self.bases.local_sv_fname.format(field),
+            self.bases.context["local_bases_fname_pattern"].format(field),
+            self.bases.context["local_sv_fname_pattern"].format(field),
         )
         field = "ENERGY_FREE"
         self.bases.generate_local_bases(
             Path.cwd(),
             field,
             fname,
-            self.bases.local_bases_fname.format(field),
-            self.bases.local_sv_fname.format(field),
+            self.bases.context["local_bases_fname_pattern"].format(field),
+            self.bases.context["local_sv_fname_pattern"].format(field),
         )
         field = "R_VALUE"
         self.bases.generate_local_bases(
             Path.cwd(),
             field,
             fname,
-            self.bases.local_bases_fname.format(field),
-            self.bases.local_sv_fname.format(field),
+            self.bases.context["local_bases_fname_pattern"].format(field),
+            self.bases.context["local_sv_fname_pattern"].format(field),
         )
