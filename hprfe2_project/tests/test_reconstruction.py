@@ -1,13 +1,21 @@
-import pytest
+"""Test reconstruction functions. 
+"""
+#import pytest
 from pathlib import Path
 import numpy
-from offline_bases import Bases
+from hprfe2.bases import Bases
+import reconstruct_rve_variables as rec
 
 
 b = Bases()
-b_path = Path(b.context["local_bases_fname_pattern"].format("TEST"))
-sv_path = Path(b.context["local_sv_fname_pattern"].format("TEST"))
+b_path = Path(b.config["local_bases_fname_pattern"].format("TEST"))
+sv_path = Path(b.config["local_sv_fname_pattern"].format("TEST"))
 
+
+def test_compute_elastic_tensor():
+    C = rec.compute_elastic_tensor(1, 0.3)
+    print(C)
+    assert False
 
 def test_read_svd_01():
     """Test case when no cases are passed."""
