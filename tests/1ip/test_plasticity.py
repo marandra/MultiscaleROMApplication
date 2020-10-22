@@ -1,200 +1,122 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as km
 import KratosMultiphysics.StructuralMechanicsApplication
 import os
+import numpy
 
-def _create_geometry(model_part, dim):
-    # Create new nodes
+
+class Output:
+    def __init__(self, fn_strain_stress, fn_const_matrix):
+        try:
+            os.remove(fn_strain_stress)
+        except OSError:
+            pass
+        self.fo = open(fn_strain_stress, "w")
+        self.fo.write("#    {:<78}{:<30}\n".format("Strain (Voigt)", "Stress"))
+        self.fo.write("#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
+                      "#\n"
+                      "#    Column\n"
+                      "#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
+                      "#\n".format(
+            "XX", "YY", "ZZ", "XY" , "YZ", "XZ", "XX", "YY", "ZZ", "XY" , "YZ", "XZ",
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+            ))
+
+        try:
+            os.remove(fn_const_matrix)
+        except OSError:
+            pass
+        self.fc = open(fn_const_matrix, "w")
+        col = ""
+        index = ""
+        for i in range(6):
+            for j in range(6):
+                index += "{}, {}           ".format(i, j)
+                col +=   "{:0>2}             ".format(i*6+j)
+        self.fc.write("#" + index + "\n")
+        self.fc.write("#" + col + "\n")
+
+
+    def write(self, cl_params):
+        strain = cl_params.GetStrainVector()
+        stress = cl_params.GetStressVector()
+        line = "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  "\
+               "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}\n".format(
+            strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
+            stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
+        self.fo.write(line)
+
+        cm = cl_params.GetConstitutiveMatrix()
+        line = ""
+        for i in range(6):
+            for j in range(6):
+                line += "{:<+1.6e}  ".format(cm[i,j])
+        self.fc.write(line + "\n")
+
+
+def generic_constitutive_law_test(model_part, deformation_test, load):
+
+    # Define geometry
+    dim = 3
+    nnodes = 4
+    N = km.Vector(nnodes)
     node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
     node2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
     node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
+    node4 = model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
+    geom = km.Tetrahedra3D4(node1,node2,node3,node4)
 
-    if (dim == 2):
-        nnodes = 3
+    # Material properties
+    properties = model_part.Properties[0]
+    properties.SetValue(km.YOUNG_MODULUS, 21000)
+    properties.SetValue(km.POISSON_RATIO, 0.3)
+    properties.SetValue(km.YIELD_STRESS, 5.5)
+    properties.SetValue(km.ISOTROPIC_HARDENING_MODULUS, 0.12924)
+    properties.SetValue(km.StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 0.0)
+    properties.SetValue(km.HARDENING_EXPONENT, 0.1)
 
-        # Allocate a geometry
-        geom = km.Multiphysics.Triangle2D3(node1,node2,node3)
-    elif (dim == 3):
-        nnodes = 4
-        node4 = model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
+    # Construct a constitutive law
+    cl = km.StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
 
-        # Allocate a geometry
-        geom = km.Tetrahedra3D4(node1,node2,node3,node4)
-    else:
-        raise Exception("Error: bad dimension value: ", dim)
-    return [geom, nnodes]
-
-
-def _set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part, properties, geom):
-    # Setting the parameters - note that a constitutive law may not need them all!
-    cl_params = km.ConstitutiveLawParameters()
-    cl_params.SetOptions(cl_options)
-    cl_params.SetDeformationGradientF(F)
-    cl_params.SetDeterminantF(detF)
-    cl_params.SetStrainVector(strain_vector)
-    cl_params.SetStressVector(stress_vector)
-    cl_params.SetConstitutiveMatrix(constitutive_matrix)
-    cl_params.SetShapeFunctionsValues(N)
-    cl_params.SetShapeFunctionsDerivatives(DN_DX)
-    cl_params.SetProcessInfo(model_part.ProcessInfo)
-    cl_params.SetMaterialProperties(properties)
-    cl_params.SetElementGeometry(geom)
-
-    ## Do all sort of checks
-    cl_params.CheckAllParameters() # Can not use this until the geometry is correctly exported to python
-    cl_params.CheckMechanicalVariables()
-    cl_params.CheckShapeFunctions()
-    return cl_params
-
-
-def _cl_check(cl, properties, geom, model_part, dim):
     cl.Check(properties, geom, model_part.ProcessInfo)
-
-    if(cl.WorkingSpaceDimension() != dim):
+    if(cl.WorkingSpaceDimension() != 3):
         raise Exception("Mismatch between the WorkingSpaceDimension of the "
                         "Constitutive Law and the dimension of the space in "
                         "which the test is performed")
 
 
-def _set_cl_options(dict_options):
-    cl_options = km.Flags()
-    if ("USE_ELEMENT_PROVIDED_STRAIN" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN,
-                       dict_options["USE_ELEMENT_PROVIDED_STRAIN"])
-    if ("COMPUTE_STRESS" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRESS,
-                       dict_options["COMPUTE_STRESS"])
-    if ("COMPUTE_CONSTITUTIVE_TENSOR" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR,
-                       dict_options["COMPUTE_CONSTITUTIVE_TENSOR"])
-    if ("COMPUTE_STRAIN_ENERGY" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRAIN_ENERGY,
-                       dict_options["COMPUTE_STRAIN_ENERGY"])
-    if ("ISOCHORIC_TENSOR_ONLY" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY,
-                       dict_options["ISOCHORIC_TENSOR_ONLY"])
-    if ("VOLUMETRIC_TENSOR_ONLY" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY,
-                       dict_options["VOLUMETRIC_TENSOR_ONLY"])
-    if ("FINALIZE_MATERIAL_RESPONSE" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE,
-                       dict_options["FINALIZE_MATERIAL_RESPONSE"])
-
-    # From here below it should be an output, not an input
-    if ("FINITE_STRAINS" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.FINITE_STRAINS,
-                       dict_options["FINITE_STRAINS"])
-    if ("INFINITESIMAL_STRAINS" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.INFINITESIMAL_STRAINS,
-                       dict_options["INFINITESIMAL_STRAINS"])
-    if ("PLANE_STRAIN_LAW" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.PLANE_STRAIN_LAW,
-                       dict_options["PLANE_STRAIN_LAW"])
-    if ("PLANE_STRESS_LAW" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.PLANE_STRESS_LAW,
-                       dict_options["PLANE_STRESS_LAW"])
-    if ("AXISYMMETRIC_LAW" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.AXISYMMETRIC_LAW,
-                       dict_options["AXISYMMETRIC_LAW"])
-    if ("U_P_LAW" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.U_P_LAW,
-                       dict_options["U_P_LAW"])
-    if ("ISOTROPIC" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.ISOTROPIC,
-                       dict_options["ISOTROPIC"])
-    if ("ANISOTROPIC" in dict_options):
-        cl_options.Set(km.ConstitutiveLaw.ANISOTROPIC,
-                       dict_options["ANISOTROPIC"])
-    return cl_options
-
-
-class Output:
-    def __init__(self, filename):
-        try:
-            os.remove(filename)
-        except OSError:
-            pass
-        self.fo = open(filename, "w")
-        self.fo.write("#    {:<78}{:<30}\n".format("Strain", "Stress"))
-        self.fo.write("#    "
-                      "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} "
-                      "{:<12} {:<12} {:<12} {:<12} {:<12} {:<12}\n".format(
-            "XX", "YY", "ZZ", "XY" , "YZ", "XZ",
-            "XX", "YY", "ZZ", "XY" , "YZ", "XZ"))
-
-    def write(self, i, cl_params):
-        line = "{:<4} "\
-               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  "\
-               "{:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}  {:<+1.4e}\n".format(
-            i,
-            cl_params.GetStrainVector()[0],
-            cl_params.GetStrainVector()[1],
-            cl_params.GetStrainVector()[2],
-            cl_params.GetStrainVector()[3],
-            cl_params.GetStrainVector()[4],
-            cl_params.GetStrainVector()[5],
-
-            cl_params.GetStressVector()[0],
-            cl_params.GetStressVector()[1],
-            cl_params.GetStressVector()[2],
-            cl_params.GetStressVector()[3],
-            cl_params.GetStressVector()[4],
-            cl_params.GetStressVector()[5]
-        )
-        self.fo.write(line)
-
-    def printout(self, i, cl_params):
-        print("\nStep: {}".format(i))
-        print("Strain = ", cl_params.GetStrainVector())
-        print("Stress = ", cl_params.GetStressVector())
-        print("C      = ", cl_params.GetConstitutiveMatrix())
-
-
-def generic_constitutive_law_test(model_part, deformation_test):
-    # Define geometry
-    [geom, nnodes] = _create_geometry(model_part, deformation_test.cl.dim)
-
-    N = km.Vector(nnodes)
-    DN_DX = km.Matrix(nnodes, deformation_test.cl.dim)
-
-    # Material properties
-    properties = deformation_test.cl.create_properties(model_part)
-
-    # Construct a constitutive law
-    cl = deformation_test.cl.create_constitutive_Law()
-    _cl_check(cl, properties, geom, model_part, deformation_test.cl.dim)
-
     # Set the parameters to be employed
-    dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': True,
-                    'COMPUTE_STRESS': True,
-                    'COMPUTE_CONSTITUTIVE_TENSOR': True
-                    }
-    cl_options = _set_cl_options(dict_options)
-
-    # Define deformation gradient
-    F = deformation_test.get_init_deformation_gradientF()
-    detF = 1.0
+    cl_options = km.Flags()
+    cl_options.Set(km.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
+    cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
+    cl_options.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 
     stress_vector = km.Vector(cl.GetStrainSize())
     strain_vector = km.Vector(cl.GetStrainSize())
-    constitutive_matrix = km.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+    constitutive_matrix = km.Matrix(cl.GetStrainSize(), cl.GetStrainSize())
 
-    # Setting the parameters - note that a constitutive law may not need them all!
-    cl_params = _set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part, properties, geom)
+    # Setting the parameters
+    cl_params = km.ConstitutiveLawParameters()
+    cl_params.SetOptions(cl_options)
+    cl_params.SetStrainVector(strain_vector)
+    cl_params.SetStressVector(stress_vector)
+    cl_params.SetConstitutiveMatrix(constitutive_matrix)
+    cl_params.SetProcessInfo(model_part.ProcessInfo)
+    cl_params.SetMaterialProperties(properties)
+    cl_params.SetElementGeometry(geom)
 
     cl.InitializeMaterial(properties, geom, N)
 
     # expected results
     deformation_test.initialize_reference_stress(cl.GetStrainSize())
-
-    output = Output("strain-stress.dat")
+    output = Output(deformation_test.output_filename_s, deformation_test.output_filename_c)
+    print(deformation_test.output_filename_s)
+    print(deformation_test.output_filename_c)
 
     print()
-    print("Has INELASTIC_FLAG: ", cl.Has(km.StructuralMechanicsApplication.INELASTIC_FLAG))
-    print("Has PLASTIC_STRAIN: ", cl.Has(km.PLASTIC_STRAIN))
+    print("Has ACCUMULATED_PLASTIC_STRAIN: ", cl.Has(km.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN))
     print("Has STRAIN_ENERGY: ", cl.Has(km.STRAIN_ENERGY))
     print("Has STRAIN: ", cl.Has(km.STRAIN))
-    print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
+    print("Has INTERNAL_VARIABLES: ", cl.Has(km.INTERNAL_VARIABLES))
     zero_vector = km.Vector(6)
     zero_vector[0] = 0.
     zero_vector[1] = 0.
@@ -205,8 +127,13 @@ def generic_constitutive_law_test(model_part, deformation_test):
     model_part.ProcessInfo[km.INITIAL_STRAIN] = zero_vector
     print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
     print()
-    for i in range(deformation_test.nr_timesteps):
-        deformation_test.set_deformation(cl_params, i)
+    nr_ts = 21
+    ts_array = [numpy.linspace(load[x+0], load[x+1], nr_ts) for x in range(len(load)-1)]
+    ts_list = []
+    for x in ts_array:
+        ts_list.extend(x.tolist())
+    for strain_mult in ts_list:
+        deformation_test.set_deformation(cl_params, strain_mult)
 
         # Chauchy
         model_part.ProcessInfo[km.INITIAL_STRAIN] = cl_params.GetStrainVector()
@@ -241,16 +168,24 @@ def generic_constitutive_law_test(model_part, deformation_test):
         cl_params.SetStrainVector(zero_vector)
         cl.FinalizeMaterialResponseCauchy(cl_params)
 
-        output.printout(i, cl_params)
-        #output.write(i, cl_params)
+        #output.printout(i, cl_params)
+        output.write(cl_params)
 
-        reference_stress = deformation_test.get_reference_stress(i)
+        #reference_stress = deformation_test.get_reference_stress(i)
         stress = cl_params.GetStressVector()
-        print("Step ", i)
-        print("Reference: ", reference_stress)
+        #print("Step ", i)
+        #print("Reference: ", reference_stress)
         print("Stress:    ", stress)
-        print("INELASTIC_FLAG: ", cl.GetValue(km.StructuralMechanicsApplication.INELASTIC_FLAG, bool()))
-        print("PLASTIC_STRAIN: ", cl.GetValue(km.PLASTIC_STRAIN, float()))
+
+        zero_vector = km.Vector(6)
+        zero_vector[0] = 0.
+        zero_vector[1] = 0.
+        zero_vector[2] = 0.
+        zero_vector[3] = 0.
+        zero_vector[4] = 0.
+        zero_vector[5] = 0.
+        cl_params.SetStrainVector(zero_vector)
+        print("ACCUMULATED_PLASTIC_STRAIN: ", cl.CalculateValue(cl_params, km.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN, float()))
 
         zero_vector = km.Vector(6)
         zero_vector[0] = 0.
@@ -270,76 +205,35 @@ def generic_constitutive_law_test(model_part, deformation_test):
         zero_vector[4] = 0.
         zero_vector[5] = 0.
         cl_params.SetStrainVector(zero_vector)
-        print("STRAIN: ", cl.CalculateValue(cl_params, km.GREEN_LAGRANGE_STRAIN_VECTOR, km.Vector()))
+        print("INTERNAL_VARIABLES: ", cl.CalculateValue(cl_params, km.INTERNAL_VARIABLES, km.Vector()))
         print()
 
 
-class LinearJ2Plasticity():
-    def __init__(self):
-        self.young_modulus = 21000
-        self.poisson_ratio = 0.3
-        self.yield_stress = 5.5
-        self.reference_hardening_modulus = 1.0
-        self.isotropic_hardening_modulus = 0.12924
-        self.infinity_hardening_modulus = 0.0
-        self.hardening_exponent = 1.0
 
-    def create_properties(self, model_part):
-        prop_id = 0
-        properties = model_part.Properties[prop_id]
-        properties.SetValue(km.YOUNG_MODULUS, self.young_modulus)
-        properties.SetValue(km.POISSON_RATIO, self.poisson_ratio)
-        properties.SetValue(km.YIELD_STRESS, self.yield_stress)
-        properties.SetValue(km.REFERENCE_HARDENING_MODULUS, self.reference_hardening_modulus)
-        properties.SetValue(km.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
-        properties.SetValue(km.INFINITY_HARDENING_MODULUS, self.infinity_hardening_modulus)
-        properties.SetValue(km.HARDENING_EXPONENT, self.hardening_exponent)
-        return properties
-
-
-class LinearJ2Plasticity3D(LinearJ2Plasticity):
-    def __init__(self):
-        LinearJ2Plasticity.__init__(self)
-        self.dim = 3
-
-    def create_constitutive_Law(self):
-        return km.StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
-
-
-class Deformation():
+class DeformationSmallStrainJ2Plasticity3D():
     def __init__(self, parameters):
         self.nr_timesteps = parameters["nr_timesteps"]
+        self.load = parameters["load"]
         self.strain_list = parameters["strain"]
-
-    def get_init_deformation_gradientF(self):
-        self.F = km.Matrix(self.cl.dim,self.cl.dim)
-        for i in range(self.cl.dim):
-            for j in range(self.cl.dim):
-                if(i==j):
-                    self.F[i,j] = 1.0
-                else:
-                    self.F[i,j] = 0.0
-        return self.F
+        self.output_filename_s = parameters["output_filename_s"]
+        self.output_filename_c = parameters["output_filename_c"]
 
     def initialize_reference_stress(self, strain_size):
         self.reference_stress = km.Vector(strain_size)
         for i in range(strain_size):
             self.reference_stress[i] = 0.0
 
-    def set_deformation(self, cl_params, i):
-        F = self.get_deformation_gradientF(i)
-        detF = self.get_determinantF(i)
+    def set_deformation(self, cl_params, mult):
+        self.strain = mult * self.initial_strain
+        detF = 1
+        F = km.Matrix(3,3)
+        for i in range(3):
+            for j in range(3):
+                F[i, j] = 0
+        for i in range(3):
+            F[i, i] = 1
         cl_params.SetDeformationGradientF(F)
         cl_params.SetDeterminantF(detF)
-
-
-class DeformationLinearJ2Plasticity3D(Deformation):
-    def __init__(self, parameters):
-        Deformation.__init__(self, parameters)
-        self.cl = LinearJ2Plasticity3D()
-
-    def set_deformation(self, cl_params, i):
-        self.strain = (i+1)/ self.nr_timesteps * self.initial_strain
         cl_params.SetStrainVector(self.strain)
 
     def initialize_reference_stress(self, strain_size):
@@ -351,19 +245,16 @@ class DeformationLinearJ2Plasticity3D(Deformation):
         self.initial_strain[4] = self.strain_list[4]
         self.initial_strain[5] = self.strain_list[5]
 
-        r_stress = []
-        for i in range(self.nr_timesteps):
-            r_stress.append(km.Vector(strain_size))
-        r_stress[0][0] = 4.03846; r_stress[0][1] = 4.03846; r_stress[0][2] = 2.42308; r_stress[0][3] = 0.80769; r_stress[0][4] = 0.0; r_stress[0][5] = 0.80769
-        r_stress[1][0] = 8.07692; r_stress[1][1] = 8.07692; r_stress[1][2] = 4.84615; r_stress[1][3] = 1.61538; r_stress[1][4] = 0.0; r_stress[1][5] = 1.61538
-        r_stress[2][0] = 11.6595; r_stress[2][1] = 11.6595; r_stress[2][2] = 8.18099; r_stress[2][3] = 1.73926; r_stress[2][4] = 0.0; r_stress[2][5] = 1.73926
-        r_stress[3][0] = 15.1595; r_stress[3][1] = 15.1595; r_stress[3][2] = 11.681 ; r_stress[3][3] = 1.73926; r_stress[3][4] = 0.0; r_stress[3][5] = 1.73926
-        r_stress[4][0] = 18.6595; r_stress[4][1] = 18.6595; r_stress[4][2] = 15.181 ; r_stress[4][3] = 1.73926; r_stress[4][4] = 0.0; r_stress[4][5] = 1.73926
-        r_stress[5][0] = 22.1595; r_stress[5][1] = 22.1595; r_stress[5][2] = 18.681 ; r_stress[5][3] = 1.73927; r_stress[5][4] = 0.0; r_stress[5][5] = 1.73927
-        r_stress[6][0] = 25.6595; r_stress[6][1] = 25.6595; r_stress[6][2] = 22.181 ; r_stress[6][3] = 1.73927; r_stress[6][4] = 0.0; r_stress[6][5] = 1.73927
-        r_stress[7][0] = 29.1595; r_stress[7][1] = 29.1595; r_stress[7][2] = 25.681 ; r_stress[7][3] = 1.73928; r_stress[7][4] = 0.0; r_stress[7][5] = 1.73928
-        r_stress[8][0] = 32.6595; r_stress[8][1] = 32.6595; r_stress[8][2] = 29.181 ; r_stress[8][3] = 1.73928; r_stress[8][4] = 0.0; r_stress[8][5] = 1.73928
-        r_stress[9][0] = 36.1595; r_stress[9][1] = 36.1595; r_stress[9][2] = 32.681 ; r_stress[9][3] = 1.73929; r_stress[9][4] = 0.0; r_stress[9][5] = 1.73929
+        r_stress = [[4.03846, 4.03846, 2.42308, 0.80769, 0.0, 0.80769],
+                    [8.07692, 8.07692, 4.84615, 1.61538, 0.0, 1.61538],
+                    [11.6595, 11.6595, 8.18099, 1.73926, 0.0, 1.73926],
+                    [15.1595, 15.1595, 11.6810, 1.73926, 0.0, 1.73926],
+                    [18.6595, 18.6595, 15.1810, 1.73926, 0.0, 1.73926],
+                    [22.1595, 22.1595, 18.6810, 1.73927, 0.0, 1.73927],
+                    [25.6595, 25.6595, 22.1810, 1.73927, 0.0, 1.73927],
+                    [29.1595, 29.1595, 25.6810, 1.73928, 0.0, 1.73928],
+                    [32.6595, 32.6595, 29.1810, 1.73928, 0.0, 1.73928],
+                    [36.1595, 36.1595, 32.6810, 1.73929, 0.0, 1.73929]]
         self.reference_stress = r_stress
 
     def get_reference_stress(self, i):
@@ -373,13 +264,24 @@ class DeformationLinearJ2Plasticity3D(Deformation):
 #####################################################################
 if __name__ == "__main__":
 
-    parameters = {"nr_timesteps": 10,
-                 #[XX, YY, ZZ, XY, YZ, XZ]
-                  "strain": [0.001, 0.001, 0.0, 0.001, 0.0, 0.001]
-                  }
-
     model_part = km.Model().CreateModelPart("test")
 
-    # Test plasticity
-    deformation_test = DeformationLinearJ2Plasticity3D(parameters)
-    generic_constitutive_law_test(model_part, deformation_test)
+    parameters = {"nr_timesteps": 20,
+                  "load": [0, 1, 0, -1, 0],
+                  "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
+                  "output_filename_s": "plasticity_traction-strain-stress.dat",
+                  "output_filename_c": "plasticity_traction-const_matrix.dat"
+                  }
+    load = [0, 1, 0, -1.2, 0, 1.4, 0, -1.6]
+    deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
+    generic_constitutive_law_test(model_part, deformation_test, load)
+
+    parameters = {"nr_timesteps": 20,
+                  "load": [0, -1, 0, 1, 0],
+                  "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
+                  "output_filename_s": "plasticity_compression-strain-stress.dat",
+                  "output_filename_c": "plasticity_compression-const_matrix.dat"
+                  }
+    load = [0, -1, 0, 1.2, 0, -1.4, 0, 1.6]
+    deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
+    generic_constitutive_law_test(model_part, deformation_test, load)
