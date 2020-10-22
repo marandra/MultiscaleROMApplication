@@ -1,59 +1,60 @@
-import KratosMultiphysics as km
-import KratosMultiphysics.StructuralMechanicsApplication
 import os
 import numpy
+import KratosMultiphysics as km
+import KratosMultiphysics.StructuralMechanicsApplication
 
 
-class Output:
-    def __init__(self, fn_strain_stress, fn_const_matrix):
-        try:
-            os.remove(fn_strain_stress)
-        except OSError:
-            pass
-        self.fo = open(fn_strain_stress, "w")
-        self.fo.write("#    {:<78}{:<30}\n".format("Strain (Voigt)", "Stress"))
-        self.fo.write("#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
-                      "#\n"
-                      "#    Column\n"
-                      "#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
-                      "#\n".format(
-            "XX", "YY", "ZZ", "XY" , "YZ", "XZ", "XX", "YY", "ZZ", "XY" , "YZ", "XZ",
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-            ))
+def write_header(fn_strain_stress, fn_const_matrix):
+    try:
+        os.remove(fn_strain_stress)
+    except OSError:
+        pass
+    fo = open(fn_strain_stress, "w")
+    fo.write("#    {:<78}{:<30}\n".format("Strain (Voigt)", "Stress"))
+    fo.write("#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
+                  "#\n"
+                  "#    Column\n"
+                  "#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
+                  "#\n".format(
+        "XX", "YY", "ZZ", "XY" , "YZ", "XZ", "XX", "YY", "ZZ", "XY" , "YZ", "XZ",
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+        ))
 
-        try:
-            os.remove(fn_const_matrix)
-        except OSError:
-            pass
-        self.fc = open(fn_const_matrix, "w")
-        col = ""
-        index = ""
-        for i in range(6):
-            for j in range(6):
-                index += "{}, {}           ".format(i, j)
-                col +=   "{:0>2}             ".format(i*6+j)
-        self.fc.write("#" + index + "\n")
-        self.fc.write("#" + col + "\n")
+    try:
+        os.remove(fn_const_matrix)
+    except OSError:
+        pass
+    fc = open(fn_const_matrix, "w")
+    col = ""
+    index = ""
+    for i in range(6):
+        for j in range(6):
+            index += "{}, {}           ".format(i, j)
+            col +=   "{:0>2}             ".format(i*6+j)
+    fc.write("#" + index + "\n")
+    fc.write("#" + col + "\n")
 
-
-    def write(self, cl_params):
-        strain = cl_params.GetStrainVector()
-        stress = cl_params.GetStressVector()
-        line = "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  "\
-               "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}\n".format(
-            strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
-            stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
-        self.fo.write(line)
-
-        cm = cl_params.GetConstitutiveMatrix()
-        line = ""
-        for i in range(6):
-            for j in range(6):
-                line += "{:<+1.6e}  ".format(cm[i,j])
-        self.fc.write(line + "\n")
+    return fo, fc
 
 
-def generic_constitutive_law_test(model_part, deformation_test, load):
+def write(fo, fc, cl_params):
+    strain = cl_params.GetStrainVector()
+    stress = cl_params.GetStressVector()
+    line = "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  "\
+           "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}\n".format(
+        strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
+        stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
+    fo.write(line)
+
+    cm = cl_params.GetConstitutiveMatrix()
+    line = ""
+    for i in range(6):
+        for j in range(6):
+            line += "{:<+1.6e}  ".format(cm[i,j])
+    fc.write(line + "\n")
+
+
+def generic_constitutive_law_test(model_part, deformation_test, load, fo, fc):
 
     # Define geometry
     dim = 3
@@ -108,7 +109,7 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
 
     # expected results
     deformation_test.initialize_reference_stress(cl.GetStrainSize())
-    output = Output(deformation_test.output_filename_s, deformation_test.output_filename_c)
+    #output = Output(deformation_test.output_filename_s, deformation_test.output_filename_c)
     print(deformation_test.output_filename_s)
     print(deformation_test.output_filename_c)
 
@@ -168,13 +169,9 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
         cl_params.SetStrainVector(zero_vector)
         cl.FinalizeMaterialResponseCauchy(cl_params)
 
-        #output.printout(i, cl_params)
-        output.write(cl_params)
+        write(fo, fc, cl_params)
 
-        #reference_stress = deformation_test.get_reference_stress(i)
         stress = cl_params.GetStressVector()
-        #print("Step ", i)
-        #print("Reference: ", reference_stress)
         print("Stress:    ", stress)
 
         zero_vector = km.Vector(6)
@@ -218,11 +215,6 @@ class DeformationSmallStrainJ2Plasticity3D():
         self.output_filename_s = parameters["output_filename_s"]
         self.output_filename_c = parameters["output_filename_c"]
 
-    def initialize_reference_stress(self, strain_size):
-        self.reference_stress = km.Vector(strain_size)
-        for i in range(strain_size):
-            self.reference_stress[i] = 0.0
-
     def set_deformation(self, cl_params, mult):
         self.strain = mult * self.initial_strain
         detF = 1
@@ -245,20 +237,7 @@ class DeformationSmallStrainJ2Plasticity3D():
         self.initial_strain[4] = self.strain_list[4]
         self.initial_strain[5] = self.strain_list[5]
 
-        r_stress = [[4.03846, 4.03846, 2.42308, 0.80769, 0.0, 0.80769],
-                    [8.07692, 8.07692, 4.84615, 1.61538, 0.0, 1.61538],
-                    [11.6595, 11.6595, 8.18099, 1.73926, 0.0, 1.73926],
-                    [15.1595, 15.1595, 11.6810, 1.73926, 0.0, 1.73926],
-                    [18.6595, 18.6595, 15.1810, 1.73926, 0.0, 1.73926],
-                    [22.1595, 22.1595, 18.6810, 1.73927, 0.0, 1.73927],
-                    [25.6595, 25.6595, 22.1810, 1.73927, 0.0, 1.73927],
-                    [29.1595, 29.1595, 25.6810, 1.73928, 0.0, 1.73928],
-                    [32.6595, 32.6595, 29.1810, 1.73928, 0.0, 1.73928],
-                    [36.1595, 36.1595, 32.6810, 1.73929, 0.0, 1.73929]]
-        self.reference_stress = r_stress
-
-    def get_reference_stress(self, i):
-        return self.reference_stress[i]
+        self.reference_stress = []
 
 
 #####################################################################
@@ -266,6 +245,7 @@ if __name__ == "__main__":
 
     model_part = km.Model().CreateModelPart("test")
 
+    fo, fc = write_header("plasticity_traction-strain-stress.dat", "plasticity_traction-const_matrix.dat")
     parameters = {"nr_timesteps": 20,
                   "load": [0, 1, 0, -1, 0],
                   "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
@@ -274,8 +254,11 @@ if __name__ == "__main__":
                   }
     load = [0, 1, 0, -1.2, 0, 1.4, 0, -1.6]
     deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
-    generic_constitutive_law_test(model_part, deformation_test, load)
+    generic_constitutive_law_test(model_part, deformation_test, load, fo, fc)
+    fo.close()
+    fc.close()
 
+    fo, fc = write_header("plasticity_compression-strain-stress.dat", "plasticity_compression-const_matrix.dat")
     parameters = {"nr_timesteps": 20,
                   "load": [0, -1, 0, 1, 0],
                   "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
@@ -284,4 +267,6 @@ if __name__ == "__main__":
                   }
     load = [0, -1, 0, 1.2, 0, -1.4, 0, 1.6]
     deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
-    generic_constitutive_law_test(model_part, deformation_test, load)
+    generic_constitutive_law_test(model_part, deformation_test, load, fo, fc)
+    fo.close()
+    fc.close()
