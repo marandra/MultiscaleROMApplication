@@ -138,16 +138,15 @@ def test(model_part, parameters, fs, fc):
     model_part.ProcessInfo[km.INITIAL_STRAIN] = zero_vector
     print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
     print()
-    nr_ts = 21
-    ts_array = [numpy.linspace(load[x+0], load[x+1], nr_ts) for x in range(len(load)-1)]
+    #nr_ts = 21
+    ts_array = [numpy.linspace(load[x+0], load[x+1], nr_timesteps) for x in range(len(load)-1)]
     ts_list = []
     for x in ts_array:
         ts_list.extend(x.tolist())
     for strain_mult in ts_list:
+        print("DEBUG {}".format(strain_mult))
+
         cl_params.SetStrainVector(strain_mult * initial_strain)
-
-
-
 
         # Chauchy
         #model_part.ProcessInfo[km.INITIAL_STRAIN] = cl_params.GetStrainVector()
@@ -186,7 +185,6 @@ def test(model_part, parameters, fs, fc):
         write(fs, fc, cl_params)
 
         stress = cl_params.GetStressVector()
-        print("Stress:    ", stress)
 
         zero_vector = km.Vector(6)
         zero_vector[0] = 0.
@@ -196,7 +194,7 @@ def test(model_part, parameters, fs, fc):
         zero_vector[4] = 0.
         zero_vector[5] = 0.
         cl_params.SetStrainVector(zero_vector)
-        print("ACCUMULATED_PLASTIC_STRAIN: ", cl.CalculateValue(cl_params, km.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN, float()))
+        #print("ACCUMULATED_PLASTIC_STRAIN: ", cl.CalculateValue(cl_params, km.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN, float()))
 
         zero_vector = km.Vector(6)
         zero_vector[0] = 0.
@@ -206,7 +204,7 @@ def test(model_part, parameters, fs, fc):
         zero_vector[4] = 0.
         zero_vector[5] = 0.
         cl_params.SetStrainVector(zero_vector)
-        print("STRAIN_ENERGY: ", cl.CalculateValue(cl_params, km.STRAIN_ENERGY, float()))
+        #print("STRAIN_ENERGY: ", cl.CalculateValue(cl_params, km.STRAIN_ENERGY, float()))
 
         zero_vector = km.Vector(6)
         zero_vector[0] = 0.
@@ -216,8 +214,8 @@ def test(model_part, parameters, fs, fc):
         zero_vector[4] = 0.
         zero_vector[5] = 0.
         cl_params.SetStrainVector(zero_vector)
-        print("INTERNAL_VARIABLES: ", cl.CalculateValue(cl_params, km.INTERNAL_VARIABLES, km.Vector()))
-        print()
+        #print("INTERNAL_VARIABLES: ", cl.CalculateValue(cl_params, km.INTERNAL_VARIABLES, km.Vector()))
+        #print()
 
 
 #####################################################################
@@ -226,7 +224,7 @@ if __name__ == "__main__":
     model_part = km.Model().CreateModelPart("test")
 
     fs, fc = write_header("plasticity_traction-strain-stress.dat", "plasticity_traction-const_matrix.dat")
-    parameters = {"nr_timesteps": 20,
+    parameters = {"nr_timesteps": 6,
                   #"load": [0, 1, 0, -1, 0],
                   "load": [0, 1, 0, -1.2, 0, 1.4, 0, -1.6],
                   "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
@@ -237,7 +235,7 @@ if __name__ == "__main__":
     fc.close()
 
     fs, fc = write_header("plasticity_compression-strain-stress.dat", "plasticity_compression-const_matrix.dat")
-    parameters = {"nr_timesteps": 20,
+    parameters = {"nr_timesteps": 6,
                   #"load": [0, -1, 0, 1, 0],
                   "load": [0, -1, 0, 1.2, 0, -1.4, 0, 1.6],
                   "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
