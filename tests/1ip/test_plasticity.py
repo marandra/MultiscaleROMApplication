@@ -9,9 +9,9 @@ def write_header(fn_strain_stress, fn_const_matrix):
         os.remove(fn_strain_stress)
     except OSError:
         pass
-    fo = open(fn_strain_stress, "w")
-    fo.write("#    {:<78}{:<30}\n".format("Strain (Voigt)", "Stress"))
-    fo.write("#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
+    fs = open(fn_strain_stress, "w")
+    fs.write("#    {:<78}{:<30}\n".format("Strain (Voigt)", "Stress"))
+    fs.write("#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
                   "#\n"
                   "#    Column\n"
                   "#    {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n"
@@ -34,17 +34,17 @@ def write_header(fn_strain_stress, fn_const_matrix):
     fc.write("#" + index + "\n")
     fc.write("#" + col + "\n")
 
-    return fo, fc
+    return fs, fc
 
 
-def write(fo, fc, cl_params):
+def write(fs, fc, cl_params):
     strain = cl_params.GetStrainVector()
     stress = cl_params.GetStressVector()
     line = "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  "\
            "{:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}  {:<+1.6e}\n".format(
         strain[0], strain[1], strain[2], strain[3], strain[4], strain[5],
         stress[0], stress[1], stress[2], stress[3], stress[4], stress[5])
-    fo.write(line)
+    fs.write(line)
 
     cm = cl_params.GetConstitutiveMatrix()
     line = ""
@@ -54,7 +54,17 @@ def write(fo, fc, cl_params):
     fc.write(line + "\n")
 
 
-def generic_constitutive_law_test(model_part, deformation_test, load, fo, fc):
+def test(model_part, parameters, fs, fc):
+    nr_timesteps = parameters["nr_timesteps"]
+    load = parameters["load"]
+    initial_strain = km.Vector(6)
+    initial_strain[0] = parameters["strain"][0]
+    initial_strain[1] = parameters["strain"][1]
+    initial_strain[2] = parameters["strain"][2]
+    initial_strain[3] = parameters["strain"][3]
+    initial_strain[4] = parameters["strain"][4]
+    initial_strain[5] = parameters["strain"][5]
+
 
     # Define geometry
     dim = 3
@@ -104,14 +114,14 @@ def generic_constitutive_law_test(model_part, deformation_test, load, fo, fc):
     cl_params.SetProcessInfo(model_part.ProcessInfo)
     cl_params.SetMaterialProperties(properties)
     cl_params.SetElementGeometry(geom)
+    F = km.Matrix(3,3)
+    F[0,0] = 1; F[0,1] = 0; F[0,2] = 0;
+    F[1,0] = 0; F[1,1] = 1; F[1,2] = 0;
+    F[2,0] = 0; F[2,1] = 0; F[2,2] = 1;
+    cl_params.SetDeformationGradientF(F)
+    cl_params.SetDeterminantF(1)
 
     cl.InitializeMaterial(properties, geom, N)
-
-    # expected results
-    deformation_test.initialize_reference_stress(cl.GetStrainSize())
-    #output = Output(deformation_test.output_filename_s, deformation_test.output_filename_c)
-    print(deformation_test.output_filename_s)
-    print(deformation_test.output_filename_c)
 
     print()
     print("Has ACCUMULATED_PLASTIC_STRAIN: ", cl.Has(km.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN))
@@ -134,10 +144,14 @@ def generic_constitutive_law_test(model_part, deformation_test, load, fo, fc):
     for x in ts_array:
         ts_list.extend(x.tolist())
     for strain_mult in ts_list:
-        deformation_test.set_deformation(cl_params, strain_mult)
+        cl_params.SetStrainVector(strain_mult * initial_strain)
+
+
+
 
         # Chauchy
-        model_part.ProcessInfo[km.INITIAL_STRAIN] = cl_params.GetStrainVector()
+        #model_part.ProcessInfo[km.INITIAL_STRAIN] = cl_params.GetStrainVector()
+        model_part.ProcessInfo[km.INITIAL_STRAIN] = strain_mult * initial_strain
 
         zero_vector = km.Vector(6)
         zero_vector[0] = 0.
@@ -169,7 +183,7 @@ def generic_constitutive_law_test(model_part, deformation_test, load, fo, fc):
         cl_params.SetStrainVector(zero_vector)
         cl.FinalizeMaterialResponseCauchy(cl_params)
 
-        write(fo, fc, cl_params)
+        write(fs, fc, cl_params)
 
         stress = cl_params.GetStressVector()
         print("Stress:    ", stress)
@@ -206,67 +220,29 @@ def generic_constitutive_law_test(model_part, deformation_test, load, fo, fc):
         print()
 
 
-
-class DeformationSmallStrainJ2Plasticity3D():
-    def __init__(self, parameters):
-        self.nr_timesteps = parameters["nr_timesteps"]
-        self.load = parameters["load"]
-        self.strain_list = parameters["strain"]
-        self.output_filename_s = parameters["output_filename_s"]
-        self.output_filename_c = parameters["output_filename_c"]
-
-    def set_deformation(self, cl_params, mult):
-        self.strain = mult * self.initial_strain
-        detF = 1
-        F = km.Matrix(3,3)
-        for i in range(3):
-            for j in range(3):
-                F[i, j] = 0
-        for i in range(3):
-            F[i, i] = 1
-        cl_params.SetDeformationGradientF(F)
-        cl_params.SetDeterminantF(detF)
-        cl_params.SetStrainVector(self.strain)
-
-    def initialize_reference_stress(self, strain_size):
-        self.initial_strain = km.Vector(strain_size)
-        self.initial_strain[0] = self.strain_list[0]
-        self.initial_strain[1] = self.strain_list[1]
-        self.initial_strain[2] = self.strain_list[2]
-        self.initial_strain[3] = self.strain_list[3]
-        self.initial_strain[4] = self.strain_list[4]
-        self.initial_strain[5] = self.strain_list[5]
-
-        self.reference_stress = []
-
-
 #####################################################################
 if __name__ == "__main__":
 
     model_part = km.Model().CreateModelPart("test")
 
-    fo, fc = write_header("plasticity_traction-strain-stress.dat", "plasticity_traction-const_matrix.dat")
+    fs, fc = write_header("plasticity_traction-strain-stress.dat", "plasticity_traction-const_matrix.dat")
     parameters = {"nr_timesteps": 20,
-                  "load": [0, 1, 0, -1, 0],
+                  #"load": [0, 1, 0, -1, 0],
+                  "load": [0, 1, 0, -1.2, 0, 1.4, 0, -1.6],
                   "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
-                  "output_filename_s": "plasticity_traction-strain-stress.dat",
-                  "output_filename_c": "plasticity_traction-const_matrix.dat"
                   }
-    load = [0, 1, 0, -1.2, 0, 1.4, 0, -1.6]
-    deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
-    generic_constitutive_law_test(model_part, deformation_test, load, fo, fc)
-    fo.close()
+    #deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
+    test(model_part, parameters, fs, fc)
+    fs.close()
     fc.close()
 
-    fo, fc = write_header("plasticity_compression-strain-stress.dat", "plasticity_compression-const_matrix.dat")
+    fs, fc = write_header("plasticity_compression-strain-stress.dat", "plasticity_compression-const_matrix.dat")
     parameters = {"nr_timesteps": 20,
-                  "load": [0, -1, 0, 1, 0],
+                  #"load": [0, -1, 0, 1, 0],
+                  "load": [0, -1, 0, 1.2, 0, -1.4, 0, 1.6],
                   "strain": [0.001, 0.001, 0.000, 0.001, 0.000, 0.001],
-                  "output_filename_s": "plasticity_compression-strain-stress.dat",
-                  "output_filename_c": "plasticity_compression-const_matrix.dat"
                   }
-    load = [0, -1, 0, 1.2, 0, -1.4, 0, 1.6]
-    deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
-    generic_constitutive_law_test(model_part, deformation_test, load, fo, fc)
-    fo.close()
+    #deformation_test = DeformationSmallStrainJ2Plasticity3D(parameters)
+    test(model_part, parameters, fs, fc)
+    fs.close()
     fc.close()
