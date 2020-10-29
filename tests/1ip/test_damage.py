@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as km
 import KratosMultiphysics.StructuralMechanicsApplication
 import os
@@ -70,7 +69,7 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
 
     stress_vector = km.Vector(cl.GetStrainSize())
     strain_vector = km.Vector(cl.GetStrainSize())
-    constitutive_matrix = km.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+    constitutive_matrix = km.Matrix(cl.GetStrainSize(), cl.GetStrainSize())
 
     # Setting the parameters
     cl_params = km.ConstitutiveLawParameters()
@@ -90,11 +89,10 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
     print(deformation_test.output_filename)
 
     print()
-    print("Has INELASTIC_FLAG: ", cl.Has(km.StructuralMechanicsApplication.INELASTIC_FLAG))
     print("Has DAMAGE_VARIABLE: ", cl.Has(km.DAMAGE_VARIABLE))
     print("Has STRAIN_ENERGY: ", cl.Has(km.STRAIN_ENERGY))
     print("Has STRAIN: ", cl.Has(km.STRAIN))
-    print("Has INITIAL_STRAIN ", model_part.ProcessInfo.Has(km.INITIAL_STRAIN))
+    print("Has INTERNAL_VARIABLES: ", cl.Has(km.INTERNAL_VARIABLES))
     zero_vector = km.Vector(6)
     zero_vector[0] = 0.
     zero_vector[1] = 0.
@@ -154,7 +152,6 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
         #print("Step ", i)
         #print("Reference: ", reference_stress)
         print("Stress:    ", stress)
-        print("INELASTIC_FLAG: ", cl.GetValue(km.StructuralMechanicsApplication.INELASTIC_FLAG, bool()))
 
         zero_vector = km.Vector(6)
         zero_vector[0] = 0.
@@ -184,7 +181,7 @@ def generic_constitutive_law_test(model_part, deformation_test, load):
         zero_vector[4] = 0.
         zero_vector[5] = 0.
         cl_params.SetStrainVector(zero_vector)
-        #print("STRAIN: ", cl.CalculateValue(cl_params, km.GREEN_LAGRANGE_STRAIN_VECTOR, km.Vector()))
+        print("INTERNAL_VARIABLES: ", cl.CalculateValue(cl_params, km.INTERNAL_VARIABLES, km.Vector()))
         print()
 
 

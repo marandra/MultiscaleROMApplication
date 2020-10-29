@@ -85,21 +85,16 @@ def test(model_part, parameters, fs, fc):
     properties.SetValue(km.StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 0.0)
     properties.SetValue(km.HARDENING_EXPONENT, 0.1)
 
-    # Construct a constitutive law
-    cl = km.StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
-
-    cl.Check(properties, geom, model_part.ProcessInfo)
-    if(cl.WorkingSpaceDimension() != 3):
-        raise Exception("Mismatch between the WorkingSpaceDimension of the "
-                        "Constitutive Law and the dimension of the space in "
-                        "which the test is performed")
-
-
     # Set the parameters to be employed
     cl_options = km.Flags()
     cl_options.Set(km.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_STRESS, True)
     cl_options.Set(km.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
+
+    # Construct a constitutive law
+    cl = km.StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
+
+    cl.Check(properties, geom, model_part.ProcessInfo)
 
     stress_vector = km.Vector(cl.GetStrainSize())
     strain_vector = km.Vector(cl.GetStrainSize())
@@ -144,7 +139,7 @@ def test(model_part, parameters, fs, fc):
     for x in ts_array:
         ts_list.extend(x.tolist())
     for strain_mult in ts_list:
-        print("DEBUG {}".format(strain_mult))
+        #print("DEBUG {}".format(strain_mult))
 
         cl_params.SetStrainVector(strain_mult * initial_strain)
 
@@ -160,6 +155,7 @@ def test(model_part, parameters, fs, fc):
         zero_vector[4] = 0.
         zero_vector[5] = 0.
         cl_params.SetStrainVector(zero_vector)
+        # TODO RequiredINITLIAIZEDMATERIALRESPONSE
         cl.InitializeMaterialResponseCauchy(cl_params)
 
         zero_vector = km.Vector(6)
@@ -223,7 +219,7 @@ if __name__ == "__main__":
 
     model_part = km.Model().CreateModelPart("test")
 
-    fs, fc = write_header("plasticity_traction-strain-stress.dat", "plasticity_traction-const_matrix.dat")
+    fs, fc = write_header("plasticity_j2-ss-tract.dat", "plasticity_j2-cm-tract.dat")
     parameters = {"nr_timesteps": 6,
                   #"load": [0, 1, 0, -1, 0],
                   "load": [0, 1, 0, -1.2, 0, 1.4, 0, -1.6],
@@ -234,7 +230,7 @@ if __name__ == "__main__":
     fs.close()
     fc.close()
 
-    fs, fc = write_header("plasticity_compression-strain-stress.dat", "plasticity_compression-const_matrix.dat")
+    fs, fc = write_header("plasticity_j2-ss-compr.dat", "plasticity_j2-cm-compr.dat")
     parameters = {"nr_timesteps": 6,
                   #"load": [0, -1, 0, 1, 0],
                   "load": [0, -1, 0, 1.2, 0, -1.4, 0, 1.6],
