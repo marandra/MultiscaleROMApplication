@@ -172,13 +172,16 @@ with open(o_filename, "w") as fo:
     for group_name, cell_arrays in mesh.cell_sets.items():
         group_cells = []
         for i, e in enumerate(cell_arrays):
+            if len(e) == 0:
+                continue
             g = element_offset[i]
             elements = e + g
             group_cells.extend(elements)
         write_submodelpart(fo, group_name, cells=group_cells)
 
-    #  Custom groups
-    # TODO: add following submodelparts as groups in mesh.cell_sets, so we avoid these write_submodelparts()
+    # Custom groups
+    # TODO: add following submodelparts as groups in mesh.cell_sets,
+    # so we avoid these write_submodelparts()
     p_origin = numpy.where(
         (mesh.points[:, 0] == 0) * (mesh.points[:, 1] == 0) * (mesh.points[:, 2] == 0)
     )[0]
