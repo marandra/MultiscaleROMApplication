@@ -231,7 +231,7 @@ class Reconstruct(Common):
 
         fname = self.resources_path / self.context[
             "correl_matrix_damage_pattern"
-        ].format(nr_modes)
+        ].format(nr_modes, nr_points)
         logger.debug("Loading damage correl {}".format(fname))
         r_value_correl = numpy.load(fname)
 
