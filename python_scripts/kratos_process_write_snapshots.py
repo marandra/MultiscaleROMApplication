@@ -1,7 +1,7 @@
 from pathlib import Path
 import h5py
 import KratosMultiphysics as km
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as sm
 from offline_bases import Bases
 
 
@@ -25,14 +25,24 @@ class WriteSnapshots(km.Process):
 
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
+
+            #  for RVELaw
+            flag = elem.CalculateOnIntegrationPoints(
+                sm.DAMAGE, self.model_part.ProcessInfo
+            )
+            if True in [x > 0.0 for x in flag]:
+                return True
+
+            #  for Damage CLs
             flag = elem.CalculateOnIntegrationPoints(
                 km.DAMAGE_VARIABLE, self.model_part.ProcessInfo
             )
             if True in [x > 0.0 for x in flag]:
                 return True
 
+            #  for Plasticity CLs
             flag = elem.CalculateOnIntegrationPoints(
-                KratosMultiphysics.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN, self.model_part.ProcessInfo,
+                sm.ACCUMULATED_PLASTIC_STRAIN, self.model_part.ProcessInfo,
             )
             if True in [x > 0.0 for x in flag]:
                 return True

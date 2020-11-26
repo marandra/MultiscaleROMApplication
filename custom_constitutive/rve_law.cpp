@@ -69,7 +69,7 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     //const double m1 = Rq(1,0);
     //const double m2 = Rq(1,1);
     //const double m3 = Rq(1,2);
-    //const double n1 = Rq(2,0); 
+    //const double n1 = Rq(2,0);
     //const double n2 = Rq(2,1);
     //const double n3 = Rq(2,2);
     // Rotation matrix (stress)
@@ -237,10 +237,12 @@ RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RVELaw::Has(const Variable<bool>& rThisVariable)
+bool RVELaw::Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == INELASTIC_FLAG)
-        // explicitly returning "false", so we know we must call CalculateValude(...)
+    if (rThisVariable == DAMAGE)
+        // Here we should return "false", so the element
+        // know which function to use.
+        // GetValue when "true", CalculateValues when "false".
         return false;
     return false;
 }
@@ -394,7 +396,7 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
         {
             aux_matrix(i, j) = aux_vector[i];
         }
-    }    
+    }
     // Second, rotate rows
     for (std::size_t i = 0; i < 3; i++)
     {
@@ -408,7 +410,7 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
         {
             aux_matrix(i, j) = aux_vector[j];
         }
-    }    
+    }
     strain_macro = MathUtils<double>::StrainTensorToVector(aux_matrix);
     // End rotation strain
 
@@ -537,7 +539,7 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
         {
             aux_matrix(i, j) = aux_vector[i];
         }
-    }    
+    }
     // Second, rotate rows
     for (std::size_t i = 0; i < 3; i++)
     {
@@ -551,7 +553,7 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
         {
             aux_matrix(i, j) = aux_vector[j];
         }
-    }    
+    }
     homog_stress = MathUtils<double>::StressTensorToVector(aux_matrix);
 
     // Rotate C
@@ -561,7 +563,7 @@ void RVELaw::CalculateStressResponse(Kratos::ConstitutiveLaw::Parameters &rValue
     BoundedMatrix<double, 6, 6> iR;
     BoundedMatrix<double, 6, 6> Rm;
     double l1, l2, l3, m1, m2, m3, n1, n2, n3;
-    
+
     // inverse Rotation matrix (stress)
     mQ.conjugate().ToRotationMatrix(iQ);
     l1 = iQ(0,0); l2 = iQ(0,1); l3 = iQ(0,2);
@@ -892,19 +894,20 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
 //************************************************************************************
 //************************************************************************************
 
-bool& RVELaw::CalculateValue(
+double& RVELaw::CalculateValue(
         ConstitutiveLaw::Parameters& rValues,
-        const Variable<bool>& rThisVariable,
-        bool& rValue
+        const Variable<double>& rThisVariable,
+        double& rValue
 )
 {
-    if (rThisVariable == INELASTIC_FLAG) {
+    if (rThisVariable == DAMAGE) {
+
         const std::size_t nr_points = mB_vec.size();
 
         const ProcessInfo& process_info = rValues.GetProcessInfo();
         const Vector& strain_macro = rValues.GetStrainVector(); // input
 
-        rValue = false;
+        rValue = 0.;
         for (std::size_t i = 0; i < nr_points; i++) {
             const Properties material_props = mProperties_map[mPropId_vec[i]];
             ConstitutiveLaw::Parameters cl_params;
@@ -919,20 +922,15 @@ bool& RVELaw::CalculateValue(
             // (DAMAGE_VARIABLE is calculated, so its Has returns "false".
             //  Variables got by Get, return "true")
             if (not mCL_vec[i]->Has(DAMAGE_VARIABLE)) {
-                double damage;
-                mCL_vec[i]->CalculateValue(cl_params, DAMAGE_VARIABLE, damage);
-                if (damage > 0.) {
-                    rValue = false;
+                mCL_vec[i]->CalculateValue(cl_params, DAMAGE_VARIABLE, rValue);
+                if (rValue > 0.)
                     return rValue;
-                }
             }
 
             // criteria for inelastic regime for plastic CLs
             if (mCL_vec[i]->Has(ACCUMULATED_PLASTIC_STRAIN)) {
-                double damage;
-                mCL_vec[i]->GetValue(ACCUMULATED_PLASTIC_STRAIN, damage);
-                if (damage > 0.) {
-                    rValue = false;
+                mCL_vec[i]->GetValue(ACCUMULATED_PLASTIC_STRAIN, rValue);
+                if (rValue > 0.) {
                     return rValue;
                 }
             }
