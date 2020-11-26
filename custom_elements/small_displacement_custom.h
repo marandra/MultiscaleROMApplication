@@ -1,22 +1,6 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
-//
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
-//
-//  Main authors:    Marcelo Raschi
-//
-
 #if !defined(KRATOS_SMALL_DISPLACEMENT_CUSTOM_H_INCLUDED )
 #define KRATOS_SMALL_DISPLACEMENT_CUSTOM_H_INCLUDED
 
-// System includes
-
-// External includes
-
-// Project includes
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 
@@ -109,15 +93,6 @@ public:
             PropertiesType::Pointer pProperties
             ) const override;
 
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
     ///@name Protected static Member Variables

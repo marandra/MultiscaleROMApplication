@@ -1,8 +1,3 @@
-// System includes
-
-// External includes
-
-// Project includes
 #include "custom_elements/small_displacement_custom.h"
 #include "multiscale_rom_application_variables.h"
 
@@ -328,20 +323,6 @@ Matrix SmallDisplacementCustom::ComputeEquivalentF(const Vector& rStrainTensor) 
     }
 
     return F;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int  SmallDisplacementCustom::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
 }
 
 //************************************************************************************
