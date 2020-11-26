@@ -237,6 +237,18 @@ RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool RVELaw::Has(const Variable<bool>& rThisVariable)
+{
+    if (rThisVariable == INELASTIC_FLAG)
+        // explicitly returning "false", so we know we must call CalculateValude(...)
+        return false;
+    return false;
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 {
     if (rThisVariable == REDUCED_MODES_WEIGHTS)
@@ -877,7 +889,59 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
     mCL_vec[ip_index]->CalculateMaterialResponseCauchy(cl_params);
 }
 
+//************************************************************************************
+//************************************************************************************
 
+bool& RVELaw::CalculateValue(
+        ConstitutiveLaw::Parameters& rValues,
+        const Variable<bool>& rThisVariable,
+        bool& rValue
+)
+{
+    if (rThisVariable == INELASTIC_FLAG) {
+        const std::size_t nr_points = mB_vec.size();
+
+        const ProcessInfo& process_info = rValues.GetProcessInfo();
+        const Vector& strain_macro = rValues.GetStrainVector(); // input
+
+        rValue = false;
+        for (std::size_t i = 0; i < nr_points; i++) {
+            const Properties material_props = mProperties_map[mPropId_vec[i]];
+            ConstitutiveLaw::Parameters cl_params;
+            cl_params.SetMaterialProperties(material_props);
+
+            Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+            cl_params.SetStrainVector(strain);
+
+            cl_params.SetProcessInfo(process_info);
+
+            // criteria for inelastic regime for damage CLs
+            // (DAMAGE_VARIABLE is calculated, so its Has returns "false".
+            //  Variables got by Get, return "true")
+            if (not mCL_vec[i]->Has(DAMAGE_VARIABLE)) {
+                double damage;
+                mCL_vec[i]->CalculateValue(cl_params, DAMAGE_VARIABLE, damage);
+                if (damage > 0.) {
+                    rValue = false;
+                    return rValue;
+                }
+            }
+
+            // criteria for inelastic regime for plastic CLs
+            if (mCL_vec[i]->Has(ACCUMULATED_PLASTIC_STRAIN)) {
+                double damage;
+                mCL_vec[i]->GetValue(ACCUMULATED_PLASTIC_STRAIN, damage);
+                if (damage > 0.) {
+                    rValue = false;
+                    return rValue;
+                }
+            }
+
+        }
+    }
+
+    return rValue;
+}
 //************************************************************************************
 //************************************************************************************
 

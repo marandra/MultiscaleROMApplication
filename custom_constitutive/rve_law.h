@@ -107,6 +107,7 @@ public:
     };
 
     bool Has(const Variable<Vector>& rThisVariable) override;
+    bool Has(const Variable<bool>& rThisVariable) override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
@@ -114,6 +115,17 @@ public:
             const Variable<Vector>& rThisVariable,
             const Vector& rValue,
             const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+      * @brief calculates the value of a specified variable
+      * @param rValues the needed parameters for the CL calculation
+      * @param rThisVariable the variable to be returned
+      * @param rValue a reference to the returned value
+      * @return rValue output: the value of the specified variable
+      */
+    bool& CalculateValue(Parameters& rValues,
+                           const Variable<bool>& rThisVariable,
+                           bool& rValue) override;
+
     /**
       * @brief calculates the value of a specified variable
       * @param rValues the needed parameters for the CL calculation
