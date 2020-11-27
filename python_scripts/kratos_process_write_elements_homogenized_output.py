@@ -8,7 +8,7 @@ def Factory(settings, Model):
 
 def homogenization_function(self):
     stress_ref = self.model_part.Elements[1].CalculateOnIntegrationPoints(
-        self.stress, self.model_part.ProcessInfo
+        km.CAUCHY_STRESS_VECTOR, self.model_part.ProcessInfo
     )
     nr_comp = len(stress_ref[0])
     stress_accum = [0.0] * nr_comp
@@ -17,10 +17,12 @@ def homogenization_function(self):
 
     for e, elem in enumerate(self.model_part.Elements):
         stress = elem.CalculateOnIntegrationPoints(
-            self.stress, self.model_part.ProcessInfo
+            km.CAUCHY_STRESS_VECTOR, self.model_part.ProcessInfo
         )
+        # TODO: km.GREEN_LAGRANGE_STRAIN_VECTOR not working for RVELaw
+        # using km.STRAIN. Check that it does not affect normal CLs.
         strain = elem.CalculateOnIntegrationPoints(
-            self.strain, self.model_part.ProcessInfo
+            km.STRAIN, self.model_part.ProcessInfo
         )
         weights = elem.CalculateOnIntegrationPoints(
             km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo
@@ -98,8 +100,6 @@ class WriteElementsHomogenizedOutput(km.Process):
 
         self.model_part = Model[param["model_part_name"].GetString()]
         self.filename = param["filename"].GetString()
-        self.stress = km.CAUCHY_STRESS_VECTOR
-        self.strain = km.GREEN_LAGRANGE_STRAIN_VECTOR
 
     def ExecuteInitialize(self):
         write_strain_stress_header(self.filename)
