@@ -979,6 +979,16 @@ Vector& RVELaw::CalculateValue(
             rValue[i] = strain_energy;
         }
     }
+
+    if (rThisVariable == STRAIN ||
+        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rThisVariable == ALMANSI_STRAIN_VECTOR) {
+        rValue = rValues.GetStrainVector();
+        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+            noalias(rValue) += rValues.GetProcessInfo()[INITIAL_STRAIN];
+        }
+    }
+
     return rValue;
 }
 
