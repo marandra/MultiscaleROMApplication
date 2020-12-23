@@ -26,6 +26,7 @@ class WriteSnapshots(km.Process):
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
 
+            # FIXME: This will fail for normal CLs.
             #  for RVELaw
             flag = elem.CalculateOnIntegrationPoints(
                 sm.DAMAGE, self.model_part.ProcessInfo

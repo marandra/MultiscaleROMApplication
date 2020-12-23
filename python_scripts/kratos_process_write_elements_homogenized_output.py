@@ -23,6 +23,7 @@ def homogenization_function(self):
         # using km.STRAIN. Check that it does not affect normal CLs.
         strain = elem.CalculateOnIntegrationPoints(
             km.STRAIN, self.model_part.ProcessInfo
+            #km.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo
         )
         weights = elem.CalculateOnIntegrationPoints(
             km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo
@@ -109,21 +110,6 @@ class WriteElementsHomogenizedOutput(km.Process):
         strain = [0.0] * nr_comp
         write_strain_stress(self.filename, strain, stress)
 
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
     def ExecuteFinalizeSolutionStep(self):
         stress, strain = homogenization_function(self)
         write_strain_stress(self.filename, strain, stress)
-
-    def ExecuteFinalize(self):
-        pass
