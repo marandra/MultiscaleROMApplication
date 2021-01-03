@@ -29,7 +29,7 @@ RVELaw::RVELaw(Kratos::Parameters Params)
             "modified_material": [],
             "rotation": {
                 "axis": [0, 0, 0],
-                "angle_radians": 0.0
+                "angle_degree": 0.0
             },
             "convergence_criterion": "residual_criterion",
             "residual_relative_tolerance": 1e-4,
@@ -53,7 +53,8 @@ RVELaw::RVELaw(Kratos::Parameters Params)
     const double ax = Params["Parameters"]["rotation"]["axis"][0].GetDouble();
     const double ay = Params["Parameters"]["rotation"]["axis"][1].GetDouble();
     const double az  = Params["Parameters"]["rotation"]["axis"][2].GetDouble();
-    const double angle = Params["Parameters"]["rotation"]["angle_radians"].GetDouble();
+    const double angle = Params["Parameters"]["rotation"]["angle_degree"].GetDouble()
+        * 3.141592653589793 / 180;
     mQ = Quaternion<double>::FromAxisAngle(ax, ay, az, angle);
     mQ.normalize();
     KRATOS_INFO("RVELaw") << "RVE rotation: " << angle
