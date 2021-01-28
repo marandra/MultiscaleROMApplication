@@ -63,7 +63,7 @@ Condition::Pointer MinimalKineticVolCondition3D::Create(IndexType NewId,
     //    NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-int MinimalKineticVolCondition3D::Check(const ProcessInfo& rCurrentProcessInfo)
+int MinimalKineticVolCondition3D::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // return Condition::Check(rCurrentProcessInfo);
     return 0;
@@ -75,7 +75,7 @@ int MinimalKineticVolCondition3D::Check(const ProcessInfo& rCurrentProcessInfo)
 void MinimalKineticVolCondition3D::CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
 {
     const std::size_t nr_nodes = GetGeometry().PointsNumber();
@@ -214,7 +214,7 @@ void MinimalKineticVolCondition3D::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 /***********************************************************************************/
 /***********************************************************************************/
 void MinimalKineticVolCondition3D::CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+        MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     rLeftHandSideMatrix.resize(0, 0, false);
 }
@@ -224,7 +224,7 @@ void MinimalKineticVolCondition3D::CalculateLeftHandSide(
 /***********************************************************************************/
 void MinimalKineticVolCondition3D::CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
     )
 {
     MatrixType dummy;
@@ -236,8 +236,8 @@ void MinimalKineticVolCondition3D::CalculateRightHandSide(
 /***********************************************************************************/
 void MinimalKineticVolCondition3D::EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo
-    )
+            const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     const std::size_t nr_nodes = GetGeometry().PointsNumber();
     const std::size_t nr_dimensions = GetGeometry().WorkingSpaceDimension();
@@ -247,7 +247,7 @@ void MinimalKineticVolCondition3D::EquationIdVector(
     if (rResult.size() != nr_dofs)
         rResult.resize(nr_dofs);
 
-    GeometryType& geom = GetGeometry();
+    const GeometryType& geom = GetGeometry();
 
     rResult[0] = geom[0].GetDof(DISPLACEMENT_X).EquationId();
     rResult[1] = geom[0].GetDof(DISPLACEMENT_Y).EquationId();
@@ -292,9 +292,9 @@ void MinimalKineticVolCondition3D::EquationIdVector(
 }
 
 void MinimalKineticVolCondition3D::GetDofList(DofsVectorType& rConditionDofList,
-                                           ProcessInfo& rCurrentProcessInfo)
+                                           const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& geom = GetGeometry();
+    const GeometryType& geom = GetGeometry();
     const unsigned int dimension = geom.WorkingSpaceDimension();
     //unsigned int nr_of_nodes = 4;
     unsigned int nr_of_nodes = GetGeometry().PointsNumber();
