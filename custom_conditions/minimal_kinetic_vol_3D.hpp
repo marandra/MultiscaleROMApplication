@@ -17,7 +17,7 @@
 #include "includes/process_info.h"
 #include "includes/properties.h"
 #include "includes/serializer.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 
 namespace Kratos
 {
@@ -158,7 +158,7 @@ public:
                               PropertiesType::Pointer pProperties) const override;
 
     /// Check input to ensure that it makes sense.
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
@@ -172,7 +172,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     double CalculateDerivativesOnReferenceConfiguration(
         Matrix& rJ0,
@@ -193,7 +193,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns RHS values for the penalized dofs.
     /**
@@ -201,7 +201,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                        const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -210,14 +210,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
 
     //************* GETTING METHODS
