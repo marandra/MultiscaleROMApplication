@@ -34,35 +34,21 @@ class WriteSnapshots(km.Process):
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
 
-            #  # FIXME: This will fail for normal CLs.
-            #  #  for RVELaw
-            #  flag = elem.CalculateOnIntegrationPoints(
-            #      sm.DAMAGE, self.model_part.ProcessInfo
-            #  )
-            #  if True in [x > 0.0 for x in flag]:
-            #      return True
-
-            #  for Damage CLs
             flag = elem.CalculateOnIntegrationPoints(
-                km.DAMAGE_VARIABLE, self.model_part.ProcessInfo
+                sm.IS_INELASTIC, self.model_part.ProcessInfo
             )
-            if True in [x > 0.0 for x in flag]:
+            if True in flag:
                 return True
-
-            #  for Plasticity CLs
-            flag = elem.CalculateOnIntegrationPoints(
-                sm.ACCUMULATED_PLASTIC_STRAIN,
-                self.model_part.ProcessInfo,
-            )
-            if True in [x > 0.0 for x in flag]:
-                return True
+        return False
 
     def write_strain(self, group, filename, timestep):
         data_list = []
         strain_macro = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
         for elem in self.model_part.Elements:
             strain_vectors = elem.CalculateOnIntegrationPoints(
-                km.GREEN_LAGRANGE_STRAIN_VECTOR,
+                #GREEN STRAIN no funciona para damage
+                #km.GREEN_LAGRANGE_STRAIN_VECTOR,
+                km.STRAIN,
                 self.model_part.ProcessInfo,
             )
             for strain_ip in strain_vectors:

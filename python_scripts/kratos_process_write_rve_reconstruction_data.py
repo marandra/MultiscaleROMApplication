@@ -85,7 +85,8 @@ class WriteRveReconstructionData(Kratos.Process):
 
                 # Get macro strain
                 ip_data = elem.CalculateOnIntegrationPoints(
-                    Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo
+                    #Kratos.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo
+                    Kratos.STRAIN, self.model_part.ProcessInfo
                 )
                 data = [x for x in ip_data[self.ip]]
                 self.data["macro_strain"] = data

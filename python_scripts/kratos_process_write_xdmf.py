@@ -166,7 +166,8 @@ class WriteXdmf(km.Process):
             damage = self.get_averaged_cell_data_scalar(km.DAMAGE_VARIABLE)
             energy = self.get_averaged_cell_data_scalar(km.STRAIN_ENERGY)
             stress = self.get_averaged_cell_data_tensor(km.CAUCHY_STRESS_VECTOR)
-            strain = self.get_averaged_cell_data_tensor(km.GREEN_LAGRANGE_STRAIN_VECTOR)
+            #strain = self.get_averaged_cell_data_tensor(km.GREEN_LAGRANGE_STRAIN_VECTOR)
+            strain = self.get_averaged_cell_data_tensor(km.STRAIN)
             initial_strain = numpy.array(self.model_part.ProcessInfo[km.INITIAL_STRAIN])
             strain_fluctuant = strain - initial_strain
 

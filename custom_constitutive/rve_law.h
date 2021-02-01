@@ -107,7 +107,7 @@ public:
     };
 
     bool Has(const Variable<Vector>& rThisVariable) override;
-    bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<bool>& rThisVariable) override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
@@ -122,9 +122,9 @@ public:
       * @param rValue a reference to the returned value
       * @return rValue output: the value of the specified variable
       */
-    double& CalculateValue(Parameters& rValues,
-                           const Variable<double>& rThisVariable,
-                           double& rValue) override;
+    bool& CalculateValue(Parameters& rValues,
+                           const Variable<bool>& rThisVariable,
+                           bool& rValue) override;
 
     /**
       * @brief calculates the value of a specified variable

@@ -19,11 +19,8 @@ def homogenization_function(self):
         stress = elem.CalculateOnIntegrationPoints(
             km.CAUCHY_STRESS_VECTOR, self.model_part.ProcessInfo
         )
-        # TODO: km.GREEN_LAGRANGE_STRAIN_VECTOR not working for RVELaw
-        # using km.STRAIN. Check that it does not affect normal CLs.
         strain = elem.CalculateOnIntegrationPoints(
-            #km.STRAIN, self.model_part.ProcessInfo
-            km.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo
+            km.STRAIN, self.model_part.ProcessInfo
         )
         weights = elem.CalculateOnIntegrationPoints(
             km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo
@@ -112,6 +109,5 @@ class WriteElementsHomogenizedOutput(km.Process):
         write_strain_stress(self.filename, strain, stress)
 
     def ExecuteFinalizeSolutionStep(self):
-
         stress, strain = homogenization_function(self)
         write_strain_stress(self.filename, strain, stress)

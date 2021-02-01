@@ -1,13 +1,13 @@
 from pathlib import Path
 import KratosMultiphysics as km
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as sm
 
 
 def Factory(settings, model):
-    return IsElastic(settings["Parameters"], model)
+    return IsInelastic(settings["Parameters"], model)
 
 
-class IsElastic(km.Process):
+class IsInelastic(km.Process):
     def __init__(self, settings, model):
         km.Process.__init__(self)
 
@@ -21,28 +21,21 @@ class IsElastic(km.Process):
         self.model_part = model[settings["model_part_name"].GetString()]
         self.pf = Path(settings["filename"].GetString())
 
-    def has_damaged_elements(self):
+    def has_damage(self):
         for elem in self.model_part.Elements:
             flag = elem.CalculateOnIntegrationPoints(
-                km.DAMAGE_VARIABLE, self.model_part.ProcessInfo
+                sm.IS_INELASTIC, self.model_part.ProcessInfo
             )
-            if True in [x > 0.0 for x in flag]:
+            if True in flag:
                 return True
-
-            flag = elem.CalculateOnIntegrationPoints(
-                KratosMultiphysics.StructuralMechanicsApplication.ACCUMULATED_PLASTIC_STRAIN,
-                self.model_part.ProcessInfo,
-            )
-            if True in [x > 0.0 for x in flag]:
-                return True
+        return False
 
 ###########################################################
 ###########################################################
 
     def ExecuteFinalizeSolutionStep(self):
         self.time = self.model_part.ProcessInfo[km.TIME]
-        if not self.inelastic_flag:
-            self.inelastic_flag = self.has_damaged_elements()
+        self.inelastic_flag = self.has_damage()
 
     def ExecuteFinalize(self):
         if not self.inelastic_flag:
