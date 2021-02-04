@@ -237,17 +237,32 @@ RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 
 /***********************************************************************************/
 /***********************************************************************************/
-
-bool RVELaw::Has(const Variable<bool>& rThisVariable)
-{
-    if (rThisVariable == IS_INELASTIC)
-        // Here we should return "false", so the element
-        // know which function to use.
-        // GetValue when "true", CalculateValues when "false".
-        return false;
-    return false;
-}
-
+//
+//bool RVELaw::Has(const Variable<bool>& rThisVariable)
+//{
+//    if (rThisVariable == IS_INELASTIC)
+//        // Here we should return "false", so the element
+//        // know which function to use.
+//        // GetValue when "true", CalculateValues when "false".
+//        return false;
+//    return false;
+//}
+//
+//
+///***********************************************************************************/
+///***********************************************************************************/
+//
+//
+//bool RVELaw::Has(const Variable<double>& rThisVariable)
+//{
+//    if (rThisVariable == IS_INELASTIC_D)
+//        // Here we should return "false", so the element
+//        // know which function to use.
+//        // GetValue when "true", CalculateValues when "false".
+//        return false;
+//    return false;
+//}
+//
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -894,42 +909,85 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro, cons
 
 //************************************************************************************
 //************************************************************************************
+//
+//bool& RVELaw::CalculateValue(
+//        ConstitutiveLaw::Parameters& rValues,
+//        const Variable<bool>& rThisVariable,
+//        bool& rValue
+//)
+//{
+//    if (rThisVariable == IS_INELASTIC) {
+//
+//        const std::size_t nr_points = mB_vec.size();
+//
+//        const ProcessInfo& process_info = rValues.GetProcessInfo();
+//        const Vector& strain_macro = rValues.GetStrainVector(); // input
+//
+//        rValue = false;
+//        for (std::size_t i = 0; i < nr_points; i++) {
+//            const Properties material_props = mProperties_map[mPropId_vec[i]];
+//            ConstitutiveLaw::Parameters cl_params;
+//            cl_params.SetMaterialProperties(material_props);
+//
+//            Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+//            cl_params.SetStrainVector(strain);
+//
+//            cl_params.SetProcessInfo(process_info);
+//
+//            // IS_INELASTIC is retrieved with CalculateValue, so Has() returns "false"
+//            if (not mCL_vec[i]->Has(IS_INELASTIC)) {
+//                mCL_vec[i]->CalculateValue(cl_params, IS_INELASTIC, rValue);
+//                if (rValue == true)
+//                    return rValue;  // leave when the first "true" is found
+//            }
+//        }
+//    }
+//
+//    return rValue;
+//}
+//************************************************************************************
+//************************************************************************************
 
-bool& RVELaw::CalculateValue(
-        ConstitutiveLaw::Parameters& rValues,
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-)
-{
-    if (rThisVariable == IS_INELASTIC) {
-
-        const std::size_t nr_points = mB_vec.size();
-
-        const ProcessInfo& process_info = rValues.GetProcessInfo();
-        const Vector& strain_macro = rValues.GetStrainVector(); // input
-
-        rValue = 0.;
-        for (std::size_t i = 0; i < nr_points; i++) {
-            const Properties material_props = mProperties_map[mPropId_vec[i]];
-            ConstitutiveLaw::Parameters cl_params;
-            cl_params.SetMaterialProperties(material_props);
-
-            Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-            cl_params.SetStrainVector(strain);
-
-            cl_params.SetProcessInfo(process_info);
-
-            // IS_INELASTIC is retrieved with CalculateValue, so Has() returns "false"
-            if (not mCL_vec[i]->Has(IS_INELASTIC)) {
-                mCL_vec[i]->CalculateValue(cl_params, IS_INELASTIC, rValue);
-                if (rValue == true)
-                    return rValue;  // leave when the first "true" is found
-            }
-        }
-    }
-
-    return rValue;
-}
+//
+//double& RVELaw::CalculateValue(
+//        ConstitutiveLaw::Parameters& rValues,
+//        const Variable<double>& rThisVariable,
+//        double& rValue
+//)
+//{
+//    if (rThisVariable == IS_INELASTIC_D) {
+//
+//        const std::size_t nr_points = mB_vec.size();
+//
+//        const ProcessInfo& process_info = rValues.GetProcessInfo();
+//        const Vector& strain_macro = rValues.GetStrainVector(); // input
+//
+//        rValue = 0.0;
+//        bool dummy=false;
+//        bool& flag=dummy;
+//        for (std::size_t i = 0; i < nr_points; i++) {
+//            const Properties material_props = mProperties_map[mPropId_vec[i]];
+//            ConstitutiveLaw::Parameters cl_params;
+//            cl_params.SetMaterialProperties(material_props);
+//
+//            Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+//            cl_params.SetStrainVector(strain);
+//
+//            cl_params.SetProcessInfo(process_info);
+//
+//            // IS_INELASTIC is retrieved with CalculateValue, so Has() returns "false"
+//            if (not mCL_vec[i]->Has(IS_INELASTIC)) {
+//                mCL_vec[i]->CalculateValue(cl_params, IS_INELASTIC, flag);
+//                if (flag == true){
+//                    rValue = 1.0;
+//                    return rValue; // leave when the first "true" is found
+//                }
+//            }
+//        }
+//    }
+//
+//    return rValue;
+//}
 //************************************************************************************
 //************************************************************************************
 

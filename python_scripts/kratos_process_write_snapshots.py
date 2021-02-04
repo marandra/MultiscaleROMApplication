@@ -33,11 +33,10 @@ class WriteSnapshots(km.Process):
 
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
-
             flag = elem.CalculateOnIntegrationPoints(
-                sm.IS_INELASTIC, self.model_part.ProcessInfo
+                sm.IS_INELASTIC_D, self.model_part.ProcessInfo
             )
-            if True in flag:
+            if True in [x > 0. for x in flag]:
                 return True
         return False
 
@@ -46,8 +45,6 @@ class WriteSnapshots(km.Process):
         strain_macro = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
         for elem in self.model_part.Elements:
             strain_vectors = elem.CalculateOnIntegrationPoints(
-                #GREEN STRAIN no funciona para damage
-                #km.GREEN_LAGRANGE_STRAIN_VECTOR,
                 km.STRAIN,
                 self.model_part.ProcessInfo,
             )
@@ -99,6 +96,7 @@ class WriteSnapshots(km.Process):
             group = "ELASTIC"
         else:
             group = "INELASTIC"
+        print("[WriteSnapshotProcess] Snapshot group: ", group)
 
         fname = self.config["snapshots_fname"]
         self.write_strain(group, fname, self.timestep_counter)
