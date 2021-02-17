@@ -34,7 +34,8 @@ class WriteSnapshots(km.Process):
     def has_damaged_elements(self):
         for elem in self.model_part.Elements:
             flag = elem.CalculateOnIntegrationPoints(
-                sm.IS_INELASTIC_D, self.model_part.ProcessInfo
+                # Only for damage CLs for now
+                km.DAMAGE_VARIABLE, self.model_part.ProcessInfo
             )
             if True in [x > 0. for x in flag]:
                 return True
