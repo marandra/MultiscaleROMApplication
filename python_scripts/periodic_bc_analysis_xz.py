@@ -144,18 +144,21 @@ class PBCAnalysis(StructuralMechanicsAnalysis):
             self.max_x_face,
             strain,
             KratosMultiphysics.Vector([dx, 0.0, 0.0]),
+            0.001,
         )
         #periodicity_utility.AssignPeriodicity(
         #    self.min_y_face,
         #    self.max_y_face,
         #    strain,
         #    KratosMultiphysics.Vector([0.0, dy, 0.0]),
+        #    0.001,
         #)
         periodicity_utility.AssignPeriodicity(
             self.min_z_face,
             self.max_z_face,
             strain,
             KratosMultiphysics.Vector([0.0, 0.0, dz]),
+            0.001,
         )
 
         periodicity_utility.Finalize(KratosMultiphysics.DISPLACEMENT)
