@@ -106,9 +106,9 @@ public:
         return 3;
     };
 
-    bool Has(const Variable<Vector>& rThisVariable) override;
 //    bool Has(const Variable<bool>& rThisVariable) override;
-//    bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<Vector>& rThisVariable) override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
@@ -126,9 +126,9 @@ public:
 //    bool& CalculateValue(Parameters& rValues,
 //                           const Variable<bool>& rThisVariable,
 //                           bool& rValue) override;
-//    double& CalculateValue(Parameters& rValues,
-//                           const Variable<double>& rThisVariable,
-//                           double& rValue) override;
+    double& CalculateValue(Parameters& rValues,
+                           const Variable<double>& rThisVariable,
+                           double& rValue) override;
 
     /**
       * @brief calculates the value of a specified variable
