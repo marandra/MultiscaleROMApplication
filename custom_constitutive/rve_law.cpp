@@ -269,10 +269,30 @@ RVELaw::RVELaw(const RVELaw& rOther) : ConstitutiveLaw(rOther)
 
 bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 {
-    if (rThisVariable == REDUCED_MODES_WEIGHTS)
+    if (rThisVariable == REDUCED_MODES_WEIGHTS){
         return true;
-    if (rThisVariable == INTERNAL_VARIABLES)
+    }
+
+    if (rThisVariable == INTERNAL_VARIABLES){
         return true;
+    }
+
+    if(rThisVariable == STRAIN){
+        // explicitly returning "false", so the element calls CalculateValue(...)
+        return false;
+    }
+
+    // WIP note: below measures are intercepted by BaseSolid element
+
+    //if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+    //    // explicitly returning "false", so the element calls CalculateValue(...)
+    //    return false;
+    //}
+
+    //if(rThisVariable == ALMANSI_STRAIN_VECTOR){
+    //    // explicitly returning "false", so the element calls CalculateValue(...)
+    //    return false;
+    //}
     return false;
 }
 
@@ -281,11 +301,12 @@ bool RVELaw::Has(const Variable<Vector>& rThisVariable)
 
 Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
-    if (rThisVariable == REDUCED_MODES_WEIGHTS)
+    if (rThisVariable == REDUCED_MODES_WEIGHTS){
+        // TODO: Check if it is missing a rValue.size()
         rValue = mModesWeights;
+    }
 
-    if (rThisVariable == INTERNAL_VARIABLES)
-    {
+    if (rThisVariable == INTERNAL_VARIABLES){
         std::size_t count = 0;
         for (std::size_t i = 0; i < mCL_vec.size(); i++)
         {
@@ -297,6 +318,7 @@ Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
             }
         }
     }
+
     return rValue;
 }
 
@@ -304,20 +326,20 @@ Vector& RVELaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 /***********************************************************************************/
 
 void RVELaw::SetValue(
-        const Variable<Vector>& rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo)
+    const Variable<Vector>& rThisVariable,
+    const Vector& rValue,
+    const ProcessInfo& rProcessInfo
+    )
 {
-    if (rThisVariable == INTERNAL_VARIABLES)
-    {
+    if (rThisVariable == INTERNAL_VARIABLES){
         std::size_t count = 0;
-        for (std::size_t i = 0; i < mCL_vec.size(); i++)
-        {
+        for (std::size_t i = 0; i < mCL_vec.size(); i++){
             Vector rValue_i;
+            // call to have the right size of rValue_i
             mCL_vec[i]->GetValue(INTERNAL_VARIABLES, rValue_i);
             for (std::size_t j = 0; j < rValue_i.size(); j++)
                 rValue_i(j) = rValue(count++);
-            mCL_vec[i]->SetValue(INTERNAL_VARIABLES, rValue_i, rCurrentProcessInfo);
+            mCL_vec[i]->SetValue(INTERNAL_VARIABLES, rValue_i, rProcessInfo);
         }
     }
 }
@@ -1028,9 +1050,10 @@ Vector& RVELaw::CalculateValue(
         }
     }
 
-    if (rThisVariable == STRAIN ||
-        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
+    //if (rThisVariable == STRAIN ||
+    //    rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+    //    rThisVariable == ALMANSI_STRAIN_VECTOR){
+    if (rThisVariable == STRAIN){
         rValue = rValues.GetStrainVector();
         if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
             noalias(rValue) += rValues.GetProcessInfo()[INITIAL_STRAIN];
