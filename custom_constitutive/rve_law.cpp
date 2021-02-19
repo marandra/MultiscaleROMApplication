@@ -991,6 +991,22 @@ double& RVELaw::CalculateValue(
         rValue /= volume;
      }
 
+    if (rThisVariable == DAMAGE_VARIABLE) {
+        const std::size_t nr_points = mB_vec.size();
+        double volume = 0.0;
+        Vector dummy;
+        Vector& r_value_vector = dummy;
+
+        CalculateValue(rParametersValues, DAMAGE_VARIABLE_VECTOR, r_value_vector);
+        rValue = 0.0;
+        for (std::size_t i = 0; i < nr_points; i++)
+        {
+            rValue += mIW_vec[i] * r_value_vector[i];
+            volume += mIW_vec[i];
+        }
+        rValue /= volume;
+     }
+
     return rValue;
 }
 
@@ -1041,6 +1057,36 @@ Vector& RVELaw::CalculateValue(
         //AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
         if (rParametersValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
             noalias(rValue) += rParametersValues.GetProcessInfo()[INITIAL_STRAIN];
+        }
+    }
+
+    if (rThisVariable == DAMAGE_VARIABLE_VECTOR) {
+        const std::size_t nr_points = mB_vec.size();
+
+        if (rValue.size() != nr_points)
+            rValue.resize(nr_points, false);
+        rValue.clear();
+
+        // TODO: Commenting out what is apparently not needed
+        //const ProcessInfo& process_info = rParametersValues.GetProcessInfo();
+        //Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
+        //// In case there is an initial state (i.e., in sampling)
+        ////AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+        //if (rParametersValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+        //    noalias(r_strain_vector) += rParametersValues.GetProcessInfo()[INITIAL_STRAIN];
+        //}
+
+        for (std::size_t i = 0; i < nr_points; i++) {
+            double dummy;
+            double& rValue_i = dummy;
+            const Properties material_props = mProperties_map[mPropId_vec[i]];
+            ConstitutiveLaw::Parameters cl_params;
+            cl_params.SetMaterialProperties(material_props);
+            //Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+            //cl_params.SetStrainVector(strain);
+            //cl_params.SetProcessInfo(process_info);
+            mCL_vec[i]->CalculateValue(cl_params, DAMAGE_VARIABLE, rValue_i);
+            rValue[i] = rValue_i;
         }
     }
 
