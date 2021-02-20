@@ -24,7 +24,7 @@ class IsInelastic(km.Process):
     def has_damage(self):
         for elem in self.model_part.Elements:
             flag = elem.CalculateOnIntegrationPoints(
-                sm.IS_INELASTIC_D, self.model_part.ProcessInfo
+                km.DAMAGE_VARIABLE, self.model_part.ProcessInfo
             )
             if True in [x > 0.0 for x in flag]:
                 return True
