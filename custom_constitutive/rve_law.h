@@ -220,7 +220,8 @@ private:
     int mVerbose;
     Quaternion<double> mQ;
 
-    void ComputeRotationMatrices(Vector& Rm, Vector& iR);
+    void ComputeRotationMatrices(BoundedMatrix<double, 6, 6> &Rm,
+                                 BoundedMatrix<double, 6, 6> &iR);
     void Solve(const Matrix &A, const Vector &res, Vector &Dx);
 
     void Accumulate(Matrix &A, Vector &residual, const Vector &strain_macro, const ProcessInfo &process_info);
