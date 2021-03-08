@@ -479,20 +479,15 @@ void RVELaw::FinalizeMaterialResponseKirchhoff(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-{
-    const std::size_t nr_points = mB_vec.size();
-    const std::size_t nr_modes = mB_vec[0].size2();
-    const std::size_t nr_comps = GetStrainSize();
-    const ProcessInfo& process_info = rValues.GetProcessInfo();
-    Vector& strain_macro = rValues.GetStrainVector(); // input
 
+void RVELaw::ComputeRotationMatrices(Vector& Rm, Vector& iR)
+{
     // Prepare rotation matices
     BoundedMatrix<double, 3, 3> iQ;
     BoundedMatrix<double, 3, 3> Q;
-    BoundedMatrix<double, 6, 6> aux_C;
-    BoundedMatrix<double, 6, 6> iR;
-    BoundedMatrix<double, 6, 6> Rm;
+    //BoundedMatrix<double, 6, 6> aux_C;
+    //BoundedMatrix<double, 6, 6> iR;
+    //BoundedMatrix<double, 6, 6> Rm;
     double l1, l2, l3, m1, m2, m3, n1, n2, n3;
     // inverse Rotation matrix (stress)
     mQ.conjugate().ToRotationMatrix(iQ);
@@ -516,8 +511,54 @@ void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValue
     Rm(3,0)=2*m1*n1; Rm(3,1)=2*m2*n2; Rm(3,2)=2*m3*n3; Rm(3,3)=(m2*n3+m3*n2); Rm(3,4)=(m1*n3+m3*n1); Rm(3,5)=(m1*n2+m2*n1);
     Rm(4,0)=2*l1*n1; Rm(4,1)=2*l2*n2; Rm(4,2)=2*l3*n3; Rm(4,3)=(l2*n3+l3*n2); Rm(4,4)=(l1*n3+l3*n1); Rm(4,5)=(l1*n2+l2*n1);
     Rm(5,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
+}
 
-    // rotate strain
+/***********************************************************************************/
+/***********************************************************************************/
+void RVELaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_modes = mB_vec[0].size2();
+    const std::size_t nr_comps = GetStrainSize();
+    const ProcessInfo& process_info = rValues.GetProcessInfo();
+    Vector& strain_macro = rValues.GetStrainVector(); // input
+
+//    // Prepare rotation matices
+//    BoundedMatrix<double, 3, 3> iQ;
+//    BoundedMatrix<double, 3, 3> Q;
+//    BoundedMatrix<double, 6, 6> aux_C;
+//    BoundedMatrix<double, 6, 6> iR;
+//    BoundedMatrix<double, 6, 6> Rm;
+//    double l1, l2, l3, m1, m2, m3, n1, n2, n3;
+//    // inverse Rotation matrix (stress)
+//    mQ.conjugate().ToRotationMatrix(iQ);
+//    l1 = iQ(0,0); l2 = iQ(0,1); l3 = iQ(0,2);
+//    m1 = iQ(1,0); m2 = iQ(1,1); m3 = iQ(1,2);
+//    n1 = iQ(2,0); n2 = iQ(2,1); n3 = iQ(2,2);
+//    iR(0,0)=l1*l1; iR(0,1)=l2*l2; iR(0,2)=l3*l3; iR(0,3)=2*l2*l3;       iR(0,4)=2*l1*l3;       iR(0,5)=2*l1*l2;
+//    iR(1,0)=m1*m1; iR(1,1)=m2*m2; iR(1,2)=m3*m3; iR(1,3)=2*m2*m3;       iR(1,4)=2*m1*m3;       iR(1,5)=2*m1*m2;
+//    iR(2,0)=n1*n1; iR(2,1)=n2*n2; iR(2,2)=n3*n3; iR(2,3)=2*n2*n3;       iR(2,4)=2*n1*n3;       iR(2,5)=2*n1*n2;
+//    iR(3,0)=m1*n1; iR(3,1)=m2*n2; iR(3,2)=m3*n3; iR(3,3)=(m2*n3+m3*n2); iR(3,4)=(m1*n3+m3*n1); iR(3,5)=(m1*n2+m2*n1);
+//    iR(4,0)=l1*n1; iR(4,1)=l2*n2; iR(4,2)=l3*n3; iR(4,3)=(l2*n3+l3*n2); iR(4,4)=(l1*n3+l3*n1); iR(4,5)=(l1*n2+l2*n1);
+//    iR(5,0)=l1*m1; iR(5,1)=l2*m2; iR(5,2)=l3*m3; iR(5,3)=(l2*m3+l3*m2); iR(5,4)=(l1*m3+l3*m1); iR(5,5)=(l1*m2+l2*m1);
+//    // modified rotation matrix (strain voigt)
+//    mQ.ToRotationMatrix(Q);
+//    l1 = Q(0,0); l2 = Q(0,1); l3 = Q(0,2);
+//    m1 = Q(1,0); m2 = Q(1,1); m3 = Q(1,2);
+//    n1 = Q(2,0); n2 = Q(2,1); n3 = Q(2,2);
+//    Rm(0,0)=l1*l1;   Rm(0,1)=l2*l2;   Rm(0,2)=l3*l3;   Rm(0,3)=l2*l3;         Rm(0,4)=l1*l3;         Rm(0,5)=l1*l2;
+//    Rm(1,0)=m1*m1;   Rm(1,1)=m2*m2;   Rm(1,2)=m3*m3;   Rm(1,3)=m2*m3;         Rm(1,4)=m1*m3;         Rm(1,5)=m1*m2;
+//    Rm(2,0)=n1*n1;   Rm(2,1)=n2*n2;   Rm(2,2)=n3*n3;   Rm(2,3)=n2*n3;         Rm(2,4)=n1*n3;         Rm(2,5)=n1*n2;
+//    Rm(3,0)=2*m1*n1; Rm(3,1)=2*m2*n2; Rm(3,2)=2*m3*n3; Rm(3,3)=(m2*n3+m3*n2); Rm(3,4)=(m1*n3+m3*n1); Rm(3,5)=(m1*n2+m2*n1);
+//    Rm(4,0)=2*l1*n1; Rm(4,1)=2*l2*n2; Rm(4,2)=2*l3*n3; Rm(4,3)=(l2*n3+l3*n2); Rm(4,4)=(l1*n3+l3*n1); Rm(4,5)=(l1*n2+l2*n1);
+//    Rm(5,0)=2*l1*m1; Rm(5,1)=2*l2*m2; Rm(5,2)=2*l3*m3; Rm(5,3)=(l2*m3+l3*m2); Rm(5,4)=(l1*m3+l3*m1); Rm(5,5)=(l1*m2+l2*m1);
+
+    BoundedMatrix<double, 6, 6> Rm;
+    BoundedMatrix<double, 6, 6> iR;
+    BoundedMatrix<double, 6, 6> aux_C;
+    //Vector& rRm = Rm;
+    //Vector& riR = iR;
+    ComputeRotationMatrices(Rm, iR);
     strain_macro = prod(Rm, strain_macro);
 
     Vector& homog_stress = rValues.GetStressVector(); // output
