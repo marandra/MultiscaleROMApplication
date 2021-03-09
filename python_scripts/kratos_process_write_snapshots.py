@@ -43,7 +43,13 @@ class WriteSnapshots(km.Process):
 
     def write_strain(self, group, filename, timestep):
         data_list = []
-        strain_macro = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
+        for elem in self.model_part.Elements:
+            strain = elem.CalculateOnIntegrationPoints(
+                km.INITIAL_STRAIN_VECTOR,
+                self.model_part.ProcessInfo,
+            )
+            break
+        strain_macro = strain[0]
         for elem in self.model_part.Elements:
             strain_vectors = elem.CalculateOnIntegrationPoints(
                 km.STRAIN,

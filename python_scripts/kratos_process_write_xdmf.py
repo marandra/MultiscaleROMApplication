@@ -120,7 +120,13 @@ class WriteXdmf(km.Process):
             array -- nodal values,  formatted for meshio [[x0, y0, z0], [x1, y1, z1], [x2. y2, z2]]
         """
         _list = []
-        strain = self.model_part.ProcessInfo[km.INITIAL_STRAIN]
+
+        for elem in self.model_part.Elements:
+            values = elem.CalculateOnIntegrationPoints(
+                km.INITIAL_STRAIN_VECTOR, self.model_part.ProcessInfo
+            )
+            break
+        strain = values[0]
         for node in self.model_part.Nodes:
             displ = node.GetSolutionStepValue(km.DISPLACEMENT)
             s_xx = strain[0]
@@ -168,7 +174,12 @@ class WriteXdmf(km.Process):
             stress = self.get_averaged_cell_data_tensor(km.CAUCHY_STRESS_VECTOR)
             #strain = self.get_averaged_cell_data_tensor(km.GREEN_LAGRANGE_STRAIN_VECTOR)
             strain = self.get_averaged_cell_data_tensor(km.STRAIN)
-            initial_strain = numpy.array(self.model_part.ProcessInfo[km.INITIAL_STRAIN])
+            for elem in self.model_part.Elements:
+                values = elem.CalculateOnIntegrationPoints(
+                    km.INITIAL_STRAIN_VECTOR, self.model_part.ProcessInfo
+                )
+                break
+            initial_strain = values[0]
             strain_fluctuant = strain - initial_strain
 
             point_data = {

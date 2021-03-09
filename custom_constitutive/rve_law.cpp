@@ -11,7 +11,7 @@ namespace Kratos {
 /***********************************************************************************/
 // Default constructor
 /***********************************************************************************/
-RVELaw::RVELaw() {}
+RVELaw::RVELaw() : ElasticIsotropic3D() {}
 
 /***********************************************************************************/
 // Main constructor, used by Create
@@ -182,7 +182,9 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const {
 /***********************************************************************************/
 // Copy
 /***********************************************************************************/
-RVELaw::RVELaw(const RVELaw &rOther) : ConstitutiveLaw(rOther) {}
+RVELaw::RVELaw(const RVELaw &rOther)
+    : ElasticIsotropic3D(rOther)
+{}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -227,7 +229,7 @@ bool RVELaw::Has(const Variable<Vector> &rThisVariable) {
     return false;
   }
 
-  // TODO: below measures are intercepted by BaseSolid element
+  // TODO: following strain measures are intercepted by BaseSolid element
 
   // if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
   //    // explicitly returning "false", so the element calls
@@ -305,17 +307,19 @@ void RVELaw::InitializeMaterial(const Properties &rUnusedProperties,
 //*****************************************************************************
 
 void RVELaw::InitializeMaterialResponsePK2(
-    ConstitutiveLaw::Parameters &rValues) {
+    ConstitutiveLaw::Parameters &rParametersValues) {
   const std::size_t nr_points = mB_vec.size();
   const std::size_t nr_comps = GetStrainSize();
   const auto dim = WorkingSpaceDimension();
-  const Vector &strain_macro = rValues.GetStrainVector(); // input
-  const ProcessInfo &process_info = rValues.GetProcessInfo();
+  const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
+
+  Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
+  AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
 
   for (std::size_t i = 0; i < nr_points; i++) {
     Vector stress(nr_comps);
     Matrix constit(nr_comps, nr_comps);
-    Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+    Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     Flags cl_flags;
     cl_flags.Set(COMPUTE_STRESS, true);
     cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -376,13 +380,15 @@ void RVELaw::FinalizeMaterialResponsePK2(
   const std::size_t nr_points = mB_vec.size();
   const std::size_t nr_comps = GetStrainSize();
   const std::size_t dim = WorkingSpaceDimension();
-  Vector &strain_macro = rParametersValues.GetStrainVector(); // input
   const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
+
+  Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
+  AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
 
   for (std::size_t i = 0; i < nr_points; i++) {
     Vector stress(nr_comps);
     Matrix constit(nr_comps, nr_comps);
-    Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+    Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     Flags cl_flags;
     cl_flags.Set(COMPUTE_STRESS, true);
     cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -432,6 +438,426 @@ void RVELaw::FinalizeMaterialResponsePK1(
 void RVELaw::FinalizeMaterialResponseKirchhoff(
     ConstitutiveLaw::Parameters &rParametersValues) {
   FinalizeMaterialResponsePK2(rParametersValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RVELaw::CalculateIndividualMaterialResponse(
+    Vector &stress, Matrix &constit, Vector &strain,
+    const ProcessInfo &process_info, std::size_t ip_index) {
+  // create and pass individual parameters
+  const auto dim = WorkingSpaceDimension();
+  Flags cl_flags;
+  cl_flags.Set(COMPUTE_STRESS, true);
+  cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+  Vector N(dim);
+  Matrix DN_DX(dim, 2);
+  Matrix F(dim, dim);
+  F(0, 0) = 1.0 + strain(0);
+  F(0, 1) = 0.5 * strain(3);
+  F(0, 2) = 0.5 * strain(5);
+  F(1, 0) = 0.5 * strain(3);
+  F(1, 1) = 1.0 + strain(1);
+  F(1, 2) = 0.5 * strain(4);
+  F(2, 0) = 0.5 * strain(5);
+  F(2, 1) = 0.5 * strain(4);
+  F(2, 2) = 1.0 + strain(2);
+  double detF = MathUtils<double>::Det(F);
+
+  ConstitutiveLaw::Parameters cl_params;
+  cl_params.SetOptions(cl_flags);
+  cl_params.SetDeformationGradientF(F);
+  cl_params.SetDeterminantF(detF);
+  cl_params.SetStrainVector(strain);
+  cl_params.SetStressVector(stress);
+  cl_params.SetConstitutiveMatrix(constit);
+  cl_params.SetShapeFunctionsValues(N);
+  cl_params.SetShapeFunctionsDerivatives(DN_DX);
+  const Properties material_props = mProperties_map[mPropId_vec[ip_index]];
+  cl_params.SetMaterialProperties(material_props);
+  cl_params.SetProcessInfo(process_info);
+  // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
+  // cl_params.SetElementGeometry();
+
+  mCL_vec[ip_index]->CalculateMaterialResponseCauchy(cl_params);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RVELaw::CalculateMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters &rParametersValues) {
+  const std::size_t nr_points = mB_vec.size();
+  const std::size_t nr_modes = mB_vec[0].size2();
+  const std::size_t nr_comps = GetStrainSize();
+  const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
+
+  Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
+  AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+
+  BoundedMatrix<double, 6, 6> Rm;
+  BoundedMatrix<double, 6, 6> iR;
+  ComputeRotationMatrices(Rm, iR);
+  // rotate
+  r_strain_vector = prod(Rm, r_strain_vector);
+
+  Vector &homog_stress = rParametersValues.GetStressVector(); // output
+  homog_stress.clear();
+  Matrix &homog_C = rParametersValues.GetConstitutiveMatrix(); // output
+  homog_C.clear();
+
+  Matrix A(nr_modes, nr_modes);
+  Vector res(nr_modes);
+  Vector Dx(nr_modes);
+
+  Accumulate(A, res, r_strain_vector, process_info);
+
+  // Current criteria: relative displacement
+  double ratio = 1.0;
+  std::size_t it = 0;
+
+  while (ratio > mRelativeTolerance and it < mMaxIteration) {
+    Solve(A, res, Dx);
+    mModesWeights -= Dx;
+    Accumulate(A, res, r_strain_vector, process_info);
+    KRATOS_INFO_IF("RVE Law", mVerbose)
+        << "Iteration " << it << " Relative:" << ratio << std::endl;
+    const double norm_modes_weights = norm_2(mModesWeights);
+    ratio = norm_2(Dx) / norm_modes_weights;
+    it++;
+  }
+  // Previous criteria using residual.
+  // double residual = norm_2(res);
+  // double current_residual = residual;
+  // double ratio = 1.0;
+  // std::size_t it = 1;
+
+  // while (residual > mAbsoluteTolerance and ratio > mRelativeTolerance and it
+  // < mMaxIteration)
+  //{
+  //    Solve(A, res, Dx);
+  //    mModesWeights -= Dx;
+  //    Accumulate(A, res, r_strain_vector, process_info);
+  //    KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it << " Residual:
+  //    " << residual
+  //                           << " Relative:" << ratio <<std::endl;
+  //    current_residual = norm_2(res);
+  //    ratio = current_residual / residual;
+  //    residual = current_residual;
+  //    it++;
+  //}
+  KRATOS_INFO_IF("RVE Law", mVerbose) << std::endl;
+
+  // Homogenize stress and constitutive tensor
+  Matrix homog_C_taylor = ZeroMatrix(nr_comps, nr_comps);
+  Matrix homog_C_fluct = ZeroMatrix(nr_comps, nr_comps);
+  Matrix homog_C_fluct_aux = ZeroMatrix(nr_comps, nr_modes);
+  Matrix homog_Q = ZeroMatrix(nr_modes, nr_comps);
+  Matrix homog_Op = ZeroMatrix(nr_modes, nr_comps);
+  Matrix invA = ZeroMatrix(nr_modes, nr_modes);
+  double vol_rve = 0.;
+  double dummy_det;
+
+  MathUtils<double>::InvertMatrix(A, invA, dummy_det);
+  for (std::size_t i = 0; i < nr_points; i++) {
+    Vector stress(nr_comps);
+    Matrix constit(nr_comps, nr_comps);
+    Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+    CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
+    homog_stress += mIW_vec[i] * stress;
+    homog_C_taylor += mIW_vec[i] * constit;
+    homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+    vol_rve += mIW_vec[i];
+  }
+  homog_stress /= vol_rve;
+  homog_Op = -prod(invA, homog_Q);
+  for (std::size_t i = 0; i < nr_points; i++) {
+    Vector stress(nr_comps);
+    Matrix constit(nr_comps, nr_comps);
+    Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+    // TODO(marcelo): strain argument should be const
+    CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
+    homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
+  }
+  noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
+  homog_C = homog_C_taylor + homog_C_fluct;
+  homog_C /= vol_rve;
+
+  // rotate stress to original base
+  homog_stress = prod(iR, homog_stress);
+
+  // rotate C to original base
+  BoundedMatrix<double, 6, 6> aux_C;
+  noalias(aux_C) = prod(homog_C, Rm);
+  noalias(homog_C) = prod(iR, aux_C);
+}
+
+void RVELaw::CalculateMaterialResponsePK1(
+    ConstitutiveLaw::Parameters &rParametersValues) {
+  CalculateMaterialResponseCauchy(rParametersValues);
+}
+void RVELaw::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters &rParametersValues) {
+  CalculateMaterialResponseCauchy(rParametersValues);
+}
+void RVELaw::CalculateMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters &rParametersValues) {
+  CalculateMaterialResponseCauchy(rParametersValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx) {
+  const std::size_t nr_modes = mB_vec[0].size2();
+  double aux_qr_A[nr_modes][nr_modes];
+  double aux_qr_res[nr_modes];
+  double aux_qr_Dx[nr_modes];
+
+  // row_major, col_mayor:order of the input matrix.
+  // Should be col_major for the best performance.
+  // enum storage_order {
+  //    row_major,
+  //    col_major
+  //};
+  // KRATOS_WATCH(storage_order::row_major);
+  // KRATOS_WATCH(storage_order::col_major);
+  QR<double, storage_order::row_major> QR_decomposition;
+
+  //` Solve
+  for (std::size_t ii = 0; ii < nr_modes; ii++) {
+    for (std::size_t jj = 0; jj < nr_modes; jj++) {
+      aux_qr_A[ii][jj] = A(ii, jj);
+    }
+    aux_qr_res[ii] = res(ii);
+  }
+  QR_decomposition.compute(nr_modes, nr_modes, &(aux_qr_A[0][0]));
+  QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
+
+  // Update
+  for (std::size_t ii = 0; ii < nr_modes; ii++) {
+    Dx[ii] = aux_qr_Dx[ii];
+  }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &r_strain_vector,
+                        const ProcessInfo &process_info) {
+  const std::size_t nr_points = mB_vec.size();
+  const std::size_t nr_modes = mB_vec[0].size2();
+  const std::size_t nr_comps = GetStrainSize();
+  Matrix Aux1(nr_comps, nr_modes);
+
+  A.clear();
+  res.clear();
+  for (std::size_t i = 0; i < nr_points; i++) {
+    Vector stress(nr_comps);            // output
+    Matrix constit(nr_comps, nr_comps); // output
+    Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+    // TODO(marcelo): strain should be const
+    CalculateIndividualMaterialResponse(stress, constit, strain, process_info,
+                                        i);
+    // TODO(marcelo): explicitly write triple product for A
+    // Dij = BTij Ckl Blj = for k for l for j for i
+    noalias(Aux1) = prod(constit, mB_vec[i]);
+    noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), Aux1);
+    noalias(res) += mIW_vec[i] * prod(trans(mB_vec[i]), stress);
+  }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// bool& RVELaw::CalculateValue(
+//        ConstitutiveLaw::Parameters& rValues,
+//        const Variable<bool>& rThisVariable,
+//        bool& rValue
+//)
+//{
+//    if (rThisVariable == IS_INELASTIC) {
+//
+//        const std::size_t nr_points = mB_vec.size();
+//
+//        const ProcessInfo& process_info = rValues.GetProcessInfo();
+//        const Vector& r_strain_vector = rValues.GetStrainVector(); // input
+//
+//        rValue = false;
+//        for (std::size_t i = 0; i < nr_points; i++) {
+//            const Properties material_props = mProperties_map[mPropId_vec[i]];
+//            ConstitutiveLaw::Parameters cl_params;
+//            cl_params.SetMaterialProperties(material_props);
+//
+//            Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+//            cl_params.SetStrainVector(strain);
+//
+//            cl_params.SetProcessInfo(process_info);
+//
+//            // IS_INELASTIC is retrieved with CalculateValue, so Has() returns
+//            "false" if (not mCL_vec[i]->Has(IS_INELASTIC)) {
+//                mCL_vec[i]->CalculateValue(cl_params, IS_INELASTIC, rValue);
+//                if (rValue == true)
+//                    return rValue;  // leave when the first "true" is found
+//            }
+//        }
+//    }
+//
+//    return rValue;
+//}
+
+//************************************************************************************
+//************************************************************************************
+
+double &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
+                               const Variable<double> &rThisVariable,
+                               double &rValue) {
+  if (rThisVariable == STRAIN_ENERGY) {
+    const std::size_t nr_points = mB_vec.size();
+    double volume = 0.0;
+    Vector dummy;
+    Vector &r_strain_energy_vector = dummy;
+
+    CalculateValue(rParametersValues, STRAIN_ENERGY_VECTOR,
+                   r_strain_energy_vector);
+    rValue = 0.0;
+    for (std::size_t i = 0; i < nr_points; i++) {
+      rValue += mIW_vec[i] * r_strain_energy_vector[i];
+      volume += mIW_vec[i];
+    }
+    rValue /= volume;
+  }
+
+  if (rThisVariable == DAMAGE_VARIABLE) {
+    const std::size_t nr_points = mB_vec.size();
+    double volume = 0.0;
+    Vector dummy;
+    Vector &r_value_vector = dummy;
+
+    CalculateValue(rParametersValues, DAMAGE_VARIABLE_VECTOR, r_value_vector);
+    rValue = 0.0;
+    for (std::size_t i = 0; i < nr_points; i++) {
+      rValue += mIW_vec[i] * r_value_vector[i];
+      volume += mIW_vec[i];
+    }
+    rValue /= volume;
+  }
+
+  return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
+                               const Variable<Vector> &rThisVariable,
+                               Vector &rValue) {
+
+  if (rThisVariable == STRAIN_ENERGY_VECTOR) {
+    const std::size_t nr_points = mB_vec.size();
+
+    if (rValue.size() != nr_points)
+      rValue.resize(nr_points, false);
+    rValue.clear();
+
+    const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
+    Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
+    // Initial strain is being added in the CLs, si this seems to be duplic
+    //AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+
+    for (std::size_t i = 0; i < nr_points; i++) {
+      double dummy;
+      double &strain_energy = dummy;
+      const Properties material_props = mProperties_map[mPropId_vec[i]];
+      ConstitutiveLaw::Parameters cl_params;
+      cl_params.SetMaterialProperties(material_props);
+      Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+      cl_params.SetStrainVector(strain);
+      cl_params.SetProcessInfo(process_info);
+      mCL_vec[i]->CalculateValue(cl_params, STRAIN_ENERGY, strain_energy);
+      rValue[i] = strain_energy;
+    }
+  }
+
+  if (rThisVariable == STRAIN) {
+  // if (rThisVariable == STRAIN ||
+  //    rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+  //    rThisVariable == ALMANSI_STRAIN_VECTOR){
+    rValue = rParametersValues.GetStrainVector();
+    AddInitialStrainVectorContribution(rValue, rParametersValues);
+  }
+
+  if (rThisVariable == DAMAGE_VARIABLE_VECTOR) {
+    const std::size_t nr_points = mB_vec.size();
+
+    if (rValue.size() != nr_points)
+      rValue.resize(nr_points, false);
+    rValue.clear();
+
+    Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
+    // Initial strain is being added in the CLs, si this seems to be duplic
+    //AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+    const ProcessInfo& process_info = rParametersValues.GetProcessInfo();
+
+    for (std::size_t i = 0; i < nr_points; i++) {
+      double dummy;
+      double &rValue_i = dummy;
+      const Properties material_props = mProperties_map[mPropId_vec[i]];
+      ConstitutiveLaw::Parameters cl_params;
+      cl_params.SetMaterialProperties(material_props);
+      Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+      cl_params.SetStrainVector(strain);
+      cl_params.SetProcessInfo(process_info);
+      mCL_vec[i]->CalculateValue(cl_params, DAMAGE_VARIABLE, rValue_i);
+      rValue[i] = rValue_i;
+    }
+  }
+
+    //if (rThisVariable == STRESSES) {
+    //    CalculateMaterialResponseCauchy(rParametersValues);
+    //       rValue = rParametersValues.GetStressVector();
+    //    }
+
+
+    if (rThisVariable == INITIAL_STRAIN_VECTOR) {
+        if (this->HasInitialState()) {
+           const auto& r_initial_state = GetInitialState();
+           rValue = r_initial_state.GetInitialStrainVector();
+        }
+    }
+
+  return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Matrix &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
+                               const Variable<Matrix> &rThisVariable,
+                               Matrix &rValue) {
+  if (rThisVariable == CAUCHY_STRESS_VECTOR_LIST) {
+    const std::size_t nr_points = mB_vec.size();
+    const std::size_t nr_comps = GetStrainSize();
+    const Vector &r_strain_vector = rParametersValues.GetStrainVector();
+    const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
+
+    if (rValue.size1() != nr_points || rValue.size2() != nr_comps)
+      rValue.resize(nr_points, nr_comps, false);
+    rValue.clear();
+
+    for (std::size_t i = 0; i < nr_points; i++) {
+      Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+      Vector stress(nr_comps);
+      Matrix constit(nr_comps, nr_comps); // unused
+      CalculateIndividualMaterialResponse(stress, constit, strain, process_info,
+                                          i);
+      for (std::size_t j = 0; j < nr_comps; j++)
+        rValue(i, j) = stress[j];
+    }
+  }
+  return rValue;
 }
 
 /***********************************************************************************/
@@ -537,424 +963,6 @@ void RVELaw::ComputeRotationMatrices(BoundedMatrix<double, 6, 6> &Rm,
   Rm(5, 3) = (l2 * m3 + l3 * m2);
   Rm(5, 4) = (l1 * m3 + l3 * m1);
   Rm(5, 5) = (l1 * m2 + l2 * m1);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void RVELaw::CalculateIndividualMaterialResponse(
-    Vector &stress, Matrix &constit, Vector &strain,
-    const ProcessInfo &process_info, std::size_t ip_index) {
-  // create and pass individual parameters
-  const auto dim = WorkingSpaceDimension();
-  Flags cl_flags;
-  cl_flags.Set(COMPUTE_STRESS, true);
-  cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-  Vector N(dim);
-  Matrix DN_DX(dim, 2);
-  Matrix F(dim, dim);
-  F(0, 0) = 1.0 + strain(0);
-  F(0, 1) = 0.5 * strain(3);
-  F(0, 2) = 0.5 * strain(5);
-  F(1, 0) = 0.5 * strain(3);
-  F(1, 1) = 1.0 + strain(1);
-  F(1, 2) = 0.5 * strain(4);
-  F(2, 0) = 0.5 * strain(5);
-  F(2, 1) = 0.5 * strain(4);
-  F(2, 2) = 1.0 + strain(2);
-  double detF = MathUtils<double>::Det(F);
-
-  ConstitutiveLaw::Parameters cl_params;
-  cl_params.SetOptions(cl_flags);
-  cl_params.SetDeformationGradientF(F);
-  cl_params.SetDeterminantF(detF);
-  cl_params.SetStrainVector(strain);
-  cl_params.SetStressVector(stress);
-  cl_params.SetConstitutiveMatrix(constit);
-  cl_params.SetShapeFunctionsValues(N);
-  cl_params.SetShapeFunctionsDerivatives(DN_DX);
-  const Properties material_props = mProperties_map[mPropId_vec[ip_index]];
-  cl_params.SetMaterialProperties(material_props);
-  cl_params.SetProcessInfo(process_info);
-  // TODO(marcelo): needs HF elem geom. Currently not used in our iCL.
-  // cl_params.SetElementGeometry();
-
-  mCL_vec[ip_index]->CalculateMaterialResponseCauchy(cl_params);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void RVELaw::CalculateMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters &rValues) {
-  const std::size_t nr_points = mB_vec.size();
-  const std::size_t nr_modes = mB_vec[0].size2();
-  const std::size_t nr_comps = GetStrainSize();
-  const ProcessInfo &process_info = rValues.GetProcessInfo();
-
-  Vector &strain_macro = rValues.GetStrainVector(); // input
-
-  BoundedMatrix<double, 6, 6> Rm;
-  BoundedMatrix<double, 6, 6> iR;
-  ComputeRotationMatrices(Rm, iR);
-  // rotate
-  strain_macro = prod(Rm, strain_macro);
-
-  Vector &homog_stress = rValues.GetStressVector(); // output
-  homog_stress.clear();
-  Matrix &homog_C = rValues.GetConstitutiveMatrix(); // output
-  homog_C.clear();
-
-  Matrix A(nr_modes, nr_modes);
-  Vector res(nr_modes);
-  Vector Dx(nr_modes);
-
-  Accumulate(A, res, strain_macro, process_info);
-
-  // Current criteria: relative displacement
-  double ratio = 1.0;
-  std::size_t it = 0;
-
-  while (ratio > mRelativeTolerance and it < mMaxIteration) {
-    Solve(A, res, Dx);
-    mModesWeights -= Dx;
-    Accumulate(A, res, strain_macro, process_info);
-    KRATOS_INFO_IF("RVE Law", mVerbose)
-        << "Iteration " << it << " Relative:" << ratio << std::endl;
-    const double norm_modes_weights = norm_2(mModesWeights);
-    ratio = norm_2(Dx) / norm_modes_weights;
-    it++;
-  }
-  // Previous criteria using residual.
-  // double residual = norm_2(res);
-  // double current_residual = residual;
-  // double ratio = 1.0;
-  // std::size_t it = 1;
-
-  // while (residual > mAbsoluteTolerance and ratio > mRelativeTolerance and it
-  // < mMaxIteration)
-  //{
-  //    Solve(A, res, Dx);
-  //    mModesWeights -= Dx;
-  //    Accumulate(A, res, strain_macro, process_info);
-  //    KRATOS_INFO_IF("RVE Law", mVerbose) << "Iteration " << it << " Residual:
-  //    " << residual
-  //                           << " Relative:" << ratio <<std::endl;
-  //    current_residual = norm_2(res);
-  //    ratio = current_residual / residual;
-  //    residual = current_residual;
-  //    it++;
-  //}
-  KRATOS_INFO_IF("RVE Law", mVerbose) << std::endl;
-
-  // Homogenize stress and constitutive tensor
-  Matrix homog_C_taylor = ZeroMatrix(nr_comps, nr_comps);
-  Matrix homog_C_fluct = ZeroMatrix(nr_comps, nr_comps);
-  Matrix homog_C_fluct_aux = ZeroMatrix(nr_comps, nr_modes);
-  Matrix homog_Q = ZeroMatrix(nr_modes, nr_comps);
-  Matrix homog_Op = ZeroMatrix(nr_modes, nr_comps);
-  Matrix invA = ZeroMatrix(nr_modes, nr_modes);
-  double vol_rve = 0.;
-  double dummy_det;
-
-  MathUtils<double>::InvertMatrix(A, invA, dummy_det);
-  for (std::size_t i = 0; i < nr_points; i++) {
-    Vector stress(nr_comps);
-    Matrix constit(nr_comps, nr_comps);
-    Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-    CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
-    homog_stress += mIW_vec[i] * stress;
-    homog_C_taylor += mIW_vec[i] * constit;
-    homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
-    vol_rve += mIW_vec[i];
-  }
-  homog_stress /= vol_rve;
-  homog_Op = -prod(invA, homog_Q);
-  for (std::size_t i = 0; i < nr_points; i++) {
-    Vector stress(nr_comps);
-    Matrix constit(nr_comps, nr_comps);
-    Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-    // TODO(marcelo): strain argument should be const
-    CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
-    homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
-  }
-  noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
-  homog_C = homog_C_taylor + homog_C_fluct;
-  homog_C /= vol_rve;
-
-  // rotate stress to original base
-  homog_stress = prod(iR, homog_stress);
-
-  // rotate C to original base
-  BoundedMatrix<double, 6, 6> aux_C;
-  noalias(aux_C) = prod(homog_C, Rm);
-  noalias(homog_C) = prod(iR, aux_C);
-}
-
-void RVELaw::CalculateMaterialResponsePK1(
-    ConstitutiveLaw::Parameters &rParametersValues) {
-  CalculateMaterialResponseCauchy(rParametersValues);
-}
-void RVELaw::CalculateMaterialResponsePK2(
-    ConstitutiveLaw::Parameters &rParametersValues) {
-  CalculateMaterialResponseCauchy(rParametersValues);
-}
-void RVELaw::CalculateMaterialResponseKirchhoff(
-    ConstitutiveLaw::Parameters &rParametersValues) {
-  CalculateMaterialResponseCauchy(rParametersValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx) {
-  const std::size_t nr_modes = mB_vec[0].size2();
-  double aux_qr_A[nr_modes][nr_modes];
-  double aux_qr_res[nr_modes];
-  double aux_qr_Dx[nr_modes];
-
-  // row_major, col_mayor:order of the input matrix.
-  // Should be col_major for the best performance.
-  // enum storage_order {
-  //    row_major,
-  //    col_major
-  //};
-  // KRATOS_WATCH(storage_order::row_major);
-  // KRATOS_WATCH(storage_order::col_major);
-  QR<double, storage_order::row_major> QR_decomposition;
-
-  //` Solve
-  for (std::size_t ii = 0; ii < nr_modes; ii++) {
-    for (std::size_t jj = 0; jj < nr_modes; jj++) {
-      aux_qr_A[ii][jj] = A(ii, jj);
-    }
-    aux_qr_res[ii] = res(ii);
-  }
-  QR_decomposition.compute(nr_modes, nr_modes, &(aux_qr_A[0][0]));
-  QR_decomposition.solve(&(aux_qr_res[0]), &(aux_qr_Dx[0]));
-
-  // Update
-  for (std::size_t ii = 0; ii < nr_modes; ii++) {
-    Dx[ii] = aux_qr_Dx[ii];
-  }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro,
-                        const ProcessInfo &process_info) {
-  const std::size_t nr_points = mB_vec.size();
-  const std::size_t nr_modes = mB_vec[0].size2();
-  const std::size_t nr_comps = GetStrainSize();
-  Matrix Aux1(nr_comps, nr_modes);
-
-  A.clear();
-  res.clear();
-  for (std::size_t i = 0; i < nr_points; i++) {
-    Vector stress(nr_comps);            // output
-    Matrix constit(nr_comps, nr_comps); // output
-    Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-    // TODO(marcelo): strain should be const
-    CalculateIndividualMaterialResponse(stress, constit, strain, process_info,
-                                        i);
-    // TODO(marcelo): explicitly write triple product for A
-    // Dij = BTij Ckl Blj = for k for l for j for i
-    noalias(Aux1) = prod(constit, mB_vec[i]);
-    noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), Aux1);
-    noalias(res) += mIW_vec[i] * prod(trans(mB_vec[i]), stress);
-  }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// bool& RVELaw::CalculateValue(
-//        ConstitutiveLaw::Parameters& rValues,
-//        const Variable<bool>& rThisVariable,
-//        bool& rValue
-//)
-//{
-//    if (rThisVariable == IS_INELASTIC) {
-//
-//        const std::size_t nr_points = mB_vec.size();
-//
-//        const ProcessInfo& process_info = rValues.GetProcessInfo();
-//        const Vector& strain_macro = rValues.GetStrainVector(); // input
-//
-//        rValue = false;
-//        for (std::size_t i = 0; i < nr_points; i++) {
-//            const Properties material_props = mProperties_map[mPropId_vec[i]];
-//            ConstitutiveLaw::Parameters cl_params;
-//            cl_params.SetMaterialProperties(material_props);
-//
-//            Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-//            cl_params.SetStrainVector(strain);
-//
-//            cl_params.SetProcessInfo(process_info);
-//
-//            // IS_INELASTIC is retrieved with CalculateValue, so Has() returns
-//            "false" if (not mCL_vec[i]->Has(IS_INELASTIC)) {
-//                mCL_vec[i]->CalculateValue(cl_params, IS_INELASTIC, rValue);
-//                if (rValue == true)
-//                    return rValue;  // leave when the first "true" is found
-//            }
-//        }
-//    }
-//
-//    return rValue;
-//}
-
-//************************************************************************************
-//************************************************************************************
-
-double &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
-                               const Variable<double> &rThisVariable,
-                               double &rValue) {
-  if (rThisVariable == STRAIN_ENERGY) {
-    const std::size_t nr_points = mB_vec.size();
-    double volume = 0.0;
-    Vector dummy;
-    Vector &r_strain_energy_vector = dummy;
-
-    CalculateValue(rParametersValues, STRAIN_ENERGY_VECTOR,
-                   r_strain_energy_vector);
-    rValue = 0.0;
-    for (std::size_t i = 0; i < nr_points; i++) {
-      rValue += mIW_vec[i] * r_strain_energy_vector[i];
-      volume += mIW_vec[i];
-    }
-    rValue /= volume;
-  }
-
-  if (rThisVariable == DAMAGE_VARIABLE) {
-    const std::size_t nr_points = mB_vec.size();
-    double volume = 0.0;
-    Vector dummy;
-    Vector &r_value_vector = dummy;
-
-    CalculateValue(rParametersValues, DAMAGE_VARIABLE_VECTOR, r_value_vector);
-    rValue = 0.0;
-    for (std::size_t i = 0; i < nr_points; i++) {
-      rValue += mIW_vec[i] * r_value_vector[i];
-      volume += mIW_vec[i];
-    }
-    rValue /= volume;
-  }
-
-  return rValue;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
-                               const Variable<Vector> &rThisVariable,
-                               Vector &rValue) {
-  if (rThisVariable == STRAIN_ENERGY_VECTOR) {
-    const std::size_t nr_points = mB_vec.size();
-
-    if (rValue.size() != nr_points)
-      rValue.resize(nr_points, false);
-    rValue.clear();
-
-    const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
-    Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
-    // In case there is an initial state (i.e., in sampling)
-    // AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
-    if (rParametersValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-      noalias(r_strain_vector) +=
-          rParametersValues.GetProcessInfo()[INITIAL_STRAIN];
-    }
-
-    for (std::size_t i = 0; i < nr_points; i++) {
-      double dummy;
-      double &strain_energy = dummy;
-      const Properties material_props = mProperties_map[mPropId_vec[i]];
-      ConstitutiveLaw::Parameters cl_params;
-      cl_params.SetMaterialProperties(material_props);
-      Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
-      cl_params.SetStrainVector(strain);
-      cl_params.SetProcessInfo(process_info);
-      mCL_vec[i]->CalculateValue(cl_params, STRAIN_ENERGY, strain_energy);
-      rValue[i] = strain_energy;
-    }
-  }
-
-  // if (rThisVariable == STRAIN ||
-  //    rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-  //    rThisVariable == ALMANSI_STRAIN_VECTOR){
-  if (rThisVariable == STRAIN) {
-    rValue = rParametersValues.GetStrainVector();
-    // In case there is an initial state (i.e., in sampling)
-    // AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
-    if (rParametersValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-      noalias(rValue) += rParametersValues.GetProcessInfo()[INITIAL_STRAIN];
-    }
-  }
-
-  if (rThisVariable == DAMAGE_VARIABLE_VECTOR) {
-    const std::size_t nr_points = mB_vec.size();
-
-    if (rValue.size() != nr_points)
-      rValue.resize(nr_points, false);
-    rValue.clear();
-
-    // TODO: Commenting out what is apparently not needed
-    // const ProcessInfo& process_info = rParametersValues.GetProcessInfo();
-    // Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
-    //// In case there is an initial state (i.e., in sampling)
-    ////AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
-    // if (rParametersValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-    //    noalias(r_strain_vector) +=
-    //    rParametersValues.GetProcessInfo()[INITIAL_STRAIN];
-    //}
-
-    for (std::size_t i = 0; i < nr_points; i++) {
-      double dummy;
-      double &rValue_i = dummy;
-      const Properties material_props = mProperties_map[mPropId_vec[i]];
-      ConstitutiveLaw::Parameters cl_params;
-      cl_params.SetMaterialProperties(material_props);
-      // Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
-      // cl_params.SetStrainVector(strain);
-      // cl_params.SetProcessInfo(process_info);
-      mCL_vec[i]->CalculateValue(cl_params, DAMAGE_VARIABLE, rValue_i);
-      rValue[i] = rValue_i;
-    }
-  }
-
-  return rValue;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-Matrix &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
-                               const Variable<Matrix> &rThisVariable,
-                               Matrix &rValue) {
-  if (rThisVariable == CAUCHY_STRESS_VECTOR_LIST) {
-    const std::size_t nr_points = mB_vec.size();
-    const std::size_t nr_comps = GetStrainSize();
-    const Vector &strain_macro = rParametersValues.GetStrainVector();
-    const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
-
-    if (rValue.size1() != nr_points || rValue.size2() != nr_comps)
-      rValue.resize(nr_points, nr_comps, false);
-    rValue.clear();
-
-    for (std::size_t i = 0; i < nr_points; i++) {
-      Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
-      Vector stress(nr_comps);
-      Matrix constit(nr_comps, nr_comps); // unused
-      CalculateIndividualMaterialResponse(stress, constit, strain, process_info,
-                                          i);
-      for (std::size_t j = 0; j < nr_comps; j++)
-        rValue(i, j) = stress[j];
-    }
-  }
-  return rValue;
 }
 
 /***********************************************************************************/

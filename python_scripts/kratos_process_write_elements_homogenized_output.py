@@ -9,6 +9,7 @@ def Factory(settings, Model):
 def homogenization_function(self):
     stress_ref = self.model_part.Elements[1].CalculateOnIntegrationPoints(
         km.CAUCHY_STRESS_VECTOR, self.model_part.ProcessInfo
+        #km.STRESSES, self.model_part.ProcessInfo
     )
     nr_comp = len(stress_ref[0])
     stress_accum = [0.0] * nr_comp
@@ -17,6 +18,7 @@ def homogenization_function(self):
 
     for e, elem in enumerate(self.model_part.Elements):
         stress = elem.CalculateOnIntegrationPoints(
+            #km.STRESSES, self.model_part.ProcessInfo
             km.CAUCHY_STRESS_VECTOR, self.model_part.ProcessInfo
         )
         strain = elem.CalculateOnIntegrationPoints(
