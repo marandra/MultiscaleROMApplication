@@ -217,6 +217,11 @@ bool RVELaw::Has(const Variable<double> &rThisVariable) {
     return false;
   }
 
+  if (rThisVariable == DAMAGE_VARIABLE) {
+    // explicitly returning "false", so the element calls CalculateValue(...)
+    return false;
+  }
+
   return false;
 }
 
@@ -776,8 +781,6 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
 
     const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
     Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
-    // Initial strain is being added in the CLs, si this seems to be duplic
-    //AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
 
     for (std::size_t i = 0; i < nr_points; i++) {
       double dummy;
@@ -808,10 +811,9 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
       rValue.resize(nr_points, false);
     rValue.clear();
 
-    Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
-    // Initial strain is being added in the CLs, si this seems to be duplic
-    //AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
     const ProcessInfo& process_info = rParametersValues.GetProcessInfo();
+    Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
+    AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
 
     for (std::size_t i = 0; i < nr_points; i++) {
       double dummy;
@@ -827,18 +829,17 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
     }
   }
 
-    //if (rThisVariable == STRESSES) {
-    //    CalculateMaterialResponseCauchy(rParametersValues);
-    //       rValue = rParametersValues.GetStressVector();
-    //    }
+  //if (rThisVariable == STRESSES) {
+  //    CalculateMaterialResponseCauchy(rParametersValues);
+  //       rValue = rParametersValues.GetStressVector();
+  //    }
 
-
-    if (rThisVariable == INITIAL_STRAIN_VECTOR) {
-        if (this->HasInitialState()) {
-           const auto& r_initial_state = GetInitialState();
-           rValue = r_initial_state.GetInitialStrainVector();
-        }
-    }
+  if (rThisVariable == INITIAL_STRAIN_VECTOR) {
+      if (this->HasInitialState()) {
+         const auto& r_initial_state = GetInitialState();
+         rValue = r_initial_state.GetInitialStrainVector();
+      }
+  }
 
   return rValue;
 }
