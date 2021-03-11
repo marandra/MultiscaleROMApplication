@@ -207,7 +207,6 @@ RVELaw::RVELaw(const RVELaw &rOther)
 //    return false;
 //}
 //
-
 //******************************************************************************
 //******************************************************************************
 
@@ -327,7 +326,7 @@ void RVELaw::InitializeMaterialResponsePK2(
   const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
 
   Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
-  AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+  AddInitialStrainVectorContribution(r_strain_vector);
 
   for (std::size_t i = 0; i < nr_points; i++) {
     Vector stress(nr_comps);
@@ -384,11 +383,9 @@ void RVELaw::InitializeMaterialResponseKirchhoff(
   InitializeMaterialResponsePK2(rParametersValues);
 }
 
-//************************************************************************************
-//************************************************************************************
+//******************************************************************************
+//******************************************************************************
 
-//******************************************************************************
-//******************************************************************************
 void RVELaw::FinalizeMaterialResponsePK2(
     ConstitutiveLaw::Parameters &rParametersValues) {
 
@@ -398,7 +395,7 @@ void RVELaw::FinalizeMaterialResponsePK2(
   const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
 
   Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
-  AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+  AddInitialStrainVectorContribution(r_strain_vector);
 
   for (std::size_t i = 0; i < nr_points; i++) {
     Vector stress(nr_comps);
@@ -455,11 +452,9 @@ void RVELaw::FinalizeMaterialResponseKirchhoff(
   FinalizeMaterialResponsePK2(rParametersValues);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
-//******************************************************************************
-//******************************************************************************
 void RVELaw::CalculateIndividualMaterialResponse(
     Vector &stress, Matrix &constit, Vector &strain,
     const ProcessInfo &process_info, std::size_t ip_index) {
@@ -512,7 +507,7 @@ void RVELaw::CalculateMaterialResponseCauchy(
   const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
 
   Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
-  AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+  AddInitialStrainVectorContribution(r_strain_vector);
 
   BoundedMatrix<double, 6, 6> Rm;
   BoundedMatrix<double, 6, 6> iR;
@@ -801,7 +796,7 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
   //    rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
   //    rThisVariable == ALMANSI_STRAIN_VECTOR){
     rValue = rParametersValues.GetStrainVector();
-    AddInitialStrainVectorContribution(rValue, rParametersValues);
+    AddInitialStrainVectorContribution(rValue);
   }
 
   if (rThisVariable == DAMAGE_VARIABLE_VECTOR) {
@@ -813,7 +808,7 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
 
     const ProcessInfo& process_info = rParametersValues.GetProcessInfo();
     Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
-    AddInitialStrainVectorContribution(r_strain_vector, rParametersValues);
+    AddInitialStrainVectorContribution(r_strain_vector);
 
     for (std::size_t i = 0; i < nr_points; i++) {
       double dummy;

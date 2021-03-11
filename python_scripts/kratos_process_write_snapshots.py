@@ -49,7 +49,7 @@ class WriteSnapshots(km.Process):
                 self.model_part.ProcessInfo,
             )
             break
-        strain_macro = strain[0]
+        strain_macro = strain[0] * (-1)  # init strain was passed as negative
         for elem in self.model_part.Elements:
             strain_vectors = elem.CalculateOnIntegrationPoints(
                 km.STRAIN,

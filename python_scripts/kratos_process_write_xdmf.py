@@ -126,7 +126,7 @@ class WriteXdmf(km.Process):
                 km.INITIAL_STRAIN_VECTOR, self.model_part.ProcessInfo
             )
             break
-        strain = values[0]
+        strain = values[0] * (-1)  # init strain was passed as negative, so we compensate
         for node in self.model_part.Nodes:
             displ = node.GetSolutionStepValue(km.DISPLACEMENT)
             s_xx = strain[0]
@@ -179,7 +179,7 @@ class WriteXdmf(km.Process):
                     km.INITIAL_STRAIN_VECTOR, self.model_part.ProcessInfo
                 )
                 break
-            initial_strain = values[0]
+            initial_strain = values[0] * (-1)  # init strain was passed as negative, so we compensate
             strain_fluctuant = strain - initial_strain
 
             point_data = {
