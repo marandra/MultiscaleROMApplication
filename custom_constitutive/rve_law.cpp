@@ -8,14 +8,17 @@
 #include <cstddef>
 
 namespace Kratos {
-/***********************************************************************************/
+
+//******************************************************************************
 // Default constructor
-/***********************************************************************************/
+//******************************************************************************
+
 RVELaw::RVELaw() {}
 
-/***********************************************************************************/
+//******************************************************************************
 // Main constructor, used by Create
-/***********************************************************************************/
+//******************************************************************************
+
 RVELaw::RVELaw(Kratos::Parameters Params) {
   // Parse RVE materials filename from Parameters
   const Kratos::Parameters default_parameters(R"(
@@ -140,9 +143,10 @@ RVELaw::RVELaw(Kratos::Parameters Params) {
   mModesWeights.clear(); // values initialized to zero
 }
 
-/***********************************************************************************/
+//******************************************************************************
 // Constructor used by Clone()
-/***********************************************************************************/
+//******************************************************************************
+
 RVELaw::RVELaw(PropertiesMap pProperties, std::vector<Matrix> B_list,
                std::vector<double> IW_list,
                std::vector<ConstitutiveLaw::Pointer> CL_list,
@@ -158,34 +162,38 @@ RVELaw::RVELaw(PropertiesMap pProperties, std::vector<Matrix> B_list,
   mModesWeights.clear(); // values initialized to zero
 }
 
-/***********************************************************************************/
+//******************************************************************************
 // Destructor
-/***********************************************************************************/
+//******************************************************************************
+
 RVELaw::~RVELaw() {}
 
-/***********************************************************************************/
+//******************************************************************************
 // Create
-/***********************************************************************************/
+//******************************************************************************
+
 ConstitutiveLaw::Pointer RVELaw::Create(Kratos::Parameters Params) const {
   return Kratos::make_shared<RVELaw>(Params);
 }
 
-/***********************************************************************************/
+//******************************************************************************
 // Clone
-/***********************************************************************************/
+//******************************************************************************
+
 ConstitutiveLaw::Pointer RVELaw::Clone() const {
   return Kratos::make_shared<RVELaw>(
       mProperties_map, mB_vec, mIW_vec, mCL_vec, mPropId_vec,
       mAbsoluteTolerance, mRelativeTolerance, mMaxIteration, mVerbose, mQ);
 }
 
-/***********************************************************************************/
+//******************************************************************************
 // Copy
-/***********************************************************************************/
+//******************************************************************************
+
 RVELaw::RVELaw(const RVELaw &rOther) : ConstitutiveLaw(rOther) {}
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 //
 // bool RVELaw::Has(const Variable<bool>& rThisVariable)
 //{
@@ -197,9 +205,8 @@ RVELaw::RVELaw(const RVELaw &rOther) : ConstitutiveLaw(rOther) {}
 //    return false;
 //}
 //
-
-//***********************************************************************************/
-//***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 bool RVELaw::Has(const Variable<double> &rThisVariable) {
   if (rThisVariable == STRAIN_ENERGY) {
@@ -207,11 +214,12 @@ bool RVELaw::Has(const Variable<double> &rThisVariable) {
     return false;
   }
 
+
   return false;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 bool RVELaw::Has(const Variable<Vector> &rThisVariable) {
   if (rThisVariable == REDUCED_MODES_WEIGHTS) {
@@ -227,7 +235,7 @@ bool RVELaw::Has(const Variable<Vector> &rThisVariable) {
     return false;
   }
 
-  // TODO: below measures are intercepted by BaseSolid element
+  // TODO: following strain measures are intercepted by BaseSolid element
 
   // if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
   //    // explicitly returning "false", so the element calls
@@ -241,8 +249,8 @@ bool RVELaw::Has(const Variable<Vector> &rThisVariable) {
   return false;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 Vector &RVELaw::GetValue(const Variable<Vector> &rThisVariable,
                          Vector &rValue) {
@@ -266,8 +274,8 @@ Vector &RVELaw::GetValue(const Variable<Vector> &rThisVariable,
   return rValue;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::SetValue(const Variable<Vector> &rThisVariable,
                       const Vector &rValue, const ProcessInfo &rProcessInfo) {
@@ -284,8 +292,8 @@ void RVELaw::SetValue(const Variable<Vector> &rThisVariable,
   }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::InitializeMaterial(const Properties &rUnusedProperties,
                                 const GeometryType &rUnusedElementGeometry,
@@ -301,8 +309,8 @@ void RVELaw::InitializeMaterial(const Properties &rUnusedProperties,
   }
 }
 
-//*****************************************************************************
-//*****************************************************************************
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::InitializeMaterialResponsePK2(
     ConstitutiveLaw::Parameters &rValues) {
@@ -367,8 +375,8 @@ void RVELaw::InitializeMaterialResponseKirchhoff(
   InitializeMaterialResponsePK2(rParametersValues);
 }
 
-//************************************************************************************
-//************************************************************************************
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::FinalizeMaterialResponsePK2(
     ConstitutiveLaw::Parameters &rParametersValues) {
@@ -433,114 +441,8 @@ void RVELaw::FinalizeMaterialResponseKirchhoff(
     ConstitutiveLaw::Parameters &rParametersValues) {
   FinalizeMaterialResponsePK2(rParametersValues);
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void RVELaw::ComputeRotationMatrices(BoundedMatrix<double, 6, 6> &Rm,
-                                     BoundedMatrix<double, 6, 6> &iR) {
-  // Prepare rotation matices
-  BoundedMatrix<double, 3, 3> iQ;
-  BoundedMatrix<double, 3, 3> Q;
-  double l1, l2, l3, m1, m2, m3, n1, n2, n3;
-  // inverse Rotation matrix (stress)
-  mQ.conjugate().ToRotationMatrix(iQ);
-  l1 = iQ(0, 0);
-  l2 = iQ(0, 1);
-  l3 = iQ(0, 2);
-  m1 = iQ(1, 0);
-  m2 = iQ(1, 1);
-  m3 = iQ(1, 2);
-  n1 = iQ(2, 0);
-  n2 = iQ(2, 1);
-  n3 = iQ(2, 2);
-  iR(0, 0) = l1 * l1;
-  iR(0, 1) = l2 * l2;
-  iR(0, 2) = l3 * l3;
-  iR(0, 3) = 2 * l2 * l3;
-  iR(0, 4) = 2 * l1 * l3;
-  iR(0, 5) = 2 * l1 * l2;
-  iR(1, 0) = m1 * m1;
-  iR(1, 1) = m2 * m2;
-  iR(1, 2) = m3 * m3;
-  iR(1, 3) = 2 * m2 * m3;
-  iR(1, 4) = 2 * m1 * m3;
-  iR(1, 5) = 2 * m1 * m2;
-  iR(2, 0) = n1 * n1;
-  iR(2, 1) = n2 * n2;
-  iR(2, 2) = n3 * n3;
-  iR(2, 3) = 2 * n2 * n3;
-  iR(2, 4) = 2 * n1 * n3;
-  iR(2, 5) = 2 * n1 * n2;
-  iR(3, 0) = m1 * n1;
-  iR(3, 1) = m2 * n2;
-  iR(3, 2) = m3 * n3;
-  iR(3, 3) = (m2 * n3 + m3 * n2);
-  iR(3, 4) = (m1 * n3 + m3 * n1);
-  iR(3, 5) = (m1 * n2 + m2 * n1);
-  iR(4, 0) = l1 * n1;
-  iR(4, 1) = l2 * n2;
-  iR(4, 2) = l3 * n3;
-  iR(4, 3) = (l2 * n3 + l3 * n2);
-  iR(4, 4) = (l1 * n3 + l3 * n1);
-  iR(4, 5) = (l1 * n2 + l2 * n1);
-  iR(5, 0) = l1 * m1;
-  iR(5, 1) = l2 * m2;
-  iR(5, 2) = l3 * m3;
-  iR(5, 3) = (l2 * m3 + l3 * m2);
-  iR(5, 4) = (l1 * m3 + l3 * m1);
-  iR(5, 5) = (l1 * m2 + l2 * m1);
-  // modified rotation matrix (strain voigt)
-  mQ.ToRotationMatrix(Q);
-  l1 = Q(0, 0);
-  l2 = Q(0, 1);
-  l3 = Q(0, 2);
-  m1 = Q(1, 0);
-  m2 = Q(1, 1);
-  m3 = Q(1, 2);
-  n1 = Q(2, 0);
-  n2 = Q(2, 1);
-  n3 = Q(2, 2);
-  Rm(0, 0) = l1 * l1;
-  Rm(0, 1) = l2 * l2;
-  Rm(0, 2) = l3 * l3;
-  Rm(0, 3) = l2 * l3;
-  Rm(0, 4) = l1 * l3;
-  Rm(0, 5) = l1 * l2;
-  Rm(1, 0) = m1 * m1;
-  Rm(1, 1) = m2 * m2;
-  Rm(1, 2) = m3 * m3;
-  Rm(1, 3) = m2 * m3;
-  Rm(1, 4) = m1 * m3;
-  Rm(1, 5) = m1 * m2;
-  Rm(2, 0) = n1 * n1;
-  Rm(2, 1) = n2 * n2;
-  Rm(2, 2) = n3 * n3;
-  Rm(2, 3) = n2 * n3;
-  Rm(2, 4) = n1 * n3;
-  Rm(2, 5) = n1 * n2;
-  Rm(3, 0) = 2 * m1 * n1;
-  Rm(3, 1) = 2 * m2 * n2;
-  Rm(3, 2) = 2 * m3 * n3;
-  Rm(3, 3) = (m2 * n3 + m3 * n2);
-  Rm(3, 4) = (m1 * n3 + m3 * n1);
-  Rm(3, 5) = (m1 * n2 + m2 * n1);
-  Rm(4, 0) = 2 * l1 * n1;
-  Rm(4, 1) = 2 * l2 * n2;
-  Rm(4, 2) = 2 * l3 * n3;
-  Rm(4, 3) = (l2 * n3 + l3 * n2);
-  Rm(4, 4) = (l1 * n3 + l3 * n1);
-  Rm(4, 5) = (l1 * n2 + l2 * n1);
-  Rm(5, 0) = 2 * l1 * m1;
-  Rm(5, 1) = 2 * l2 * m2;
-  Rm(5, 2) = 2 * l3 * m3;
-  Rm(5, 3) = (l2 * m3 + l3 * m2);
-  Rm(5, 4) = (l1 * m3 + l3 * m1);
-  Rm(5, 5) = (l1 * m2 + l2 * m1);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::CalculateIndividualMaterialResponse(
     Vector &stress, Matrix &constit, Vector &strain,
@@ -708,8 +610,8 @@ void RVELaw::CalculateMaterialResponseKirchhoff(
   CalculateMaterialResponseCauchy(rParametersValues);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx) {
   const std::size_t nr_modes = mB_vec[0].size2();
@@ -743,8 +645,8 @@ void RVELaw::Solve(const Matrix &A, const Vector &res, Vector &Dx) {
   }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro,
                         const ProcessInfo &process_info) {
@@ -770,8 +672,8 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro,
   }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 // bool& RVELaw::CalculateValue(
 //        ConstitutiveLaw::Parameters& rValues,
@@ -809,8 +711,8 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &strain_macro,
 //    return rValue;
 //}
 
-//************************************************************************************
-//************************************************************************************
+//******************************************************************************
+//******************************************************************************
 
 double &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
                                const Variable<double> &rThisVariable,
@@ -849,8 +751,8 @@ double &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
   return rValue;
 }
 
-//************************************************************************************
-//************************************************************************************
+//******************************************************************************
+//******************************************************************************
 
 Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
                                const Variable<Vector> &rThisVariable,
@@ -931,8 +833,8 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
   return rValue;
 }
 
-//************************************************************************************
-//************************************************************************************
+//******************************************************************************
+//******************************************************************************
 
 Matrix &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
                                const Variable<Matrix> &rThisVariable,
@@ -940,7 +842,7 @@ Matrix &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
   if (rThisVariable == CAUCHY_STRESS_VECTOR_LIST) {
     const std::size_t nr_points = mB_vec.size();
     const std::size_t nr_comps = GetStrainSize();
-    const Vector &strain_macro = rParametersValues.GetStrainVector();
+    const Vector &r_strain_vector = rParametersValues.GetStrainVector();
     const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
 
     if (rValue.size1() != nr_points || rValue.size2() != nr_comps)
@@ -948,7 +850,7 @@ Matrix &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
     rValue.clear();
 
     for (std::size_t i = 0; i < nr_points; i++) {
-      Vector strain = strain_macro + prod(mB_vec[i], mModesWeights);
+      Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
       Vector stress(nr_comps);
       Matrix constit(nr_comps, nr_comps); // unused
       CalculateIndividualMaterialResponse(stress, constit, strain, process_info,
@@ -960,16 +862,121 @@ Matrix &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
   return rValue;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
+
+void RVELaw::ComputeRotationMatrices(BoundedMatrix<double, 6, 6> &Rm,
+                                     BoundedMatrix<double, 6, 6> &iR) {
+  // Prepare rotation matices
+  BoundedMatrix<double, 3, 3> iQ;
+  BoundedMatrix<double, 3, 3> Q;
+  double l1, l2, l3, m1, m2, m3, n1, n2, n3;
+  // inverse Rotation matrix (stress)
+  mQ.conjugate().ToRotationMatrix(iQ);
+  l1 = iQ(0, 0);
+  l2 = iQ(0, 1);
+  l3 = iQ(0, 2);
+  m1 = iQ(1, 0);
+  m2 = iQ(1, 1);
+  m3 = iQ(1, 2);
+  n1 = iQ(2, 0);
+  n2 = iQ(2, 1);
+  n3 = iQ(2, 2);
+  iR(0, 0) = l1 * l1;
+  iR(0, 1) = l2 * l2;
+  iR(0, 2) = l3 * l3;
+  iR(0, 3) = 2 * l2 * l3;
+  iR(0, 4) = 2 * l1 * l3;
+  iR(0, 5) = 2 * l1 * l2;
+  iR(1, 0) = m1 * m1;
+  iR(1, 1) = m2 * m2;
+  iR(1, 2) = m3 * m3;
+  iR(1, 3) = 2 * m2 * m3;
+  iR(1, 4) = 2 * m1 * m3;
+  iR(1, 5) = 2 * m1 * m2;
+  iR(2, 0) = n1 * n1;
+  iR(2, 1) = n2 * n2;
+  iR(2, 2) = n3 * n3;
+  iR(2, 3) = 2 * n2 * n3;
+  iR(2, 4) = 2 * n1 * n3;
+  iR(2, 5) = 2 * n1 * n2;
+  iR(3, 0) = m1 * n1;
+  iR(3, 1) = m2 * n2;
+  iR(3, 2) = m3 * n3;
+  iR(3, 3) = (m2 * n3 + m3 * n2);
+  iR(3, 4) = (m1 * n3 + m3 * n1);
+  iR(3, 5) = (m1 * n2 + m2 * n1);
+  iR(4, 0) = l1 * n1;
+  iR(4, 1) = l2 * n2;
+  iR(4, 2) = l3 * n3;
+  iR(4, 3) = (l2 * n3 + l3 * n2);
+  iR(4, 4) = (l1 * n3 + l3 * n1);
+  iR(4, 5) = (l1 * n2 + l2 * n1);
+  iR(5, 0) = l1 * m1;
+  iR(5, 1) = l2 * m2;
+  iR(5, 2) = l3 * m3;
+  iR(5, 3) = (l2 * m3 + l3 * m2);
+  iR(5, 4) = (l1 * m3 + l3 * m1);
+  iR(5, 5) = (l1 * m2 + l2 * m1);
+  // modified rotation matrix (strain voigt)
+  mQ.ToRotationMatrix(Q);
+  l1 = Q(0, 0);
+  l2 = Q(0, 1);
+  l3 = Q(0, 2);
+  m1 = Q(1, 0);
+  m2 = Q(1, 1);
+  m3 = Q(1, 2);
+  n1 = Q(2, 0);
+  n2 = Q(2, 1);
+  n3 = Q(2, 2);
+  Rm(0, 0) = l1 * l1;
+  Rm(0, 1) = l2 * l2;
+  Rm(0, 2) = l3 * l3;
+  Rm(0, 3) = l2 * l3;
+  Rm(0, 4) = l1 * l3;
+  Rm(0, 5) = l1 * l2;
+  Rm(1, 0) = m1 * m1;
+  Rm(1, 1) = m2 * m2;
+  Rm(1, 2) = m3 * m3;
+  Rm(1, 3) = m2 * m3;
+  Rm(1, 4) = m1 * m3;
+  Rm(1, 5) = m1 * m2;
+  Rm(2, 0) = n1 * n1;
+  Rm(2, 1) = n2 * n2;
+  Rm(2, 2) = n3 * n3;
+  Rm(2, 3) = n2 * n3;
+  Rm(2, 4) = n1 * n3;
+  Rm(2, 5) = n1 * n2;
+  Rm(3, 0) = 2 * m1 * n1;
+  Rm(3, 1) = 2 * m2 * n2;
+  Rm(3, 2) = 2 * m3 * n3;
+  Rm(3, 3) = (m2 * n3 + m3 * n2);
+  Rm(3, 4) = (m1 * n3 + m3 * n1);
+  Rm(3, 5) = (m1 * n2 + m2 * n1);
+  Rm(4, 0) = 2 * l1 * n1;
+  Rm(4, 1) = 2 * l2 * n2;
+  Rm(4, 2) = 2 * l3 * n3;
+  Rm(4, 3) = (l2 * n3 + l3 * n2);
+  Rm(4, 4) = (l1 * n3 + l3 * n1);
+  Rm(4, 5) = (l1 * n2 + l2 * n1);
+  Rm(5, 0) = 2 * l1 * m1;
+  Rm(5, 1) = 2 * l2 * m2;
+  Rm(5, 2) = 2 * l3 * m3;
+  Rm(5, 3) = (l2 * m3 + l3 * m2);
+  Rm(5, 4) = (l1 * m3 + l3 * m1);
+  Rm(5, 5) = (l1 * m2 + l2 * m1);
+}
+
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::LSplit(std::string &rLine) {
   std::stringstream ss(rLine);
   std::getline(ss, rLine, '.');
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::RSplit(std::string &rLine) {
   std::stringstream ss(rLine);
@@ -979,8 +986,8 @@ void RVELaw::RSplit(std::string &rLine) {
   }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 std::string RVELaw::ReadFile(const std::string &filename) const {
   std::ifstream infile(filename);
@@ -991,8 +998,8 @@ std::string RVELaw::ReadFile(const std::string &filename) const {
   return buffer.str();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+//******************************************************************************
+//******************************************************************************
 
 int RVELaw::Check(const Properties &rUnusedProperties,
                   const GeometryType &rUnusedElementGeometry,
@@ -1015,8 +1022,8 @@ int RVELaw::Check(const Properties &rUnusedProperties,
   return 0;
 }
 
-//************************************************************************************
-//************************************************************************************
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
@@ -1028,8 +1035,8 @@ void RVELaw::save(Serializer &rSerializer) const {
   rSerializer.save("mModesWeights", mModesWeights);
 }
 
-//************************************************************************************
-//************************************************************************************
+//******************************************************************************
+//******************************************************************************
 
 void RVELaw::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
