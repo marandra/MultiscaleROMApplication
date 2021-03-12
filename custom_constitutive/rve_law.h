@@ -27,7 +27,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw : public ConstitutiveLaw
+class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw
+    : public ConstitutiveLaw
 {
 public:
 

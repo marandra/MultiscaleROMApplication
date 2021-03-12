@@ -214,6 +214,10 @@ bool RVELaw::Has(const Variable<double> &rThisVariable) {
     return false;
   }
 
+  if (rThisVariable == DAMAGE_VARIABLE) {
+    // explicitly returning "false", so the element calls CalculateValue(...)
+    return false;
+  }
 
   return false;
 }
@@ -320,6 +324,9 @@ void RVELaw::InitializeMaterialResponsePK2(
   const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
 
   Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
+  if (rParametersValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+      noalias(r_strain_vector) += rParametersValues.GetProcessInfo()[INITIAL_STRAIN];
+  }
 
   for (std::size_t i = 0; i < nr_points; i++) {
     Vector stress(nr_comps);
@@ -388,6 +395,9 @@ void RVELaw::FinalizeMaterialResponsePK2(
   const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
 
   Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
+  if (rParametersValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+      noalias(r_strain_vector) += rParametersValues.GetProcessInfo()[INITIAL_STRAIN];
+  }
 
   for (std::size_t i = 0; i < nr_points; i++) {
     Vector stress(nr_comps);
