@@ -594,6 +594,9 @@ void RVELaw::CalculateMaterialResponseCauchy(
   const ProcessInfo &process_info = rValues.GetProcessInfo();
 
   Vector &strain_macro = rValues.GetStrainVector(); // input
+  if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+      noalias(strain_macro) += rValues.GetProcessInfo()[INITIAL_STRAIN];
+  }
 
   BoundedMatrix<double, 6, 6> Rm;
   BoundedMatrix<double, 6, 6> iR;
