@@ -13,7 +13,8 @@ namespace Kratos {
 // Default constructor
 //******************************************************************************
 
-RVELaw::RVELaw() {}
+RVELaw::RVELaw() : ElasticIsotropic3D() {}
+//RVELaw::RVELaw() {}
 
 //******************************************************************************
 // Main constructor, used by Create
@@ -190,7 +191,10 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const {
 // Copy
 //******************************************************************************
 
-RVELaw::RVELaw(const RVELaw &rOther) : ConstitutiveLaw(rOther) {}
+RVELaw::RVELaw(const RVELaw &rOther)
+//    : ConstitutiveLaw(rOther)
+    : ElasticIsotropic3D(rOther)
+{}
 
 //******************************************************************************
 //******************************************************************************

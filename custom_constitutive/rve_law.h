@@ -6,7 +6,8 @@
 #include <unordered_map>
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+//#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -28,7 +29,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw
-    : public ConstitutiveLaw
+    : public ElasticIsotropic3D
+//    : public ConstitutiveLaw
 {
 public:
 
@@ -193,6 +195,18 @@ public:
     {
         rOStream << "Multiscale HPROM constitutive law";
     };
+
+
+
+bool RequiresInitializeMaterialResponse() override
+{
+    return true;
+}
+
+bool RequiresFinalizeMaterialResponse() override
+{
+    return true;
+}
 
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
     void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
