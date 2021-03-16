@@ -46,11 +46,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMultiscaleROMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosMultiscaleROMCore)
-    cotire(KratosMultiscaleROMApplication)
-endif(USE_COTIRE MATCHES ON)
+# Set batch size in the unity build
+if(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosMultiscaleROMCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosMultiscaleROMApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MultiscaleROMApplication.py KratosMultiphysics/MultiscaleROMApplication/__init__.py )

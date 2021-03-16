@@ -6,7 +6,6 @@
 #include <unordered_map>
 
 // Project includes
-//#include "custom_constitutive/elastic_isotropic_3d.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -29,7 +28,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 class KRATOS_API(MULTISCALE_ROM_APPLICATION) RVELaw
-//    : public ElasticIsotropic3D
     : public ConstitutiveLaw
 {
 public:

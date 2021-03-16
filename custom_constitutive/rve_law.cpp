@@ -13,7 +13,6 @@ namespace Kratos {
 // Default constructor
 //******************************************************************************
 
-//RVELaw::RVELaw() : ElasticIsotropic3D() {}
 RVELaw::RVELaw() {}
 
 //******************************************************************************
@@ -193,7 +192,6 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const {
 
 RVELaw::RVELaw(const RVELaw &rOther)
     : ConstitutiveLaw(rOther)
-//    : ElasticIsotropic3D(rOther)
 {}
 
 //******************************************************************************
@@ -826,7 +824,6 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
       rValue[i] = rValue_i;
     }
   }
-
 
   if (rThisVariable == INITIAL_STRAIN_VECTOR) {
       if (this->HasInitialState()) {
