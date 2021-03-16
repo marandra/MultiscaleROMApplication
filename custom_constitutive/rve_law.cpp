@@ -13,7 +13,8 @@ namespace Kratos {
 // Default constructor
 //******************************************************************************
 
-RVELaw::RVELaw() : ElasticIsotropic3D() {}
+//RVELaw::RVELaw() : ElasticIsotropic3D() {}
+RVELaw::RVELaw() {}
 
 //******************************************************************************
 // Main constructor, used by Create
@@ -191,7 +192,8 @@ ConstitutiveLaw::Pointer RVELaw::Clone() const {
 //******************************************************************************
 
 RVELaw::RVELaw(const RVELaw &rOther)
-    : ElasticIsotropic3D(rOther)
+    : ConstitutiveLaw(rOther)
+//    : ElasticIsotropic3D(rOther)
 {}
 
 //******************************************************************************
@@ -776,6 +778,7 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
 
     const ProcessInfo &process_info = rParametersValues.GetProcessInfo();
     Vector &r_strain_vector = rParametersValues.GetStrainVector(); // input
+    AddInitialStrainVectorContribution(rValue);
 
     for (std::size_t i = 0; i < nr_points; i++) {
       double dummy;
@@ -806,9 +809,9 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
       rValue.resize(nr_points, false);
     rValue.clear();
 
-    const ProcessInfo& process_info = rParametersValues.GetProcessInfo();
-    Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
-    AddInitialStrainVectorContribution(r_strain_vector);
+    //const ProcessInfo& process_info = rParametersValues.GetProcessInfo();
+    //Vector& r_strain_vector = rParametersValues.GetStrainVector(); // input
+    //AddInitialStrainVectorContribution(r_strain_vector);
 
     for (std::size_t i = 0; i < nr_points; i++) {
       double dummy;
@@ -816,18 +819,14 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
       const Properties material_props = mProperties_map[mPropId_vec[i]];
       ConstitutiveLaw::Parameters cl_params;
       cl_params.SetMaterialProperties(material_props);
-      Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
-      cl_params.SetStrainVector(strain);
-      cl_params.SetProcessInfo(process_info);
+      //Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
+      //cl_params.SetStrainVector(strain);
+      //cl_params.SetProcessInfo(process_info);
       mCL_vec[i]->CalculateValue(cl_params, DAMAGE_VARIABLE, rValue_i);
       rValue[i] = rValue_i;
     }
   }
 
-  //if (rThisVariable == STRESSES) {
-  //    CalculateMaterialResponseCauchy(rParametersValues);
-  //       rValue = rParametersValues.GetStressVector();
-  //    }
 
   if (rThisVariable == INITIAL_STRAIN_VECTOR) {
       if (this->HasInitialState()) {
