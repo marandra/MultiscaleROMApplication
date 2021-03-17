@@ -78,6 +78,10 @@ class WriteSnapshots(km.Process):
     def write_rvalue(self, group, filename, timestep):
         data_list = []
         for elem in self.model_part.Elements:
+            # TODO: Check if just skipping elements without internal variables
+            # (e.g. LinearElastic3D) works
+            if not elem.Has(km.INTERNAL_VARIABLES):
+                continue
             values = elem.CalculateOnIntegrationPoints(
                 km.INTERNAL_VARIABLES, self.model_part.ProcessInfo
             )
