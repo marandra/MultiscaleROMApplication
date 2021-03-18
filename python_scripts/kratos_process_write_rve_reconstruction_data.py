@@ -91,15 +91,15 @@ class WriteRveReconstructionData(Kratos.Process):
                 data = [x for x in ip_data[self.ip]]
                 self.data["macro_strain"] = data
 
-                # Get strain energy list
-                ip_data = elem.CalculateOnIntegrationPoints(
-                    MultiscaleROM.STRAIN_ENERGY_VECTOR, self.model_part.ProcessInfo
-                )
-                tmp_Vector = ip_data[self.ip]
-                tmp_list = []
-                for i in tmp_Vector:
-                    tmp_list.append(i)
-                self.data["strain_energy"] = tmp_list
+                ## Get strain energy list
+                #ip_data = elem.CalculateOnIntegrationPoints(
+                #    MultiscaleROM.STRAIN_ENERGY_VECTOR, self.model_part.ProcessInfo
+                #)
+                #tmp_Vector = ip_data[self.ip]
+                #tmp_list = []
+                #for i in tmp_Vector:
+                #    tmp_list.append(i)
+                #self.data["strain_energy"] = tmp_list
 
                 # Get r_value list
                 ip_data = elem.CalculateOnIntegrationPoints(
