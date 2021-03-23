@@ -333,8 +333,9 @@ void RVELaw::InitializeMaterialResponsePK2(
     Matrix constit(nr_comps, nr_comps);
     Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     Flags cl_flags;
-    cl_flags.Set(COMPUTE_STRESS, true);
-    cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+    cl_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    cl_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     Vector N(dim);
     Matrix DN_DX(dim, 2);
     Matrix F(dim, dim);
@@ -402,8 +403,9 @@ void RVELaw::FinalizeMaterialResponsePK2(
     Matrix constit(nr_comps, nr_comps);
     Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     Flags cl_flags;
-    cl_flags.Set(COMPUTE_STRESS, true);
-    cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+    cl_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    cl_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     Vector N(dim);
     Matrix DN_DX(dim, 2);
     Matrix F(dim, dim);
@@ -461,8 +463,9 @@ void RVELaw::CalculateIndividualMaterialResponse(
   // create and pass individual parameters
   const auto dim = WorkingSpaceDimension();
   Flags cl_flags;
-  cl_flags.Set(COMPUTE_STRESS, true);
-  cl_flags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+  cl_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+  cl_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+  cl_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
   Vector N(dim);
   Matrix DN_DX(dim, 2);
@@ -787,6 +790,10 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
       Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
       cl_params.SetStrainVector(strain);
       cl_params.SetProcessInfo(process_info);
+      Flags cl_flags;
+      cl_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+      cl_params.SetOptions(cl_flags);
+
       mCL_vec[i]->CalculateValue(cl_params, STRAIN_ENERGY, strain_energy);
       rValue[i] = strain_energy;
     }
