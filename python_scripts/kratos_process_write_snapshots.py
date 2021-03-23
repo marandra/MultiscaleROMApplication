@@ -17,7 +17,9 @@ class WriteSnapshots(km.Process):
         default_settings = km.Parameters(
             """
             {"model_part_name": "unset_model_part_name",
-             "material_root_path": "."}
+             "material_root_path": ".",
+             "root_path": "."
+             }
             """
         )
         settings.ValidateAndAssignDefaults(default_settings)
@@ -27,6 +29,7 @@ class WriteSnapshots(km.Process):
         C = Common(Path(settings["material_root_path"].GetString()))
         self.config = C.config
 
+        self.root_path = Path (settings["root_path"].GetString())
         self.model_part = model[settings["model_part_name"].GetString()]
         self.timestep_counter = 1
         self.inelastic_flag = False
@@ -41,7 +44,7 @@ class WriteSnapshots(km.Process):
                 return True
         return False
 
-    def write_strain(self, group, filename, timestep):
+    def write_strain(self, group, filepath, timestep):
         data_list = []
         for elem in self.model_part.Elements:
             strain = elem.CalculateOnIntegrationPoints(
@@ -60,10 +63,10 @@ class WriteSnapshots(km.Process):
                     strain_fluctuant_i = strain_i - strain_macro[i]
                     data_list.append(strain_fluctuant_i)
         bases.write_field_to_hdf5(
-            filename, group, self.config["strain_name"], timestep, data_list
+            filepath, group, self.config["strain_name"], timestep, data_list
         )
 
-    def write_energy(self, group, filename, timestep):
+    def write_energy(self, group, filepath, timestep):
         data_list = []
         for elem in self.model_part.Elements:
             strain_energy_values = elem.CalculateOnIntegrationPoints(
@@ -72,10 +75,10 @@ class WriteSnapshots(km.Process):
             for strain_energy_ip in strain_energy_values:
                 data_list.append(strain_energy_ip)
         bases.write_field_to_hdf5(
-            filename, group, self.config["energy_name"], timestep, data_list
+            filepath, group, self.config["energy_name"], timestep, data_list
         )
 
-    def write_rvalue(self, group, filename, timestep):
+    def write_rvalue(self, group, filepath, timestep):
         data_list = []
         for elem in self.model_part.Elements:
             # TODO: Check if just skipping elements without internal variables
@@ -88,7 +91,7 @@ class WriteSnapshots(km.Process):
             for value_ip in values:
                 data_list.append(value_ip[0])
         bases.write_field_to_hdf5(
-            filename, group, self.config["rvalue_name"], timestep, data_list
+            filepath, group, self.config["rvalue_name"], timestep, data_list
         )
 
     ###########################################################
@@ -96,7 +99,7 @@ class WriteSnapshots(km.Process):
 
     def ExecuteInitialize(self):
         # Create new file
-        fname = self.config["snapshots_fname"]
+        fname = self.root_path / self.config["snapshots_fname"]
         h5py.File(fname, "w").close()
 
     def ExecuteFinalizeSolutionStep(self):
@@ -107,9 +110,8 @@ class WriteSnapshots(km.Process):
             group = "ELASTIC"
         else:
             group = "INELASTIC"
-        print("[WriteSnapshotProcess] Snapshot group: ", group)
 
-        fname = self.config["snapshots_fname"]
+        fname = self.root_path / self.config["snapshots_fname"]
         self.write_strain(group, fname, self.timestep_counter)
         self.write_energy(group, fname, self.timestep_counter)
         self.write_rvalue(group, fname, self.timestep_counter)
@@ -117,7 +119,7 @@ class WriteSnapshots(km.Process):
         self.timestep_counter += 1
 
     def ExecuteFinalize(self):
-        fname = self.config["snapshots_fname"]
+        fname = self.root_path / self.config["snapshots_fname"]
         field = self.config["strain_name"]
         bases.generate_local_bases(
             Path.cwd(),
