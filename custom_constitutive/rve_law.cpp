@@ -516,7 +516,7 @@ void RVELaw::CalculateMaterialResponseCauchy(
   BoundedMatrix<double, 6, 6> iR;
   ComputeRotationMatrices(Rm, iR);
   // rotate
-  r_strain_vector = prod(Rm, r_strain_vector);
+  noalias(r_strain_vector) = prod(Rm, r_strain_vector);
 
   Vector &homog_stress = rParametersValues.GetStressVector(); // output
   homog_stress.clear();
@@ -535,7 +535,7 @@ void RVELaw::CalculateMaterialResponseCauchy(
 
   while (ratio > mRelativeTolerance and it < mMaxIteration) {
     Solve(A, res, Dx);
-    mModesWeights -= Dx;
+    noalias(mModesWeights) -= Dx;
     Accumulate(A, res, r_strain_vector, process_info);
     KRATOS_INFO_IF("RVE Law", mVerbose)
         << "Iteration " << it << " Relative:" << ratio << std::endl;
@@ -581,23 +581,23 @@ void RVELaw::CalculateMaterialResponseCauchy(
     Matrix constit(nr_comps, nr_comps);
     Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
-    homog_stress += mIW_vec[i] * stress;
-    homog_C_taylor += mIW_vec[i] * constit;
-    homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+    noalias(homog_stress) += mIW_vec[i] * stress;
+    noalias(homog_C_taylor) += mIW_vec[i] * constit;
+    noalias(homog_Q) += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
     vol_rve += mIW_vec[i];
   }
   homog_stress /= vol_rve;
-  homog_Op = -prod(invA, homog_Q);
+  noalias(homog_Op) = -prod(invA, homog_Q);
   for (std::size_t i = 0; i < nr_points; i++) {
     Vector stress(nr_comps);
     Matrix constit(nr_comps, nr_comps);
     Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     // TODO(marcelo): strain argument should be const
     CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
-    homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
+    noalias(homog_C_fluct_aux) += mIW_vec[i] * prod(constit, mB_vec[i]);
   }
   noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
-  homog_C = homog_C_taylor + homog_C_fluct;
+  noalias(homog_C) = homog_C_taylor + homog_C_fluct;
   homog_C /= vol_rve;
 
   // rotate stress to original base
@@ -835,7 +835,7 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
   if (rThisVariable == INITIAL_STRAIN_VECTOR) {
       if (this->HasInitialState()) {
          const auto& r_initial_state = GetInitialState();
-         rValue = r_initial_state.GetInitialStrainVector();
+         noalias(rValue) = r_initial_state.GetInitialStrainVector();
       }
   }
 
