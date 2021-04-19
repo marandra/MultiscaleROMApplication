@@ -1,8 +1,44 @@
+from functools import wraps
+import numpy
+import matplotlib.pyplot as plt
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ConstitutiveLawsApplication as CLA
-import numpy
-import matplotlib.pyplot as plt
+
+
+def test_convergence(func):
+    @wraps(func)
+    def wrapper(*args, **kargs):
+        factors = []
+        errors = []
+        linear = []
+        quadratic = []
+        alpha = 2.0
+        subdivisions = 10
+        dstrain = PARAMETERS["load"][-1] / PARAMETERS[
+            "nr_timesteps"] * PARAMETERS["strain"]
+        for i in range(subdivisions):
+            alpha /= 2.0
+            error_norm = _EstimateError(func, E, dstrain, alpha)
+            factors.append(alpha)
+            errors.append(error_norm)
+            linear.append(alpha)
+            quadratic.append(alpha * alpha)
+
+        print("DEBUG:")
+        print("factors:", factors)
+        print("errors:", errors)
+        print("linear:", linear)
+        print("quadratic:", quadratic)
+
+        plt.plot(factors, errors, "o-")
+        plt.plot(factors, linear, "--")
+        plt.plot(factors, quadratic, "--")
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.show()
+
+        return wrapper
 
 
 def VerifyTangent(E, DE, subdivisions=10):
@@ -33,36 +69,30 @@ def VerifyTangent(E, DE, subdivisions=10):
     plt.show()
 
 
-def _EstimateError(E, dE, alpha):
-
-    # here compute S(E)
-    _, t_S, C = constitutive_law_kratos(E)
-    S = t_S[-1]
-    dE = numpy.array(dE)
-    #calculate stress using linearized approach
-    S_linearized = S + alpha * numpy.inner(C, dE)
-    E_perturbed = E + alpha * dE
-    #here compute S(Eperturbed) = S(E+alpha*DE)
-    _, t_S, C = constitutive_law_kratos(E_perturbed)
-    #_, t_S, C = constitutive_law_python(E_perturbed)
-    S_perturbed = t_S[-1]
-
-    S_error = S_perturbed - S_linearized
-    S_error_norm = numpy.linalg.norm(S_error)
-
-    return S_error_norm
+def _EstimateError(strain, dstrain, alpha):
+    # Compute S(E)
+    _, stresses, tensors = constitutive_law_kratos(strain)
+    stress = stresses[-1]
+    tensor = tensors[-1]
+    # Calculate stress using linearized approach
+    stress_linearized = stress + alpha * numpy.inner(tensor, dstrain)
+    # Compute S(Eperturbed) = S(E+alpha*DE)
+    strain_perturbated = strain + alpha * dstrain
+    _, stresses, _ = constitutive_law_kratos(strain_perturbated)
+    stress_perturbated = stresses[-1]
+    return numpy.linalg.norm(stress_perturbated - stress_linearized)
 
 
-def get_step_loads():
-    ts_list = []
+def get_load_factors():
+    factors = []
     load = PARAMETERS["load"]
     for x in range(len(load) - 1):
         for i in numpy.linspace(load[x + 0],
                                 load[x + 1],
                                 PARAMETERS["nr_timesteps"],
                                 endpoint=False):
-            ts_list.append(i)
-    return ts_list
+            factors.append(i)
+    return factors
 
 
 def constitutive_law_kratos(init_strain):
@@ -91,10 +121,11 @@ def constitutive_law_kratos(init_strain):
 
     CL.InitializeMaterial(PROPERTIES, geom, KM.Vector(4))
 
-    t_strain = numpy.array([0, 0, 0, 0, 0, 0])
-    t_stress = numpy.array([0, 0, 0, 0, 0, 0])
-    for mult in get_step_loads():
-        s = KM.Vector(list(mult * init_strain))
+    strains = numpy.array([0, 0, 0, 0, 0, 0])
+    stresses = numpy.array([0, 0, 0, 0, 0, 0])
+    tensors = numpy.zeros((6, 6))
+    for factor in get_load_factors():
+        s = KM.Vector(list(factor * init_strain))
 
         cl_params.SetStrainVector(s)
         CL.InitializeMaterialResponseCauchy(cl_params)
@@ -105,19 +136,19 @@ def constitutive_law_kratos(init_strain):
         cl_params.SetStrainVector(s)
         CL.FinalizeMaterialResponseCauchy(cl_params)
 
-        strain = cl_params.GetStrainVector()
-        stress = cl_params.GetStressVector()
-        tensor = cl_params.GetConstitutiveMatrix()
+        strain_km = cl_params.GetStrainVector()
+        stress_km = cl_params.GetStressVector()
+        tensor_km = cl_params.GetConstitutiveMatrix()
 
-        t_strain = numpy.vstack((t_strain, strain))
-        t_stress = numpy.vstack((t_stress, stress))
+        strains = numpy.vstack((strains, strain_km))
+        stresses = numpy.vstack((stresses, stress_km))
+        tensor = numpy.zeros((6, 6))
+        for i in range(6):
+            for j in range(6):
+                tensor[i, j] = tensor_km[i, j]
+        tensors = numpy.vstack((tensors, tensor))
 
-    n_tensor = numpy.zeros((6, 6))
-    for i in range(6):
-        for j in range(6):
-            n_tensor[i, j] = tensor[i, j]
-
-    return t_strain, t_stress, n_tensor
+    return strains, stresses, tensors
 
 
 def constitutive_law_python(init_strain):
@@ -171,14 +202,21 @@ def constitutive_law_python(init_strain):
 
     # Main loop
     R = PROPERTIES[KM.YIELD_STRESS] / numpy.sqrt(PROPERTIES[KM.YOUNG_MODULUS])
-    t_strain = numpy.array([0, 0, 0, 0, 0, 0])
-    t_stress = numpy.array([0, 0, 0, 0, 0, 0])
-    for mult in get_step_loads():
-        strain = mult * init_strain
-        R, stress, tensor = calculate_material_response(strain)
-        t_strain = numpy.vstack((t_strain, strain))
-        t_stress = numpy.vstack((t_stress, stress))
-    return t_strain, t_stress, tensor
+    strains = numpy.array([0, 0, 0, 0, 0, 0])
+    stresses = numpy.array([0, 0, 0, 0, 0, 0])
+    tensors = numpy.zeros((6, 6))
+    for factor in get_load_factors():
+        strain = factor * init_strain
+        R, stress_km, tensor_km = calculate_material_response(strain)
+        strains = numpy.vstack((strains, strain))
+        stresses = numpy.vstack((stresses, stress_km))
+        tensor = numpy.zeros((6, 6))
+        for i in range(6):
+            for j in range(6):
+                tensor[i, j] = tensor_km[i, j]
+        tensors = numpy.vstack((tensors, tensor))
+
+    return strains, stresses, tensors
 
 
 #####################################################################
