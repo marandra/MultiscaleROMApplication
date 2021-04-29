@@ -535,7 +535,7 @@ void RVELaw::CalculateMaterialResponseCauchy(
 
   while (ratio > mRelativeTolerance and it < mMaxIteration) {
     Solve(A, res, Dx);
-    noalias(mModesWeights) -= Dx;
+    mModesWeights -= Dx;
     Accumulate(A, res, r_strain_vector, process_info);
     KRATOS_INFO_IF("RVE Law", mVerbose)
         << "Iteration " << it << " Relative:" << ratio << std::endl;
@@ -581,9 +581,9 @@ void RVELaw::CalculateMaterialResponseCauchy(
     Matrix constit(nr_comps, nr_comps);
     Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
-    noalias(homog_stress) += mIW_vec[i] * stress;
-    noalias(homog_C_taylor) += mIW_vec[i] * constit;
-    noalias(homog_Q) += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
+    homog_stress += mIW_vec[i] * stress;
+    homog_C_taylor += mIW_vec[i] * constit;
+    homog_Q += mIW_vec[i] * prod(trans(mB_vec[i]), constit);
     vol_rve += mIW_vec[i];
   }
   homog_stress /= vol_rve;
@@ -594,7 +594,7 @@ void RVELaw::CalculateMaterialResponseCauchy(
     Vector strain = r_strain_vector + prod(mB_vec[i], mModesWeights);
     // TODO(marcelo): strain argument should be const
     CalculateIndividualMaterialResponse(stress, constit, strain, process_info, i);
-    noalias(homog_C_fluct_aux) += mIW_vec[i] * prod(constit, mB_vec[i]);
+    homog_C_fluct_aux += mIW_vec[i] * prod(constit, mB_vec[i]);
   }
   noalias(homog_C_fluct) = prod(homog_C_fluct_aux, homog_Op);
   noalias(homog_C) = homog_C_taylor + homog_C_fluct;
@@ -679,8 +679,8 @@ void RVELaw::Accumulate(Matrix &A, Vector &res, const Vector &r_strain_vector,
     // TODO(marcelo): explicitly write triple product for A
     // Dij = BTij Ckl Blj = for k for l for j for i
     noalias(Aux1) = prod(constit, mB_vec[i]);
-    noalias(A) += mIW_vec[i] * prod(trans(mB_vec[i]), Aux1);
-    noalias(res) += mIW_vec[i] * prod(trans(mB_vec[i]), stress);
+    A += mIW_vec[i] * prod(trans(mB_vec[i]), Aux1);
+    res += mIW_vec[i] * prod(trans(mB_vec[i]), stress);
   }
 }
 
