@@ -516,7 +516,7 @@ void RVELaw::CalculateMaterialResponseCauchy(
   BoundedMatrix<double, 6, 6> iR;
   ComputeRotationMatrices(Rm, iR);
   // rotate
-  noalias(r_strain_vector) = prod(Rm, r_strain_vector);
+  r_strain_vector = prod(Rm, r_strain_vector);
 
   Vector &homog_stress = rParametersValues.GetStressVector(); // output
   homog_stress.clear();
