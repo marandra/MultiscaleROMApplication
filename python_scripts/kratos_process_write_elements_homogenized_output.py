@@ -20,7 +20,8 @@ def homogenization_function(self):
             km.CAUCHY_STRESS_VECTOR, self.model_part.ProcessInfo
         )
         strain = elem.CalculateOnIntegrationPoints(
-            km.STRAIN, self.model_part.ProcessInfo
+            #km.STRAIN, self.model_part.ProcessInfo
+            km.GREEN_LAGRANGE_STRAIN_VECTOR, self.model_part.ProcessInfo
         )
         weights = elem.CalculateOnIntegrationPoints(
             km.INTEGRATION_WEIGHT, self.model_part.ProcessInfo
