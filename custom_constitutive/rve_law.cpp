@@ -804,7 +804,7 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
   //    rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
   //    rThisVariable == ALMANSI_STRAIN_VECTOR){
     rValue = rParametersValues.GetStrainVector();
-    AddInitialStrainVectorContribution(rValue);
+    AddInitialStrainVectorContribution<StrainVectorType>(rValue);
   }
 
   if (rThisVariable == DAMAGE_VARIABLE_VECTOR) {
@@ -834,8 +834,9 @@ Vector &RVELaw::CalculateValue(ConstitutiveLaw::Parameters &rParametersValues,
 
   if (rThisVariable == INITIAL_STRAIN_VECTOR) {
       if (this->HasInitialState()) {
-         const auto& r_initial_state = GetInitialState();
-         noalias(rValue) = r_initial_state.GetInitialStrainVector();
+	  if (rValue.size() != GetStrainSize())
+	      rValue.resize(GetStrainSize());
+          noalias(rValue) = GetInitialState().GetInitialStrainVector();
       }
   }
 
