@@ -63,7 +63,7 @@ class WriteSnapshots(km.Process):
                     strain_fluctuant_i = strain_i - strain_macro[i]
                     data_list.append(strain_fluctuant_i)
         bases.write_field_to_hdf5(
-            filepath, group, self.config["strain_name"], timestep, data_list
+            filepath, group, "STRAIN", timestep, data_list
         )
 
     def write_energy(self, group, filepath, timestep):
@@ -75,7 +75,7 @@ class WriteSnapshots(km.Process):
             for strain_energy_ip in strain_energy_values:
                 data_list.append(strain_energy_ip)
         bases.write_field_to_hdf5(
-            filepath, group, self.config["energy_name"], timestep, data_list
+            filepath, group, "ENERGY", timestep, data_list
         )
 
     def write_rvalue(self, group, filepath, timestep):
@@ -91,7 +91,7 @@ class WriteSnapshots(km.Process):
             for value_ip in values:
                 data_list.append(value_ip[0])
         bases.write_field_to_hdf5(
-            filepath, group, self.config["rvalue_name"], timestep, data_list
+            filepath, group, "RVALUE", timestep, data_list
         )
 
     ###########################################################
@@ -120,7 +120,7 @@ class WriteSnapshots(km.Process):
 
     def ExecuteFinalize(self):
         fname = self.root_path / self.config["snapshots_fname"]
-        field = self.config["strain_name"]
+        field = "STRAIN"
         bases.generate_local_bases(
             Path.cwd(),
             field,
@@ -128,7 +128,7 @@ class WriteSnapshots(km.Process):
             self.config["local_bases_fname_pattern"].format(field),
             self.config["local_sv_fname_pattern"].format(field),
         )
-        field = self.config["energy_name"]
+        field = "ENERGY"
         bases.generate_local_bases(
             Path.cwd(),
             field,
@@ -136,7 +136,7 @@ class WriteSnapshots(km.Process):
             self.config["local_bases_fname_pattern"].format(field),
             self.config["local_sv_fname_pattern"].format(field),
         )
-        field = self.config["rvalue_name"]
+        field = "RVALUE"
         bases.generate_local_bases(
             Path.cwd(),
             field,
