@@ -1,7 +1,7 @@
-import KratosMultiphysics as Kratos
-import KratosMultiphysics.MultiscaleROMApplication as MSA
 import numpy
 from pathlib import Path
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.MultiscaleROMApplication as MSA
 from common import Common
 
 def Factory(settings, model):
@@ -14,14 +14,6 @@ def read_numpy_array(filename, file_format):
     else:
         array = numpy.loadtxt(filename)
     return array
-
-
-def save_numpy_array(filename, file_format, array):
-    if file_format == "binary":
-        numpy.save(filename, array)
-    else:
-        numpy.savetxt(filename, array)
-    return
 
 
 def numpy_to_kratos(np_matrix):
@@ -84,7 +76,6 @@ class LoadModesToProperties(Kratos.Process):
 
     def ExecuteInitialize(self):
         # Create global modes matrix
-        #modes_numpy = read_numpy_array(self.modes_filename, self.modes_file_format)[:,:self.nr_modes]
         modes_numpy = self.common.get_dataset("BASES", "STRAIN")[:,:self.nr_modes] 
         modes_matrix = numpy_to_kratos(modes_numpy)
         self.model_part.ProcessInfo[MSA.GLOBAL_MODES_MATRIX] = modes_matrix
@@ -100,25 +91,6 @@ class LoadModesToProperties(Kratos.Process):
         global_index_vector = numpy_to_kratos_vector(global_index_numpy)
         self.model_part.ProcessInfo[MSA.GLOBAL_INDEX_VECTOR] = global_index_vector
 
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
     def ExecuteFinalize(self):
         rhs_matrix = self.model_part.ProcessInfo[MSA.RHS_MATRIX]
         self.common.set_dataset(kratos_to_numpy(rhs_matrix), "CORRELATION", "STRAIN", self.nr_modes)
-        save_numpy_array(
-            self.output_filename, self.output_file_format, kratos_to_numpy(rhs_matrix)
-        )
-
