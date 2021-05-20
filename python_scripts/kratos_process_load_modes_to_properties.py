@@ -9,14 +9,6 @@ def Factory(settings, model):
     return LoadModesToProperties(settings["Parameters"], model)
 
 
-def read_numpy_array(filename, file_format):
-    if file_format == "binary":
-        array = numpy.load(filename)
-    else:
-        array = numpy.loadtxt(filename)
-    return array
-
-
 def numpy_to_kratos(np_matrix):
     nr_rows = numpy.shape(np_matrix)[0]
     nr_cols = numpy.shape(np_matrix)[1]
@@ -53,26 +45,16 @@ class LoadModesToProperties(Kratos.Process):
         {
             "mesh_id": 0,
             "model_part_name": "unset_model_part_name",
-            "modes_filename": "unset_filename",
             "global_index_filename": "unset_global_index_filename",
-            "modes_file_format": "binary",
             "number_modes_to_load": 0,
-            "modes_to_nodes_matrix_filename": "unset_modes_to_nodes_filename.npy",
-            "modes_to_nodes_matrix_file_format": "binary",
             "root_path": "unset_path"
         }
         """
         )
         settings.ValidateAndAssignDefaults(default_settings)
         self.model_part = model[settings["model_part_name"].GetString()]
-        self.modes_filename = settings["modes_filename"].GetString()
-        self.modes_file_format = settings["modes_file_format"].GetString()
         self.global_index_filename = settings["global_index_filename"].GetString()
         self.nr_modes = settings["number_modes_to_load"].GetInt()
-        self.output_filename = settings["modes_to_nodes_matrix_filename"].GetString()
-        self.output_file_format = settings[
-            "modes_to_nodes_matrix_file_format"
-        ].GetString()
         self.common = Common(Path(settings["root_path"].GetString()))
 
     def ExecuteInitialize(self):
@@ -88,7 +70,7 @@ class LoadModesToProperties(Kratos.Process):
         )
 
         # Load global starting elements index vector
-        global_index_numpy = read_numpy_array(self.global_index_filename, "ascii")
+        global_index_numpy = numpy.loadtxt(self.global_index_filename)
         global_index_vector = numpy_to_kratos_vector(global_index_numpy)
         self.model_part.ProcessInfo[MSA.GLOBAL_INDEX_VECTOR] = global_index_vector
 
