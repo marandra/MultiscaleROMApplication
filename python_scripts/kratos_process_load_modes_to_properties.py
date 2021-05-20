@@ -4,6 +4,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.MultiscaleROMApplication as MSA
 from common import Common
 
+
 def Factory(settings, model):
     return LoadModesToProperties(settings["Parameters"], model)
 
@@ -76,7 +77,7 @@ class LoadModesToProperties(Kratos.Process):
 
     def ExecuteInitialize(self):
         # Create global modes matrix
-        modes_numpy = self.common.get_dataset("BASES", "STRAIN")[:,:self.nr_modes] 
+        modes_numpy = self.common.get_dataset("BASES", "STRAIN")[:, : self.nr_modes]
         modes_matrix = numpy_to_kratos(modes_numpy)
         self.model_part.ProcessInfo[MSA.GLOBAL_MODES_MATRIX] = modes_matrix
 
@@ -93,4 +94,6 @@ class LoadModesToProperties(Kratos.Process):
 
     def ExecuteFinalize(self):
         rhs_matrix = self.model_part.ProcessInfo[MSA.RHS_MATRIX]
-        self.common.set_dataset(kratos_to_numpy(rhs_matrix), "CORRELATION", "STRAIN", self.nr_modes)
+        self.common.set_dataset(
+            kratos_to_numpy(rhs_matrix), "CORRELATION", "STRAIN", self.nr_modes
+        )
