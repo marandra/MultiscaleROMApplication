@@ -1,4 +1,0 @@
-1. Training: Generation of strain bases
-2. Offline-reconstruction: Generation of strain-displacement correlation matrix
-3. Multiscale: Multiscale simulationn and generation of strain interpolation parameters
-4. Online-reconstruction: Generation of GiD postprocessing files with fluctuant displacements

@@ -1,6 +1,0 @@
-1. Copy High_Fidelity_0.post.msh of RVE from training stage
-2. Copy strain-displacement correlation matrix from offline stage
-3. Copy strain interpolation parameters from multiscale analysis
-4. Run python3 MultiscaleROMApplication/reduction-stage/reconstruct_rve.py -h 
-to know the input parameters
-5. Output is a .res file to be open in GiD
